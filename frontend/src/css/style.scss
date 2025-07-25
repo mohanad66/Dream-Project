@@ -1,0 +1,131 @@
+// Variables - Enhanced for mobile
+$body-bg-color: #f5f5f5 ;
+$footer-gradient-height: 120px;
+$mobile-breakpoint: 480px; // Smaller phones
+$tablet-breakpoint: 768px;
+$large-tablet-breakpoint: 1024px;
+$font-size-base: 16px;
+$font-size-tablet: 17px;
+$font-size-large-tablet: 18px;
+
+html {
+  overflow-x: hidden;
+}
+
+// Base Body Styles - Mobile First
+body {
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh; // New viewport units for mobile
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  // Typography - Mobile optimized
+  font-family: system-ui,
+  -apple-system,
+  'Segoe UI',
+  Roboto,
+  'Helvetica Neue',
+  Arial,
+  sans-serif;
+  font-size: $font-size-base;
+  line-height: 1.5; // Better for mobile reading
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  // Visual Styling
+  background-color: $body-bg-color !important;
+  color: #333;
+
+  // Behavior - Touch optimization
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+
+  // Footer Spacing - Mobile first
+  padding-bottom: $footer-gradient-height * 0.8;
+
+  // Footer Gradient Decoration
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: $footer-gradient-height * 0.8;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  // Tablet Adjustments
+  @media (min-width: $tablet-breakpoint) {
+    font-size: $font-size-tablet;
+    padding-bottom: $footer-gradient-height;
+
+    &::after {
+      height: $footer-gradient-height;
+
+    }
+  }
+
+  // Large Tablet Adjustments
+  @media (min-width: $large-tablet-breakpoint) {
+    font-size: $font-size-large-tablet;
+    line-height: 1.6;
+  }
+
+  // Small Mobile Devices
+  @media (max-width: $mobile-breakpoint) {
+    padding-bottom: $footer-gradient-height * 0.6;
+
+    &::after {
+      height: $footer-gradient-height * 0.6;
+    }
+  }
+
+  // Print Styles
+  @media print {
+    background-color: white;
+    padding-bottom: 0;
+    font-size: 12pt;
+    line-height: 1.4;
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// Additional Mobile Optimizations
+@media (pointer: coarse) {
+
+  // Increase tap target sizes for touch devices
+  a,
+  button,
+  [role="button"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+// Prevent zoom on input focus in mobile browsers
+@media (max-width: $tablet-breakpoint) {
+
+  input,
+  textarea,
+  select {
+    font-size: 16px; // Prevent iOS zoom
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #f5f5f5;
+  }
+}

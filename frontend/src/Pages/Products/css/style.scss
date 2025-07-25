@@ -1,0 +1,310 @@
+// Variables
+$primary-color: #4CAF50;
+$secondary-color: #2e86de;
+$text-color: #333;
+$light-gray: #f5f5f5;
+$medium-gray: #ddd;
+$dark-gray: #666;
+$error-color: #e74c3c;
+$border-radius: 8px;
+$box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+$transition: all 0.3s ease;
+$spacing-unit: 1rem;
+$breakpoint-tablet: 992px;
+$breakpoint-mobile: 768px;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin card-hover-effect {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+// Main Container
+.products-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: $spacing-unit * 2;
+  
+  h1 {
+    text-align: center;
+    margin-bottom: $spacing-unit * 2;
+    color: $text-color;
+    font-size: 2.2rem;
+    position: relative;
+    padding-bottom: $spacing-unit;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, $primary-color, $secondary-color);
+    }
+  }
+  
+  @media (max-width: $breakpoint-mobile) {
+    padding: $spacing-unit;
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+  }
+}
+
+// Filters Section
+.filters {
+  display: flex;
+  justify-content: space-between;
+  gap: $spacing-unit * 1.5;
+  margin-bottom: $spacing-unit * 3;
+  padding: $spacing-unit * 1.5;
+  background-color: white;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  flex-wrap: wrap;
+  position: relative;
+  
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    gap: $spacing-unit;
+    padding: $spacing-unit;
+  }
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 250px;
+  
+  label {
+    display: block;
+    margin-bottom: $spacing-unit * 0.5;
+    font-weight: 600;
+    color: $text-color;
+    font-size: 0.95rem;
+  }
+}
+
+// Input Fields
+.search-filter,
+.category-filter {
+  input, select {
+    width: 100%;
+    padding: $spacing-unit * 0.75 $spacing-unit;
+    border: 1px solid $medium-gray;
+    border-radius: $border-radius;
+    font-size: 1rem;
+    transition: $transition;
+    background-color: white;
+    
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+    }
+  }
+}
+
+// Price Filter
+.price-filter {
+  position: relative;
+  
+  > label {
+    display: block;
+    margin-bottom: $spacing-unit;
+    font-weight: 600;
+    color: $primary-color;
+  }
+  
+  .price-inputs {
+    @include flex-center;
+    gap: $spacing-unit;
+    margin-bottom: $spacing-unit * 1.5;
+    
+    input {
+      flex: 1;
+      padding: $spacing-unit * 0.5;
+      border: 1px solid $medium-gray;
+      border-radius: $border-radius;
+      text-align: center;
+      min-width: 80px;
+      font-weight: 600;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+      }
+    }
+    
+    span {
+      color: $dark-gray;
+      font-size: 0.9rem;
+    }
+  }
+  
+  .range-slider {
+    position: relative;
+    height: 6px;
+    margin-top: $spacing-unit * 2;
+    margin-bottom: $spacing-unit * 3;
+    
+    input[type="range"] {
+      position: absolute;
+      width: 100%;
+      height: 0;
+      pointer-events: none;
+      -webkit-appearance: none;
+      z-index: 3;
+      
+      &::-webkit-slider-thumb {
+        pointer-events: all;
+        -webkit-appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: $primary-color;
+        cursor: pointer;
+        border: 3px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: $transition;
+        position: relative;
+        z-index: 4;
+        
+        &:hover {
+          transform: scale(1.1);
+          background: darken($primary-color, 10%);
+        }
+      }
+    }
+    
+    .slider-track {
+      position: absolute;
+      width: 100%;
+      height: 6px;
+      background: $light-gray;
+      border-radius: 3px;
+      z-index: 1;
+      
+      .slider-range {
+        position: absolute;
+        height: 100%;
+        background: $primary-color;
+        border-radius: 3px;
+        z-index: 2;
+      }
+    }
+  }
+}
+
+// Reset Button
+.reset-filters {
+  position: absolute;
+  bottom: -$spacing-unit * 1.5;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: $spacing-unit * 0.5 $spacing-unit * 1.5;
+  background: white;
+  color: $primary-color;
+  border: 2px solid $primary-color;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+  box-shadow: $box-shadow;
+  
+  &:hover {
+    background: $primary-color;
+    color: white;
+  }
+  
+  @media (max-width: $breakpoint-mobile) {
+    position: static;
+    transform: none;
+    margin-top: $spacing-unit;
+    width: 100%;
+  }
+}
+
+// Products Grid
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-unit * 1.5;
+  
+  @media (max-width: $breakpoint-tablet) {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// No Products Found
+.no-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: $spacing-unit * 3;
+  background: white;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  
+  h3 {
+    color: $error-color;
+    margin-bottom: $spacing-unit * 0.5;
+  }
+  
+  p {
+    color: $dark-gray;
+    margin-bottom: $spacing-unit;
+  }
+  
+  button {
+    padding: $spacing-unit * 0.5 $spacing-unit * 1.5;
+    background: $primary-color;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition;
+    
+    &:hover {
+      background: darken($primary-color, 10%);
+    }
+  }
+}
+
+// Category Select Styling
+.category-filter select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $spacing-unit center;
+  background-size: 16px;
+  padding-right: $spacing-unit * 2.5;
+}
+
+// Responsive Adjustments
+@media (max-width: $breakpoint-mobile) {
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .price-inputs {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    input {
+      width: 100%;
+    }
+  }
+}
