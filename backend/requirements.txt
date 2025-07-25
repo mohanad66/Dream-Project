@@ -39,7 +39,7 @@ MarkupSafe==2.1.5
 msgpack==1.1.0
 packaging==25.0
 pillow==11.1.0
-platformdirs==4.3.6
+platformdirs==4.2.2
 pluggy==1.5.0
 proto-plus==1.26.1
 protobuf==5.29.4
@@ -51,11 +51,11 @@ pygame==2.6.0
 Pygments==2.18.0
 PyJWT==2.9.0
 pyparsing==3.2.1
-pyscript==0.2.5
+pyscript==0.3.3
 python-decouple==3.8
 python-dotenv==1.0.1
 pytz==2025.1
-requests==2.32.3
+requests==2.31.0
 rich==12.6.0
 rich-click==1.8.2
 rsa==4.9
@@ -67,7 +67,7 @@ typing_extensions==4.12.0
 tzdata==2024.1
 uritemplate==4.1.1
 urllib3==2.3.0
-virtualenv==20.26.6
+virtualenv==20.32.0
 VYTHON==0.1
 waitress==3.0.2
 whitenoise==6.9.0
