@@ -136,12 +136,12 @@ export default function Products({ categories = [], products = [] }) {
             <option value="all">All Categories ({processedProducts.length})</option>
             {availableCategories.map(category => (
               <option key={category.id} value={category.id}>
-                {category.name} ({processedProducts.filter(p => p.category === category.id).length})
+                {category.name} ({processedProducts.filter(p => p.category === category.id).length > 99 ? "99+" : processedProducts.filter(p => p.category === category.id).length})
               </option>
             ))}
             {hasUncategorizedProducts && (
               <option value="uncategorized">
-                Uncategorized ({processedProducts.filter(p => p.category === null).length})
+                Uncategorized ({processedProducts.filter(p => p.category === null).length > 99 ? "99+" : processedProducts.filter(p => p.category === null).length})
               </option>
             )}
           </select>

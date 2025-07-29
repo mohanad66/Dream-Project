@@ -120,7 +120,7 @@ class Product(models.Model):
         'Category',
         on_delete=models.SET_NULL,
         null=True,
-        blank=False,
+        blank=True,
         related_name='products',
         verbose_name="Product Category",
         help_text="Select product category"
