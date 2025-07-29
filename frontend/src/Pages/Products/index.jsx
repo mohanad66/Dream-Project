@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import "./css/style.css";
+import "./css/style.scss";
 import Card from '../../Components/Card';
 
 export default function Products({ categories = [], products = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  
+
   // State management
   const [selectedCategory, setSelectedCategory] = useState(
     queryParams.get('category') || 'all'
@@ -68,18 +68,18 @@ export default function Products({ categories = [], products = [] }) {
   // Filter products (single declaration)
   const filteredProducts = useMemo(() => {
     return processedProducts.filter(product => {
-      const categoryMatch = selectedCategory === 'all' || 
-        (selectedCategory === 'uncategorized' ? product.category === null : 
-         product.category && product.category.toString() === selectedCategory.toString());
-      
+      const categoryMatch = selectedCategory === 'all' ||
+        (selectedCategory === 'uncategorized' ? product.category === null :
+          product.category && product.category.toString() === selectedCategory.toString());
+
       const searchLower = searchTerm.toLowerCase().trim();
       const searchMatch = !searchLower ||
         (product.name && product.name.toLowerCase().includes(searchLower)) ||
         (product.description && product.description.toLowerCase().includes(searchLower));
-      
-      const priceMatch = (product.price || 0) >= priceRange.min && 
-                        (product.price || 0) <= priceRange.max;
-      
+
+      const priceMatch = (product.price || 0) >= priceRange.min &&
+        (product.price || 0) <= priceRange.max;
+
       return categoryMatch && searchMatch && priceMatch;
     });
   }, [processedProducts, selectedCategory, searchTerm, priceRange]);
@@ -89,7 +89,7 @@ export default function Products({ categories = [], products = [] }) {
     const value = parseInt(e.target.value) || 0;
     setPriceRange(prev => ({
       ...prev,
-      [type === 'min' ? 'min' : 'max']: type === 'min' 
+      [type === 'min' ? 'min' : 'max']: type === 'min'
         ? Math.min(Math.max(value, actualPriceRange.min), prev.max - 1)
         : Math.max(Math.min(value, actualPriceRange.max), prev.min + 1)
     }));
@@ -111,7 +111,7 @@ export default function Products({ categories = [], products = [] }) {
   return (
     <div className="products-container">
       <h1>Our Products</h1>
-      
+
       <div className="filters">
         {/* Search Filter */}
         <div className="search-filter">
@@ -200,17 +200,19 @@ export default function Products({ categories = [], products = [] }) {
 
       {/* Product Grid */}
       <div className="products-grid">
-        {filteredProducts.length > 0 ? (
+        {filteredProducts.length > 0 && products.length > 0 ? (
           filteredProducts.map(product => (
             <Card key={product.id} card={product} categories={categories} />
           ))
-        ) : (
+        ) : filteredProducts.length != products.length ? (
           <div className="no-products">
             <h3>No products found</h3>
             <p>Try adjusting your filters or search terms.</p>
             <button onClick={resetFilters}>Reset All Filters</button>
           </div>
-        )}
+        ) : (<div className='empty'>
+          <h2>There isn't any Products</h2>
+        </div>)}
       </div>
     </div>
   );

@@ -72,7 +72,9 @@ $breakpoint-mobile: 768px;
   box-shadow: $box-shadow;
   flex-wrap: wrap;
   position: relative;
-  
+  label{
+    color: #000 !important;
+  }
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
     gap: $spacing-unit;

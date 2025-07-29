@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import "./css/style.css";
+import "./css/style.scss";
 import Card from '../../Components/Card';
 
 const FavoritesPage = ({ categories }) => {
@@ -37,7 +37,7 @@ const FavoritesPage = ({ categories }) => {
         <div className="favorites-page">
             <h1>Your Favorites</h1>
             {favorites.length === 0 ? (
-                <p>You haven't added any favorites yet.</p>
+                <div className='empty'><h2>You haven't added any favorites yet.</h2></div>
             ) : (
                 <div className="cards-container">
                     {favorites.map(card => {

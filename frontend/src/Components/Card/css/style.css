@@ -67,7 +67,6 @@
   color: white;
   text-decoration: none;
   padding: 0.5rem;
-  margin: 1rem;
   border-radius: 4px;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -103,6 +102,9 @@
   margin-top: auto;
   padding: 1.5rem;
 }
+.card-popup-overlay .popup-left .card-price {
+  margin-bottom: 0 !important;
+}
 .card-popup-overlay .popup-left .whatsapp-btn {
   display: flex;
   align-items: center;
@@ -119,6 +121,9 @@
 }
 .card-popup-overlay .popup-left .whatsapp-btn:hover {
   background-color: rgb(29.3911290323, 167.6088709677, 81.0241935484);
+}
+.card-popup-overlay .popup-left .whatsapp-btn h2 {
+  margin-bottom: 0 !important;
 }
 .card-popup-overlay .popup-left .whatsapp-btn img {
   width: 40px;
@@ -295,4 +300,12 @@
 
 .card {
   position: relative; /* Add this to position the favorite button correctly */
+}
+
+.card-category {
+  margin-bottom: 0 !important;
+}
+
+.popup-content {
+  font-size: 1rem;
 }/*# sourceMappingURL=style.css.map */

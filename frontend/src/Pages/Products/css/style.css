@@ -42,6 +42,9 @@
   flex-wrap: wrap;
   position: relative;
 }
+.filters label {
+  color: #000 !important;
+}
 @media (max-width: 768px) {
   .filters {
     flex-direction: column;

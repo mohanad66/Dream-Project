@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import "./css/style.css";
+import "./css/style.scss";
 import whatsappLogo from "../../imgs/whatsapp.png";
 import useFancybox from '../Fancy Box';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';

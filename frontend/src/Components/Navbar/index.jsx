@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { FaHome, FaSearch, FaHeart, FaUser, FaShoppingCart , FaHandHoldingHeart , FaInfoCircle   } from 'react-icons/fa';
-import "./css/style.css";
+import "./css/style.scss";
 
 export default function Navbar() {
   const location = useLocation();
@@ -39,7 +39,7 @@ export default function Navbar() {
               className={`ufo-navbar__link ${activeLink === "/favourite" ? 'ufo-navbar__link--active' : ''}`}
             >
               <FaHandHoldingHeart className="ufo-navbar__icon" />
-              <span className="ufo-navbar__label">Cart</span>
+              <span className="ufo-navbar__label">Loved</span>
             </Link>
             
             {/* <Link

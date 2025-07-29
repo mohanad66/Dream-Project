@@ -93,8 +93,7 @@ $transition: all 0.3s ease;
     color: white;
     text-decoration: none;
     padding: 0.5rem;
-    margin: 1rem;
-    border-radius: 4px;
+     border-radius: 4px;
     font-weight: 500;
     transition: $transition;
     margin-top: auto; // This pushes the button to bottom
@@ -121,7 +120,9 @@ $transition: all 0.3s ease;
       gap: 5px;
       margin-top: auto;
       padding: 1.5rem;
-
+      .card-price{
+        margin-bottom:0 !important;
+      }
       .whatsapp-btn {
         @include flex-center;
         gap: 8px;
@@ -137,7 +138,9 @@ $transition: all 0.3s ease;
         &:hover {
           background-color: darken($primary-color, 10%);
         }
-
+        h2{
+          margin-bottom:0 !important;
+        }
         img {
           width: 40px;
           height: 40px;
@@ -338,4 +341,10 @@ $transition: all 0.3s ease;
 
 .card {
     position: relative; /* Add this to position the favorite button correctly */
+}
+.card-category{
+  margin-bottom:0 !important;
+}
+.popup-content{
+  font-size:1rem;
 }
