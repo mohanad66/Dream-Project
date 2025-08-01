@@ -10,7 +10,7 @@ from django.core.files.base import ContentFile
 import os
 class CarouselImg(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    img = models.ImageField(upload_to='carousel/')
+    image = models.ImageField(upload_to='carousel/')
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0, editable=False)
     
