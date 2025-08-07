@@ -120,6 +120,7 @@ $transition: all 0.3s ease;
       gap: 5px;
       margin-top: auto;
       padding: 1.5rem;
+      max-width: 50%;
       .card-price{
         margin-bottom:0 !important;
       }
@@ -189,7 +190,7 @@ $transition: all 0.3s ease;
   &-content {
     display: flex;
     flex-direction: row;
-    overflow-y: hidden;
+    overflow-y: auto;
     gap: 30px;
     width: 100%;
 

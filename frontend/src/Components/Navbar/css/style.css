@@ -149,4 +149,11 @@
   .ufo-navbar__label {
     font-size: 0.6rem;
   }
+}
+.ufo-navbar__link.btn {
+  border: none;
+  font-size: 30px;
+}
+.ufo-navbar__link.btn:hover {
+  color: #e60606;
 }/*# sourceMappingURL=style.css.map */

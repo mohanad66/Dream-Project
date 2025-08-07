@@ -113,10 +113,9 @@ $color-white: #ffffff;
 
   &-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
     gap: $spacing-unit * 0.75;
-    width: 90%;
-    max-width: 120px !important;
+    width: 100%;
     margin: 0 5%;
     justify-content: left;
     align-items: start;
@@ -212,7 +211,7 @@ $color-white: #ffffff;
 .cards-container:not(.services) {
   padding: 0 !important;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: $spacing-unit * 1.25;
 
   @media (max-width: $breakpoint-tablet) {

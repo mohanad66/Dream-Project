@@ -2,10 +2,10 @@
 $ufo-primary: #6bd1ff;
 $ufo-secondary: #9c64ff;
 $ufo-glow: 0 0 15px rgba(107, 209, 255, 0.7);
-$ufo-beam: linear-gradient(to bottom, 
-              rgba(155, 255, 255, 0.2) 0%,
-              rgba(155, 255, 255, 0.1) 50%,
-              transparent 100%);
+$ufo-beam: linear-gradient(to bottom,
+    rgba(155, 255, 255, 0.2) 0%,
+    rgba(155, 255, 255, 0.1) 50%,
+    transparent 100%);
 $transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
 
 .ufo-navbar-container {
@@ -42,28 +42,24 @@ $transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
   align-items: flex-end;
   pointer-events: auto;
 
-  &:hover {
-    .ufo-light-beam {
-      opacity: 0.5;
-    }
-    
-    .ufo-navbar__disc {
-      transform: translateY(-10px);
-      box-shadow: 0 10px 30px rgba(107, 209, 255, 0.4);
-    }
+  .ufo-light-beam {
+    opacity: 0.5;
+  }
+
+  .ufo-navbar__disc {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(107, 209, 255, 0.4);
   }
 
   &__disc {
     width: 100%;
     height: 70px;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(255, 255, 255, 0.95) 0%,
-      rgba(230, 230, 255, 0.95) 100%
-    );
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(230, 230, 255, 0.95) 100%);
     border-radius: 50px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2),
-                inset 0 0 15px rgba(255, 255, 255, 0.8);
+      inset 0 0 15px rgba(255, 255, 255, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -88,11 +84,9 @@ $transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
     transform: translateX(-50%);
     width: 50px;
     height: 50px;
-    background: radial-gradient(
-      circle at center,
-      $ufo-primary 0%,
-      $ufo-secondary 100%
-    );
+    background: radial-gradient(circle at center,
+        $ufo-primary 0%,
+        $ufo-secondary 100%);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -164,10 +158,12 @@ $transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
     transform: scale(0.8);
     opacity: 0.8;
   }
+
   50% {
     transform: scale(1.2);
     opacity: 1;
   }
+
   100% {
     transform: scale(0.8);
     opacity: 0.8;
@@ -177,13 +173,22 @@ $transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
 @media (max-width: 480px) {
   .ufo-navbar {
     width: 95%;
-    
+
     &__link {
       padding: 0.5rem 0.25rem;
     }
-    
+
     &__label {
       font-size: 0.6rem;
     }
+  }
+}
+
+.ufo-navbar__link.btn {
+  border: none;
+  font-size: 30px;
+
+  &:hover {
+    color: #e60606;
   }
 }

@@ -103,7 +103,7 @@ class Product(models.Model):
     image = models.ImageField(
         upload_to='products/',
         blank=False,
-        help_text="Upload product image (recommended ratio: 4:3, width > height, min 800x600px)"
+        help_text="Upload product image (width must be equal to or greater than height)"
     )
     name = models.CharField(
         max_length=70,
@@ -163,50 +163,52 @@ class Product(models.Model):
         return f"{self.name} (${self.price}) {self.is_active}"
     
     def clean(self):
-        """Additional model validation"""
+        """Validate image dimensions (width >= height)"""
         super().clean()
         
-        # Validate image dimensions and aspect ratio
         if self.image:
             try:
                 with Image.open(self.image) as img:
                     width, height = img.size
-                    # Minimum size check
-                    if width < 800 or height < 600:
+                    
+                    # Basic size check
+                    MIN_DIMENSION = 400
+                    if width < MIN_DIMENSION or height < MIN_DIMENSION:
                         raise ValidationError(
-                            "Image should be at least 800x600 pixels. "
+                            f"Image should be at least {MIN_DIMENSION}x{MIN_DIMENSION} pixels. "
                             f"Current size: {width}x{height}"
                         )
-                    # Aspect ratio check (width > height)
-                    if width <= height:
+                    
+                    # Main validation: width must be >= height
+                    if width < height:
                         raise ValidationError(
-                            "Product image must be rectangular (width > height). "
+                            "Product image width must be equal to or greater than height. "
                             f"Current dimensions: {width}x{height}"
                         )
-                    # Optional: Check if ratio is roughly 4:3 (within 10% tolerance)
-                    target_ratio = 4/3
-                    actual_ratio = width/height
-                    if not (0.9 * target_ratio <= actual_ratio <= 1.1 * target_ratio):
-                        raise ValidationError(
-                            "Recommended aspect ratio is 4:3 (width:height). "
-                            f"Current ratio: {round(actual_ratio, 2)}:1"
-                        )
+                        
             except Exception as e:
                 raise ValidationError(f"Could not process image: {str(e)}")
     
-    
     def save(self, *args, **kwargs):
-        # Generate slug if it's empty or needs to be updated
-        if not self.slug:  # or some condition to regenerate
-            self.slug = slugify(self.name)  # or whatever field you're basing the slug on
+        # Generate slug if empty
+        if not self.slug:
+            self.slug = slugify(self.name)
         
-        # Ensure the slug is valid
-        self.slug = self.slug.lower()  # convert to lowercase
+        # Ensure valid slug
+        self.slug = self.slug.lower()
         self.slug = ''.join(c for c in self.slug if c.isalnum() or c in ['-', '_'])
         
+        # Run full validation including image check
+        self.full_clean()
+        
         super().save(*args, **kwargs)
+        
+        # Optimize image after save
+        if self.image:
+            self.optimize_image()
+    
     def optimize_image(self):
-        """Optimize the product image with rectangular aspect ratio"""
+        """Optimize the product image while maintaining width >= height"""
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
@@ -214,17 +216,19 @@ class Product(models.Model):
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                # Resize if too large while maintaining aspect ratio
-                max_width = 1600  # Max width for product images
-                max_height = 1200  # Max height for product images
+                # Target dimensions (max 1600px on longest side)
+                MAX_DIMENSION = 1600
                 
-                if img.width > max_width or img.height > max_height:
-                    img.thumbnail((max_width, max_height), Image.LANCZOS)
+                # Only resize if image is larger than max dimension
+                if max(img.size) > MAX_DIMENSION:
+                    ratio = MAX_DIMENSION / max(img.size)
+                    new_size = (int(img.width * ratio), int(img.height * ratio))
+                    img = img.resize(new_size, Image.LANCZOS)
                 
                 # Save optimized image
                 img.save(img_path, quality=85, optimize=True)
         except Exception as e:
-            # Fail silently - we don't want to break the save if optimization fails
+            # Silently fail if optimization fails
             pass
     
     def get_absolute_url(self):
@@ -244,7 +248,6 @@ class Product(models.Model):
         """Returns the aspect ratio as a float (width/height)"""
         width, height = self.dimensions
         return round(width / height, 2) if height else 0
-
 class Service(models.Model):
     image = models.ImageField(
         upload_to="services/",

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { FaHome, FaSearch, FaHeart, FaUser, FaShoppingCart , FaHandHoldingHeart , FaInfoCircle   } from 'react-icons/fa';
 import "./css/style.scss";
+import { IoLogOut } from "react-icons/io5";
 
-export default function Navbar() {
+export default function Navbar({onLogout}) {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("");
 
@@ -49,6 +50,17 @@ export default function Navbar() {
               <FaInfoCircle className="ufo-navbar__icon" />
               <span className="ufo-navbar__label">About</span>
             </Link> */}
+            <Link
+              to="/profile"
+              className={`ufo-navbar__link ${activeLink === "/profile" ? 'ufo-navbar__link--active' : ''}`}
+            >
+              <FaInfoCircle className="ufo-navbar__icon" />
+              <span className="ufo-navbar__label">profile</span>
+            </Link>
+            
+            <button className="ufo-navbar__link btn" onClick={() => {onLogout(); window.location.reload() } }>
+              <IoLogOut />
+            </button>
           </div>
         </div>
       </nav>
