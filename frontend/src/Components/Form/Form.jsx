@@ -1,5 +1,5 @@
 // src/Components/Form/Form.jsx
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../../services/api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../services/constants.js";
@@ -125,46 +125,9 @@ export default function Form({ route, method, onLogin, successRedirect }) {
     };
 
     if (registrationSuccess) {
-        const [resendStatus, setResendStatus] = useState({ loading: false, message: '', error: false });
-
-        const handleResendEmail = async () => {
-            setResendStatus({ loading: true, message: '', error: false });
-            try {
-                await api.post('/api/auth/send-verification-email/', {
-                    email: registeredEmail
-                });
-                setResendStatus({ loading: false, message: 'A new verification email has been sent!', error: false });
-            } catch (err) {
-                setResendStatus({ loading: false, message: 'Failed to resend email. Please try again later.', error: true });
-            }
-        };
 
         return (
-            <div className="registration-success">
-                <h2>Registration Successful!</h2>
-                <p>We've sent a verification email to <strong>{registeredEmail}</strong>.</p>
-                <p>Please check your inbox and click the link to activate your account.</p>
-                <div className="actions">
-                    <button
-                        className="resend-button"
-                        onClick={() => navigate('/login')}
-                    >
-                        Go to Login
-                    </button>
-                    <button
-                        className="resend-button"
-                        onClick={handleResendEmail}
-                        disabled={resendStatus.loading}
-                    >
-                        {resendStatus.loading ? 'Sending...' : 'Resend Verification Email'}
-                    </button>
-                </div>
-                {resendStatus.message && (
-                    <div className={resendStatus.error ? "error-message" : "success-message"}>
-                        {resendStatus.message}
-                    </div>
-                )}
-            </div>
+           <Navigate to="/login" replace/>
         );
     }
 

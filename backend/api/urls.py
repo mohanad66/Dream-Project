@@ -30,11 +30,8 @@ urlpatterns = [
     # User endpoints
     path("user/register/", CreateUserView.as_view(), name="register"),
     path("user/myuser/", get_current_user, name="get_user"),
-    path("user/verify-token/", verify_token, name="verify_token"),
     path('user/all/', get_all_users, name='get_all_users'),
     path("user/<int:pk>/", UserDetailView.as_view() , name="user-detail"),
-    path('auth/password/reset/', PasswordResetRequestView.as_view(), name='password-reset'),
-    path('auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('auth/password/change/', PasswordChangeView.as_view(), name='password-change'),
 
     # ++++++++++ ADD ADMIN URLS ++++++++++

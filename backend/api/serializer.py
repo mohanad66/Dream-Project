@@ -15,12 +15,6 @@ class CarouselImgSerializer(serializers.ModelSerializer):
         model = CarouselImg
         fields = "__all__"
 
-# ++++++++++ ADDED AUTHOR SERIALIZER ++++++++++
-class AuthorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Author
-        fields = "__all__"
-# +++++++++++++++++++++++++++++++++++++++++++++
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -82,7 +76,6 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        """Create a new user with encrypted password"""
         try:
             user = User.objects.create_user(
                 username=validated_data["username"],
@@ -104,7 +97,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Custom token serializer with better error handling and logging"""
     
     def validate(self, attrs):
         username = attrs.get('username', 'Unknown')
@@ -138,7 +130,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     @classmethod
     def get_token(cls, user):
-        """Override to add custom claims to token"""
         token = super().get_token(user)
         
         # Add custom claims
@@ -148,31 +139,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_staff'] = user.is_staff
         
         return token
-
-# Serializer for password reset
-
-class PasswordResetRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    
-    def validate_email(self, value):
-        try:
-            user = User.objects.get(email=value)
-            if not user.is_active:
-                raise serializers.ValidationError("Account is not active.")
-            return value
-        except User.DoesNotExist:
-            raise serializers.ValidationError("No user found with this email address.")
-
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    new_password = serializers.CharField(required=True, validators=[validate_password])
-    confirm_password = serializers.CharField(required=True)
-    uid = serializers.CharField()
-    token = serializers.CharField()
-    
-    def validate(self, attrs):
-        if attrs['new_password'] != attrs['confirm_password']:
-            raise serializers.ValidationError("New passwords do not match.")
-        return attrs
 
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
@@ -191,7 +157,6 @@ class PasswordChangeSerializer(serializers.Serializer):
         return value
 
 class AdminUserSerializer(UserSerializer):
-    """Extended serializer with admin privileges"""
     class Meta(UserSerializer.Meta):
         extra_kwargs = {
             **UserSerializer.Meta.extra_kwargs,
@@ -201,7 +166,6 @@ class AdminUserSerializer(UserSerializer):
         }
         
     def to_representation(self, instance):
-        """Override to show full details to admins"""
         representation = super().to_representation(instance)
         if not self.context.get('is_admin', False):
             # Hide sensitive fields from non-admins

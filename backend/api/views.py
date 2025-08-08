@@ -24,25 +24,21 @@ User = get_user_model()
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
 class ProductAdminViewSet(viewsets.ModelViewSet):
-    """Admin viewset for managing Products (CRUD)."""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
 
 class CategoryAdminViewSet(viewsets.ModelViewSet):
-    """Admin viewset for managing Categories (CRUD)."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
 
 class ServiceAdminViewSet(viewsets.ModelViewSet):
-    """Admin viewset for managing Services (CRUD)."""
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     permission_classes = [IsAdminUser]
 
 class ContactAdminViewSet(viewsets.ModelViewSet):
-    """Admin viewset for managing Contacts (CRUD)."""
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
@@ -91,7 +87,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CreateUserView(generics.CreateAPIView):
-    """User Registration endpoint"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
@@ -99,9 +94,7 @@ class CreateUserView(generics.CreateAPIView):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_all_users(request):
-    """
-    Admin-only endpoint to list all users
-    """
+
     try:
         users = User.objects.all().order_by('-date_joined')
         
@@ -127,14 +120,6 @@ def get_all_users(request):
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
-class UserListView(APIView):
-    permission_classes = [IsAdminUser]
-    
-    def get(self, request):
-        users = User.objects.all()
-        serializer = AdminUserSerializer(users, many=True, context={'is_admin': True})
-        return Response(serializer.data)
 
 class UserDetailView(APIView):
     def get_permissions(self):
@@ -202,19 +187,9 @@ def get_current_user(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def verify_token(request):
-    """Verify JWT token validity"""
-    return Response({
-        "valid": True,
-        "user": request.user.username,
-        "message": "Token is valid"
-    })
 
 # Public Content Views
 def create_public_list_view(model, serializer, *, order_by=None, filter_active=False):
-    """Factory function for public list endpoints"""
     @api_view(["GET"])
     @permission_classes([AllowAny])
     def view_func(request):
@@ -232,66 +207,6 @@ def create_public_list_view(model, serializer, *, order_by=None, filter_active=F
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     return view_func
-
-class PasswordResetRequestView(generics.GenericAPIView):
-    serializer_class = PasswordResetRequestSerializer
-    
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
-        
-        user = User.objects.get(email=email)
-        
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        
-        reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
-        
-        subject = "Password Reset Request"
-        message = render_to_string('password_reset_email.html', {
-            'user': user,
-            'reset_url': reset_url,
-        })
-        
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False,
-        )
-        
-        return Response(
-            {"detail": "Password reset email has been sent."},
-            status=status.HTTP_200_OK
-        )
-
-class PasswordResetConfirmView(generics.GenericAPIView):
-    serializer_class = PasswordResetConfirmSerializer
-    
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        try:
-            uid = force_str(urlsafe_base64_decode(serializer.validated_data['uid']))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
-            
-        if user is not None and default_token_generator.check_token(user, serializer.validated_data['token']):
-            user.set_password(serializer.validated_data['new_password'])
-            user.save()
-            return Response(
-                {"detail": "Password has been reset successfully."},
-                status=status.HTTP_200_OK
-            )
-            
-        return Response(
-            {"error": "Invalid reset link."},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
 class PasswordChangeView(generics.GenericAPIView):
     serializer_class = PasswordChangeSerializer

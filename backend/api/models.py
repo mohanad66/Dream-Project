@@ -12,7 +12,6 @@ import os
 from django.contrib.auth import get_user_model
 
 class Author(models.Model):
-    """Represents a product author, linked to a user."""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     bio = models.TextField(blank=True, help_text="A short bio for the author.")
 
@@ -29,10 +28,6 @@ class Author(models.Model):
         super().save(*args, **kwargs)
         
 def get_default_author():
-    """
-    Gets or creates a default author user.
-    This is used for the SET_DEFAULT on_delete rule in the Product model.
-    """
     # ++++++++++ THIS IS THE CORRECTED PART ++++++++++
     User = get_user_model()  # Get the actual User model
     default_user, created = User.objects.get_or_create(
@@ -60,7 +55,6 @@ class CarouselImg(models.Model):
         ordering = ['order']
     
     def clean(self):
-        """Validate image dimensions and aspect ratio"""
         super().clean()
         
         if self.image:
@@ -93,7 +87,6 @@ class CarouselImg(models.Model):
                 raise ValidationError(f"Could not process image: {str(e)}")
     
     def optimize_image(self):
-        """Optimize the product image while maintaining width ≥ height"""
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
@@ -197,7 +190,6 @@ class Product(models.Model):
         return f"{self.name} (${self.price}) {self.is_active}"
     
     def clean(self):
-        """Validate image dimensions (width >= height)"""
         super().clean()
         
         if self.image:
@@ -236,7 +228,6 @@ class Product(models.Model):
             self.optimize_image()
     
     def optimize_image(self):
-        """Optimize the product image while maintaining width >= height"""
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
@@ -259,7 +250,6 @@ class Product(models.Model):
     
     @property
     def dimensions(self):
-        """Returns (width, height) of the image"""
         try:
             with Image.open(self.image.path) as img:
                 return img.size
@@ -268,7 +258,6 @@ class Product(models.Model):
     
     @property
     def aspect_ratio(self):
-        """Returns the aspect ratio as a float (width/height)"""
         width, height = self.dimensions
         return round(width / height, 2) if height else 0
 
@@ -316,7 +305,6 @@ class Service(models.Model):
         return f"{self.name} (${self.price})"
     
     def clean(self):
-        """Validate image aspect ratio (width ≥ height)"""
         super().clean()
         
         if self.image:
@@ -341,7 +329,6 @@ class Service(models.Model):
             self.optimize_image()
     
     def optimize_image(self):
-        """Optimize the service image while maintaining width ≥ height"""
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
