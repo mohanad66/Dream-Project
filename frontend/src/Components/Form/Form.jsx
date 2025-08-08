@@ -17,6 +17,8 @@ export default function Form({ route, method, onLogin, successRedirect }) {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState("");
     const navigate = useNavigate();
     const isLogin = method === "login";
     const formTitle = isLogin ? "Login" : "Register";
@@ -25,124 +27,66 @@ export default function Form({ route, method, onLogin, successRedirect }) {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value.trim() // Trim whitespace from inputs
+            [name]: value
         }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Prevent multiple submissions
         if (loading) return;
 
         setLoading(true);
         setError(null);
 
         try {
-            // Validate required fields
-            if (!formData.username || !formData.password) {
-                throw new Error("Username and password are required");
-            }
-
-            // Prepare clean payload
             const payload = {
-                username: formData.username,
-                password: formData.password
+                username: formData.username.trim(),
+                password: formData.password,
             };
 
-            if (!isLogin) {
-                payload.email = formData.email;
-                payload.first_name = formData.first_name;
-                payload.last_name = formData.last_name;
-            }
-
-
-            console.log("Making request with payload (hidden password):", {
-                ...payload,
-                password: "***" // Hide password in logs
-            });
-
             if (isLogin) {
-                // For login: Clear auth header and tokens BEFORE making request
                 delete api.defaults.headers.common["Authorization"];
                 localStorage.removeItem(ACCESS_TOKEN);
                 localStorage.removeItem(REFRESH_TOKEN);
 
-                // Make login request without any auth headers - ADD skipAuthRefresh flag
                 const response = await api.post("/api/token/", payload, {
-                    skipAuthRefresh: true  // ← ADDED THIS LINE
+                    skipAuthRefresh: true
                 });
 
-                console.log("Login response received:", response.status);
-
-                // Store new tokens
                 localStorage.setItem(ACCESS_TOKEN, response.data.access);
                 localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-
-                // Set new auth header
                 api.defaults.headers.common["Authorization"] = `Bearer ${response.data.access}`;
 
-                // Verify token by fetching user data - ADD skipAuthRefresh flag
-                try {
-                    const userResponse = await api.get("/api/user/myuser/", {
-                        skipAuthRefresh: true  // ← ADDED THIS LINE TOO
-                    });
-                    
-                    // Add small delay to prevent race conditions
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
-                    onLogin(userResponse.data);
-
-                    // Clear form data on successful login
-                    setFormData({
-                        username: "",
-                        password: "",
-                        ...(method === "register" && {
-                            email: "",
-                            first_name: "",
-                            last_name: ""
-                        })
-                    });
-
-                    if (successRedirect) {
-                        navigate(successRedirect);
-                    }
-                } catch (verifyError) {
-                    console.error("Token verification failed:", verifyError);
-                    // Clear tokens if verification fails
-                    localStorage.removeItem(ACCESS_TOKEN);
-                    localStorage.removeItem(REFRESH_TOKEN);
-                    delete api.defaults.headers.common["Authorization"];
-                    throw new Error("Session verification failed after login");
-                }
-            } else {
-                // For registration
-                const response = await api.post("/api/user/register/", payload);
-                console.log("Registration successful");
-
-                // Clear form data
-                setFormData({
-                    username: "",
-                    password: "",
-                    email: "",
-                    first_name: "",
-                    last_name: ""
+                const userResponse = await api.get("/api/user/myuser/", {
+                    skipAuthRefresh: true
                 });
 
-                // Redirect to login with success state
-                navigate("/login", {
-                    state: {
-                        registrationSuccess: true,
-                        username: formData.username
-                    }
+                onLogin(userResponse.data);
+
+                if (successRedirect) {
+                    navigate(successRedirect);
+                }
+            } else {
+                if (!formData.email) {
+                    throw new Error("Email is required");
+                }
+                payload.email = formData.email.trim();
+                payload.first_name = formData.first_name.trim();
+                payload.last_name = formData.last_name.trim();
+
+                await api.post("/api/user/register/", payload);
+
+                setRegisteredEmail(payload.email);
+                setRegistrationSuccess(true);
+
+                setFormData({
+                    username: "", password: "", email: "", first_name: "", last_name: ""
                 });
             }
         } catch (error) {
             console.error("Authentication error:", error);
-            console.error("Error response data:", error.response?.data);
-
-            // Format error message
             let errorMessage;
+
             if (error.response?.data) {
                 const data = error.response.data;
                 if (typeof data === "string") {
@@ -152,11 +96,10 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                 } else if (data.error) {
                     errorMessage = data.error;
                 } else {
-                    // Handle field-specific errors
                     const fieldErrors = [];
                     Object.keys(data).forEach(field => {
                         if (Array.isArray(data[field])) {
-                            fieldErrors.push(`${field}: ${data[field].join(", ")}`);
+                            fieldErrors.push(`${field.charAt(0).toUpperCase() + field.slice(1)}: ${data[field].join(", ")}`);
                         } else {
                             fieldErrors.push(`${field}: ${data[field]}`);
                         }
@@ -166,12 +109,11 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                         : "Authentication failed";
                 }
             } else {
-                errorMessage = error.message || "Network error occurred";
+                errorMessage = error.message || "An unexpected network error occurred.";
             }
 
             setError(errorMessage);
 
-            // Clear tokens on login failure
             if (isLogin) {
                 localStorage.removeItem(ACCESS_TOKEN);
                 localStorage.removeItem(REFRESH_TOKEN);
@@ -182,92 +124,163 @@ export default function Form({ route, method, onLogin, successRedirect }) {
         }
     };
 
-    return (
-        <form onSubmit={handleSubmit} className="form-container">
-            <h1>{formTitle}</h1>
+    if (registrationSuccess) {
+        const [resendStatus, setResendStatus] = useState({ loading: false, message: '', error: false });
 
-            {error && (
-                <div className="error-message" style={{ whiteSpace: "pre-line" }}>
-                    {error}
+        const handleResendEmail = async () => {
+            setResendStatus({ loading: true, message: '', error: false });
+            try {
+                await api.post('/api/auth/send-verification-email/', {
+                    email: registeredEmail
+                });
+                setResendStatus({ loading: false, message: 'A new verification email has been sent!', error: false });
+            } catch (err) {
+                setResendStatus({ loading: false, message: 'Failed to resend email. Please try again later.', error: true });
+            }
+        };
+
+        return (
+            <div className="registration-success">
+                <h2>Registration Successful!</h2>
+                <p>We've sent a verification email to <strong>{registeredEmail}</strong>.</p>
+                <p>Please check your inbox and click the link to activate your account.</p>
+                <div className="actions">
+                    <button
+                        className="resend-button"
+                        onClick={() => navigate('/login')}
+                    >
+                        Go to Login
+                    </button>
+                    <button
+                        className="resend-button"
+                        onClick={handleResendEmail}
+                        disabled={resendStatus.loading}
+                    >
+                        {resendStatus.loading ? 'Sending...' : 'Resend Verification Email'}
+                    </button>
                 </div>
-            )}
-
-            <input
-                type="text"
-                name="username"
-                className="form-input"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Username"
-                disabled={loading}
-                required
-                autoComplete="username"
-            />
-
-            {!isLogin && (
-                <>
-                    <div className="name-fields">
-                        <input
-                            type="text"
-                            name="first_name"
-                            placeholder="First Name"
-                            className="form-input"
-                            value={formData.first_name}
-                            onChange={handleChange}
-                            required
-                            autoComplete="given-name"
-                        />
-
-                        <input
-                            type="text"
-                            name="last_name"
-                            placeholder="Last Name"
-                            className="form-input"
-                            value={formData.last_name}
-                            onChange={handleChange}
-                            required
-                            autoComplete="family-name"
-                        />
+                {resendStatus.message && (
+                    <div className={resendStatus.error ? "error-message" : "success-message"}>
+                        {resendStatus.message}
                     </div>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="form-wrapper">
+            <form onSubmit={handleSubmit} className="form-container">
+                <h1>{formTitle}</h1>
+
+                {error && (
+                    <div className="error-message" style={{ whiteSpace: "pre-line" }}>
+                        {error}
+                    </div>
+                )}
+
+                <div className="form-inputs">
+                    <input
+                        type="text"
+                        name="username"
+                        className="form-input"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="Username"
+                        disabled={loading}
+                        required
+                        autoComplete="username"
+                    />
+
+                    {!isLogin && (
+                        <>
+                            <div className="name-fields">
+                                <input
+                                    type="text"
+                                    name="first_name"
+                                    placeholder="First Name"
+                                    className="form-input"
+                                    value={formData.first_name}
+                                    onChange={handleChange}
+                                    required
+                                    autoComplete="given-name"
+                                />
+                                <input
+                                    type="text"
+                                    name="last_name"
+                                    placeholder="Last Name"
+                                    className="form-input"
+                                    value={formData.last_name}
+                                    onChange={handleChange}
+                                    required
+                                    autoComplete="family-name"
+                                />
+                            </div>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                placeholder="Email"
+                                onChange={handleChange}
+                                className="form-input"
+                                required
+                                autoComplete="email"
+                            />
+                        </>
+                    )}
 
                     <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        placeholder="Email"
-                        onChange={handleChange}
+                        type="password"
+                        name="password"
                         className="form-input"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Password"
+                        disabled={loading}
+                        minLength={8}
                         required
-                        autoComplete="email"
+                        autoComplete={isLogin ? "current-password" : "new-password"}
                     />
-                </>
-            )}
 
-            <input
-                type="password"
-                name="password"
-                className="form-input"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-                disabled={loading}
-                minLength={8}
-                required
-                autoComplete={isLogin ? "current-password" : "new-password"}
-            />
+                </div>
+                <button
+                    type="submit"
+                    className="form-button"
+                    disabled={loading}
+                    aria-busy={loading}
+                >
+                    {loading ? (
+                        <span className="loading-indicator">Processing...</span>
+                    ) : (
+                        formTitle
+                    )}
+                </button>
 
-            <button
-                type="submit"
-                className="form-button"
-                disabled={loading}
-                aria-busy={loading}
-            >
-                {loading ? (
-                    <span className="loading-indicator">Processing...</span>
-                ) : (
-                    formTitle
-                )}
-            </button>
-        </form>
+                <div className="form-footer">
+                    {isLogin ? (
+                        <>
+                            <p className="form-link">
+                                Don't have an account?{' '}
+                                <span onClick={() => navigate('/register')}>Register</span>
+                            </p>
+                            <p className="form-link">
+                                Forgot password?{' '}
+                                <span onClick={() => navigate('/reset-password')}>Reset it</span>
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="form-link">
+                                Already have an account?{' '}
+                                <span onClick={() => navigate('/login')}>Login</span>
+                            </p>
+                            <p className="terms-notice">
+                                By registering, you agree to our Terms of Service and Privacy Policy
+                            </p>
+                        </>
+                    )}
+                </div>
+            </form>
+        </div>
     );
 }

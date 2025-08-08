@@ -25,10 +25,11 @@ export default function App() {
   } = useAuth();
 
   // This function will be passed to your Form component
-  function handleLogin(userData) {
-    // Use the login function from useAuth hook - no API calls needed
-    // The Form component already did the authentication
-    login(userData);
+  async function handleLogin(userData) {
+    // Use the login function from useAuth hook
+    await login(userData);
+    // Refresh the page after login
+      window.location.href = '/'; // Navigate to home page
   }
 
   const handleLogout = () => {

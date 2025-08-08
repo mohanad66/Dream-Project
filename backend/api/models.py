@@ -3,11 +3,51 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.urls import reverse
-from django.db.models import Max
+from django.conf import settings
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 import os
+# ++++++++++ ADDED THIS IMPORT ++++++++++
+from django.contrib.auth import get_user_model
+
+class Author(models.Model):
+    """Represents a product author, linked to a user."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    bio = models.TextField(blank=True, help_text="A short bio for the author.")
+
+    def __str__(self):
+        return self.user.username
+
+    def clean(self):
+        super().clean()
+        if not (self.user.is_staff or self.user.is_superuser):
+            raise ValidationError("Author must be a staff member or superuser.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
+def get_default_author():
+    """
+    Gets or creates a default author user.
+    This is used for the SET_DEFAULT on_delete rule in the Product model.
+    """
+    # ++++++++++ THIS IS THE CORRECTED PART ++++++++++
+    User = get_user_model()  # Get the actual User model
+    default_user, created = User.objects.get_or_create(
+        username='default_author',
+        defaults={'is_staff': False, 'is_superuser': False}
+    )
+    # ++++++++++++++++++++++++++++++++++++++++++++++++
+    if created:
+        # Set a default password so the user is usable
+        default_user.set_password(os.urandom(12).hex()) # Use hex for a string password
+        default_user.save()
+        
+    author, _ = Author.objects.get_or_create(user=default_user)
+    return author.pk
+
 class CarouselImg(models.Model):
     name = models.CharField(max_length=50, unique=True)
     image = models.ImageField(upload_to='carousel/')
@@ -28,7 +68,6 @@ class CarouselImg(models.Model):
                 with Image.open(self.image) as img:
                     width, height = img.size
                     
-                    # Minimum dimensions
                     MIN_WIDTH = 800
                     MIN_HEIGHT = 600
                     if width < MIN_WIDTH or height < MIN_HEIGHT:
@@ -37,16 +76,14 @@ class CarouselImg(models.Model):
                             f"Current size: {width}x{height}"
                         )
                     
-                    # Width must be equal to or greater than height
                     if width < height:
                         raise ValidationError(
                             "Product image width must be equal to or greater than height. "
                             f"Current dimensions: {width}x{height}"
                         )
                     
-                    # Optional: Check if ratio is reasonable (width not more than 2x height)
                     MAX_RATIO = 2.0
-                    if width / height > MAX_RATIO:
+                    if height > 0 and width / height > MAX_RATIO:
                         raise ValidationError(
                             "Image is too wide. Width should not exceed twice the height. "
                             f"Current ratio: {round(width/height, 1)}:1"
@@ -60,29 +97,24 @@ class CarouselImg(models.Model):
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
-                # Convert to RGB if needed
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                # Target maximum dimensions
                 MAX_WIDTH = 1600
                 MAX_HEIGHT = 1600
                 
-                # Resize if needed while maintaining aspect ratio
                 if img.width > MAX_WIDTH or img.height > MAX_HEIGHT:
                     ratio = min(MAX_WIDTH/img.width, MAX_HEIGHT/img.height)
                     new_size = (int(img.width * ratio), int(img.height * ratio))
                     img = img.resize(new_size, Image.LANCZOS)
                 
-                # Save optimized image
                 img.save(img_path, quality=85, optimize=True)
-        except Exception as e:
-            # Silently fail if optimization fails
+        except Exception:
             pass
     
 class Category(models.Model):
     name = models.CharField(max_length=20, unique=True)
-    slug = models.SlugField(max_length=21, unique=True , editable=False)  # Changed to SlugField
+    slug = models.SlugField(max_length=21, unique=True , editable=False)
     is_active = models.BooleanField(default=True)
     
     class Meta:
@@ -93,13 +125,20 @@ class Category(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = (self.name).lower()
+            self.slug = slugify(self.name)
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         return reverse('products_by_category', args=[self.slug])
 
 class Product(models.Model):
+    author = models.ForeignKey(
+        "Author",
+        on_delete=models.SET_DEFAULT,
+        default=get_default_author,
+        related_name='products',
+        verbose_name="Product Author",
+    )
     image = models.ImageField(
         upload_to='products/',
         blank=False,
@@ -136,7 +175,7 @@ class Product(models.Model):
         help_text="Price in USD (min $0.01)"
     )
     is_active = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name="Active",
         help_text="Is this product available for sale?"
     )
@@ -147,11 +186,6 @@ class Product(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name="Last Updated"
-    )
-    best_products = models.BooleanField(
-        default=False,
-        verbose_name="Featured Product",
-        help_text="Display in featured products section"
     )
     
     class Meta:
@@ -171,7 +205,6 @@ class Product(models.Model):
                 with Image.open(self.image) as img:
                     width, height = img.size
                     
-                    # Basic size check
                     MIN_DIMENSION = 400
                     if width < MIN_DIMENSION or height < MIN_DIMENSION:
                         raise ValidationError(
@@ -179,7 +212,6 @@ class Product(models.Model):
                             f"Current size: {width}x{height}"
                         )
                     
-                    # Main validation: width must be >= height
                     if width < height:
                         raise ValidationError(
                             "Product image width must be equal to or greater than height. "
@@ -190,20 +222,16 @@ class Product(models.Model):
                 raise ValidationError(f"Could not process image: {str(e)}")
     
     def save(self, *args, **kwargs):
-        # Generate slug if empty
         if not self.slug:
             self.slug = slugify(self.name)
         
-        # Ensure valid slug
         self.slug = self.slug.lower()
         self.slug = ''.join(c for c in self.slug if c.isalnum() or c in ['-', '_'])
         
-        # Run full validation including image check
         self.full_clean()
         
         super().save(*args, **kwargs)
         
-        # Optimize image after save
         if self.image:
             self.optimize_image()
     
@@ -212,23 +240,18 @@ class Product(models.Model):
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
-                # Convert to RGB if necessary
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                # Target dimensions (max 1600px on longest side)
                 MAX_DIMENSION = 1600
                 
-                # Only resize if image is larger than max dimension
                 if max(img.size) > MAX_DIMENSION:
                     ratio = MAX_DIMENSION / max(img.size)
                     new_size = (int(img.width * ratio), int(img.height * ratio))
                     img = img.resize(new_size, Image.LANCZOS)
                 
-                # Save optimized image
                 img.save(img_path, quality=85, optimize=True)
-        except Exception as e:
-            # Silently fail if optimization fails
+        except Exception:
             pass
     
     def get_absolute_url(self):
@@ -248,6 +271,7 @@ class Product(models.Model):
         """Returns the aspect ratio as a float (width/height)"""
         width, height = self.dimensions
         return round(width / height, 2) if height else 0
+
 class Service(models.Model):
     image = models.ImageField(
         upload_to="services/",
@@ -266,7 +290,7 @@ class Service(models.Model):
         help_text="Service price in USD (min $0.01)"
     )
     is_active = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name="Active",
         help_text="Is this service currently offered?"
     )
@@ -300,7 +324,6 @@ class Service(models.Model):
                 with Image.open(self.image) as img:
                     width, height = img.size
                     
-                    # Enforce width ≥ height rule
                     if width < height:
                         raise ValidationError(
                             "Service image width must be equal to or greater than height. "
@@ -311,11 +334,9 @@ class Service(models.Model):
                 raise ValidationError(f"Could not process image: {str(e)}")
     
     def save(self, *args, **kwargs):
-        # Run full validation before saving
         self.full_clean()
         super().save(*args, **kwargs)
         
-        # Optimize image after save
         if self.image:
             self.optimize_image()
     
@@ -324,23 +345,18 @@ class Service(models.Model):
         try:
             img_path = self.image.path
             with Image.open(img_path) as img:
-                # Convert to RGB if needed
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                # Only resize if image is extremely large (>10MB)
                 if self.image.size > 10_000_000:  # 10MB
-                    # Maintain aspect ratio while constraining size
-                    max_dimension = 5000  # Absolute maximum dimension
+                    max_dimension = 5000
                     if max(img.size) > max_dimension:
                         ratio = max_dimension / max(img.size)
                         new_size = (int(img.width * ratio), int(img.height * ratio))
                         img = img.resize(new_size, Image.LANCZOS)
                 
-                # Save optimized image
                 img.save(img_path, quality=85, optimize=True)
-        except Exception as e:
-            # Fail silently if optimization fails
+        except Exception:
             pass
     
     def get_absolute_url(self):
@@ -348,7 +364,6 @@ class Service(models.Model):
     
     @property
     def dimensions(self):
-        """Returns (width, height) tuple of the image"""
         try:
             with Image.open(self.image.path) as img:
                 return img.size
@@ -357,13 +372,11 @@ class Service(models.Model):
     
     @property
     def aspect_ratio(self):
-        """Returns the aspect ratio as a float (width/height)"""
         width, height = self.dimensions
         return round(width / height, 2) if height else 0
     
     @property
     def orientation(self):
-        """Returns 'square', 'landscape', or 'unknown'"""
         width, height = self.dimensions
         if width == height:
             return 'square'
@@ -411,13 +424,8 @@ class Contact(models.Model):
         return f"{self.name}: {self.value}"
 
     def clean(self):
-        """Validate the icon image"""
         super().clean()
 
     def save(self, *args, **kwargs):
-        # Run validation before saving
         self.full_clean()
-        
-        # Optimize icon before saving
         super().save(*args, **kwargs)
-

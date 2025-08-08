@@ -1,12 +1,18 @@
-from django.urls import path
+from django.urls import path, include # +++ ADD include
+from rest_framework.routers import DefaultRouter # +++ ADD DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
 )
-
-
 from .views import *
 
+# ++++++++++ SETUP ADMIN ROUTER ++++++++++
+admin_router = DefaultRouter()
+admin_router.register(r'products', ProductAdminViewSet, basename='admin-product')
+admin_router.register(r'categories', CategoryAdminViewSet, basename='admin-category')
+admin_router.register(r'services', ServiceAdminViewSet, basename='admin-service')
+admin_router.register(r'contacts', ContactAdminViewSet, basename='admin-contact')
+# +++++++++++++++++++++++++++++++++++++++++
 
 urlpatterns = [
     # Public endpoints
@@ -26,6 +32,13 @@ urlpatterns = [
     path("user/myuser/", get_current_user, name="get_user"),
     path("user/verify-token/", verify_token, name="verify_token"),
     path('user/all/', get_all_users, name='get_all_users'),
-    path("user/<int:pk>/", UserDetailView.as_view() , name="get-all")
+    path("user/<int:pk>/", UserDetailView.as_view() , name="user-detail"),
+    path('auth/password/reset/', PasswordResetRequestView.as_view(), name='password-reset'),
+    path('auth/password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+    path('auth/password/change/', PasswordChangeView.as_view(), name='password-change'),
 
+    # ++++++++++ ADD ADMIN URLS ++++++++++
+    # This includes all the URLs for the admin viewsets (e.g., /api/admin/products/)
+    path("admin/", include(admin_router.urls)),
+    # ++++++++++++++++++++++++++++++++++++
 ]

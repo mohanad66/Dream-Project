@@ -15,6 +15,12 @@ class CarouselImgSerializer(serializers.ModelSerializer):
         model = CarouselImg
         fields = "__all__"
 
+# ++++++++++ ADDED AUTHOR SERIALIZER ++++++++++
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = "__all__"
+# +++++++++++++++++++++++++++++++++++++++++++++
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -144,7 +150,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 # Serializer for password reset
-class PasswordResetSerializer(serializers.Serializer):
+
+class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     
     def validate_email(self, value):
@@ -156,8 +163,17 @@ class PasswordResetSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError("No user found with this email address.")
 
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    confirm_password = serializers.CharField(required=True)
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError("New passwords do not match.")
+        return attrs
 
-# Serializer for password change
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, validators=[validate_password])
@@ -173,6 +189,7 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("Old password is incorrect.")
         return value
+
 class AdminUserSerializer(UserSerializer):
     """Extended serializer with admin privileges"""
     class Meta(UserSerializer.Meta):

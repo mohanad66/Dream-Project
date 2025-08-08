@@ -1,18 +1,53 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny , IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status, generics
+# ++++++++++ ADDED 'viewsets' ++++++++++
+from rest_framework import status, generics, viewsets
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth import get_user_model
 from .serializer import *
+from .models import *
 import logging
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str
+from django.conf import settings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__ )
 User = get_user_model()
+
+# ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
+class ProductAdminViewSet(viewsets.ModelViewSet):
+    """Admin viewset for managing Products (CRUD)."""
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+
+class CategoryAdminViewSet(viewsets.ModelViewSet):
+    """Admin viewset for managing Categories (CRUD)."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+
+class ServiceAdminViewSet(viewsets.ModelViewSet):
+    """Admin viewset for managing Services (CRUD)."""
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+    permission_classes = [IsAdminUser]
+
+class ContactAdminViewSet(viewsets.ModelViewSet):
+    """Admin viewset for managing Contacts (CRUD)."""
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
+    permission_classes = [IsAdminUser]
+# ++++++++++++++++++++++++++++++++++++++++++
+
 
 # Auth Views
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -21,20 +56,17 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         logger.info(f"Token request from IP: {request.META.get('REMOTE_ADDR')}")
         
-        # Input validation
         if isinstance(request.data, list):
             return Response({
                 'error': 'Expected JSON object, got array',
                 'hint': 'Send credentials as {"username":"...","password":"..."}'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Safe logging
         if isinstance(request.data, dict):
             safe_data = {k: '***' if 'password' in k.lower() else v 
                          for k, v in request.data.items()}
             logger.info(f"Auth attempt: {safe_data}")
         
-        # Required fields check
         required = {'username', 'password'}
         missing = required - set(request.data.keys())
         if missing:
@@ -65,22 +97,19 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 @api_view(['GET'])
-@permission_classes([IsAdminUser])  # Only accessible by admin users
+@permission_classes([IsAdminUser])
 def get_all_users(request):
     """
     Admin-only endpoint to list all users
-    Returns:
-    - Basic info for all users (admin sees more fields)
-    - Filtering/sorting capabilities
     """
     try:
         users = User.objects.all().order_by('-date_joined')
         
-        # Apply filters from query params
         if is_active := request.query_params.get('is_active'):
             users = users.filter(is_active=is_active.lower() == 'true')
             
         if search := request.query_params.get('search'):
+            from django.db.models import Q
             users = users.filter(
                 Q(username__icontains=search) |
                 Q(email__icontains=search)
@@ -89,7 +118,7 @@ def get_all_users(request):
         serializer = UserSerializer(
             users, 
             many=True,
-            context={'is_admin': request.user.is_superuser}  # Pass admin status to serializer
+            context={'is_admin': request.user.is_superuser}
         )
         return Response(serializer.data)
         
@@ -98,9 +127,6 @@ def get_all_users(request):
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
-
-
 
 class UserListView(APIView):
     permission_classes = [IsAdminUser]
@@ -112,7 +138,7 @@ class UserListView(APIView):
 
 class UserDetailView(APIView):
     def get_permissions(self):
-        if self.request.method == 'PATCH' or self.request.method == 'DELETE':
+        if self.request.method in ['PATCH', 'DELETE']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
     
@@ -124,8 +150,8 @@ class UserDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        serializer = AdminUserSerializer if request.user.is_staff else UserSerializer
-        return Response(serializer(user).data)
+        serializer_class = AdminUserSerializer if request.user.is_staff else UserSerializer
+        return Response(serializer_class(user).data)
     
     def patch(self, request, pk):
         user = get_object_or_404(User, pk=pk)
@@ -136,7 +162,6 @@ class UserDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Only allow is_active modification
         if 'is_active' not in request.data or len(request.data) > 1:
             return Response(
                 {"detail": "Only is_active field can be modified"},
@@ -179,27 +204,6 @@ def get_current_user(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_all_users(request):
-    """Admin-only: Get all users"""
-    if not request.user.is_staff:
-        return Response(
-            {"error": "Permission denied"}, 
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    try:
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
-    except Exception as e:
-        logger.error(f"Users fetch error: {str(e)}")
-        return Response(
-            {"error": "Failed to retrieve users"}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
 def verify_token(request):
     """Verify JWT token validity"""
     return Response({
@@ -229,23 +233,99 @@ def create_public_list_view(model, serializer, *, order_by=None, filter_active=F
             )
     return view_func
 
+class PasswordResetRequestView(generics.GenericAPIView):
+    serializer_class = PasswordResetRequestSerializer
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        
+        user = User.objects.get(email=email)
+        
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
+        
+        subject = "Password Reset Request"
+        message = render_to_string('password_reset_email.html', {
+            'user': user,
+            'reset_url': reset_url,
+        })
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+        
+        return Response(
+            {"detail": "Password reset email has been sent."},
+            status=status.HTTP_200_OK
+        )
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    serializer_class = PasswordResetConfirmSerializer
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        try:
+            uid = force_str(urlsafe_base64_decode(serializer.validated_data['uid']))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+            
+        if user is not None and default_token_generator.check_token(user, serializer.validated_data['token']):
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response(
+                {"detail": "Password has been reset successfully."},
+                status=status.HTTP_200_OK
+            )
+            
+        return Response(
+            {"error": "Invalid reset link."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+class PasswordChangeView(generics.GenericAPIView):
+    serializer_class = PasswordChangeSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, user)
+        
+        return Response(
+            {"detail": "Password updated successfully."},
+            status=status.HTTP_200_OK
+        )
+
 # Instantiate public views
 get_carouselImg = create_public_list_view(
     CarouselImg, CarouselImgSerializer, filter_active=True
 )
-
 get_product = create_public_list_view(
     Product, ProductSerializer, order_by="price"
 )
-
 get_category = create_public_list_view(
     Category, CategorySerializer, filter_active=True
 )
-
 get_services = create_public_list_view(
     Service, ServiceSerializer, order_by="price"
 )
-
 get_contact = create_public_list_view(
     Contact, ContactSerializer
 )
