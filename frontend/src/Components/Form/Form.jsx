@@ -56,7 +56,6 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                 payload.last_name = formData.last_name;
             }
 
-            console.log("Payload being sent to API:", payload); // Added for debugging
 
             console.log("Making request with payload (hidden password):", {
                 ...payload,

@@ -29,7 +29,6 @@ export default function Profile() {
                     last_name: response.data.last_name || '',
                     phone_number: response.data.phone_number || '',
                 });
-                console.log('User data:', response.data);
             } catch (err) {
                 console.error("Failed to fetch user data:", err);
                 setError("Failed to load user data. Please try again later.");
