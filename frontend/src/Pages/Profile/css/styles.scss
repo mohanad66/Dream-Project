@@ -1,358 +1,392 @@
-//================================================
-// VARIABLES & THEME
-//================================================
-$primary-color: #007bff;
-$primary-hover: #0056b3;
-$admin-color: #ffc107;
-$superuser-color: #dc3545;
-$success-color: #28a745;
-$danger-color: #dc3545;
-$white: #ffffff;
+/* ==========================================================================
+   Profile Page Styles - Final Polished Version
+   ========================================================================== */
 
-// Define row colors for the table
-$light-gray: #f8f9fa; // Used for even rows
-$row-hover-color: #e9ecef; // Used for hover
-$medium-gray: #dee2e6; // Used for borders
+// --- 1. Design Tokens (Global Variables) ---
+:root {
+    // Color Palette
+    --color-primary: #007bff;
+    --color-primary-dark: #0056b3;
+    --color-danger: #dc3545;
+    --color-danger-dark: #b02a37;
+    --color-success: #28a745;
+    --color-warning: #fd7e14;
 
-$dark-gray: #6c757d;
-$text-color: #343a40;
+    // Backgrounds & Surfaces
+    --bg-body: #f8f9fa;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f1f3f5;
+    --bg-hover: #e9ecef;
 
-$base-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-$border-radius: 8px;
+    // Text Colors
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-on-primary: #ffffff;
+    --text-on-danger: #ffffff;
 
-//================================================
-// MAIN CONTAINER
-//================================================
+    // Borders & Shadows
+    --border-color: #dee2e6;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+    // Layout
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --spacing-unit: 1rem; // Base spacing unit (e.g., 16px)
+    --transition-speed: 0.2s;
+}
+
+
+/* --- 2. Mixins & Placeholders (Reusable Patterns) --- */
+@mixin flex-center($gap: 0) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $gap;
+}
+
+%card-base {
+    background-color: var(--bg-surface);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: calc(var(--spacing-unit) * 2);
+}
+
+%button-reset {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* --- 3. Base & Global Styles --- */
 .profile-container {
     max-width: 1200px;
+    margin: calc(var(--spacing-unit) * 2) auto;
+    padding: var(--spacing-unit);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+}
+
+.loading-spinner {
+    /* Add your preferred loading spinner styles here */
+    border: 4px solid var(--bg-hover);
+    border-top: 4px solid var(--color-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
     margin: 2rem auto;
-    padding: 2rem;
-    background-color: #fdfdfd; // Slightly off-white background
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    font-family: $base-font;
-
-    // Loading and Error States
-    .error-message, .loading-spinner + p {
-        text-align: center;
-        padding: 3rem;
-        font-size: 1.1rem;
-        font-weight: 500;
-    }
-    .error-message {
-        color: $danger-color;
-        .error-icon { font-size: 1.5rem; margin-right: 0.5rem; }
-    }
-    .loading-spinner {
-        margin: 2rem auto 1rem;
-        border: 4px solid $medium-gray;
-        border-top: 4px solid $primary-color;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
 }
 
-//================================================
-// HEADER & TABS
-//================================================
-.profile-header {
-    text-align: center;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid $medium-gray;
-    margin-bottom: 2rem;
-
-    .avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, $primary-color, $primary-hover);
-        color: $white;
-        font-size: 2.5rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        text-transform: uppercase;
-        box-shadow: 0 4px 12px rgba($primary-color, 0.3);
-    }
-
-    h1 {
-        font-size: 2.25rem;
-        color: $text-color;
-        margin: 0.5rem 0;
-        .badge {
-            font-size: 0.8rem;
-            padding: 0.4rem 0.8rem;
-            border-radius: 12px;
-            margin-left: 0.75rem;
-            vertical-align: middle;
-            font-weight: 500;
-            color: $white;
-            &.superuser { background-color: $superuser-color; }
-            &.admin { background-color: $admin-color; color: $text-color; }
-        }
-    }
-    .username, .email {
-        color: $dark-gray;
-        font-size: 1.1rem;
-    }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.profile-tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2rem;
-    gap: 1rem;
 
-    button {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        color: $dark-gray;
+/* --- 4. Reusable Components (Buttons, Forms) --- */
+.button {
+    @extend %button-reset;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: translateY(0);
+    }
+
+    &--primary {
+        background-color: var(--color-primary);
+        color: var(--text-on-primary);
+        &:hover:not(:disabled) { background-color: var(--color-primary-dark); }
+    }
+
+    &--secondary {
+        background-color: var(--bg-subtle);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        &:hover:not(:disabled) { background-color: var(--bg-hover); }
+    }
+
+    &--danger {
+        background-color: var(--color-danger);
+        color: var(--text-on-danger);
+        &:hover:not(:disabled) { background-color: var(--color-danger-dark); }
+    }
+
+    &--text {
         background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        cursor: pointer;
-        transition: color 0.2s, border-color 0.2s;
+        color: var(--text-secondary);
+        &:hover:not(:disabled) { background-color: var(--bg-subtle); }
+    }
 
-        &.active, &:hover {
-            color: $primary-color;
-            border-bottom-color: $primary-color;
-        }
+    &--small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.875rem;
     }
 }
 
-//================================================
-// CONTENT SECTIONS
-//================================================
-.profile-content {
-    background-color: $white;
-    padding: 2.5rem;
-    border-radius: $border-radius;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-}
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
 
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid $medium-gray;
-
-    h3, h4 {
-        margin: 0;
-        font-size: 1.75rem;
-        color: $text-color;
-    }
-}
-
-//================================================
-// FORMS & GRIDS
-//================================================
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-
-    .info-item {
-        label {
-            font-size: 0.9rem;
-            color: $dark-gray;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        p {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: $text-color;
-            margin: 0;
-        }
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid $medium-gray;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
+    &:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.1);
     }
 }
 
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
+    gap: var(--spacing-unit);
+    margin-top: calc(var(--spacing-unit) * 1.5);
 }
 
-//================================================
-// ADMIN PANEL
-//================================================
-.admin-section {
-    .admin-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
 
-        .stat-card {
-            background-color: $light-gray;
-            padding: 1.5rem;
-            border-radius: $border-radius;
-            text-align: center;
-            border: 1px solid $medium-gray;
-            h4 { font-size: 1rem; color: $dark-gray; margin: 0 0 0.5rem 0; }
-            .stat-number { font-size: 2.5rem; font-weight: 700; color: $primary-color; margin: 0; }
-        }
-    }
+/* --- 5. Page-Specific Component Blocks --- */
 
-    .user-management, .management-section {
-        margin-top: 2.5rem;
-    }
-    .management-section{
-      h4{
-        color: #2b2b2b;
-      }
-    }
-    .management-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        button {
-            background-color: $success-color;
-            border: none;
-            &:hover { background-color: darken($success-color, 10%); }
-        }
-    }
-}
+// --- Profile Header ---
+.profile-header {
+    @extend %card-base;
+    text-align: center;
+    margin-bottom: calc(var(--spacing-unit) * 2);
 
-//================================================
-// USERS TABLE - WITH ROW COLORING
-//================================================
-.users-table {
-    border: 1px solid $medium-gray;
-    border-radius: $border-radius;
-    overflow: hidden; // Ensures the border-radius clips the rows
-
-    .table-header, .table-row {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 1.5rem;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid $medium-gray;
-        text-align: left;
-    }
-
-    .table-header {
+    &__avatar {
+        @include flex-center;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto var(--spacing-unit);
+        border-radius: 50%;
+        background-color: var(--color-primary);
+        color: var(--text-on-primary);
+        font-size: clamp(2rem, 8vw, 2.5rem);
         font-weight: 600;
-        color: $dark-gray;
-        text-transform: uppercase;
+        border: 4px solid var(--bg-surface);
+        box-shadow: 0 0 0 4px var(--color-primary);
+    }
+
+    &__name {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+        font-weight: 700;
+        margin: 0;
+    }
+
+    &__username, &__email {
+        color: var(--text-secondary);
+        margin: 0.25rem 0;
+    }
+
+    &__badge {
+        display: inline-block;
         font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        background-color: $light-gray;
+        font-weight: 600;
+        padding: 0.3rem 0.7rem;
+        border-radius: 20px;
+        margin-top: var(--spacing-unit);
+        vertical-align: middle;
+
+        &--admin {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--color-success);
+        }
+        &--superuser {
+            background-color: rgba(253, 126, 20, 0.1);
+            color: var(--color-warning);
+        }
+    }
+}
+
+// --- Tab Navigation ---
+.profile-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: calc(var(--spacing-unit) * 2);
+    border-bottom: 1px solid var(--border-color);
+
+    &__button {
+        @extend %button-reset;
+        padding: var(--spacing-unit) calc(var(--spacing-unit) * 1.5);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        position: relative;
+        transition: color var(--transition-speed) ease;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--color-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        &:hover, &.active {
+            color: var(--color-primary);
+        }
+
+        &.active::after {
+            transform: scaleX(1);
+        }
+    }
+}
+
+// --- Main Content Area ---
+.profile-content {
+    @extend %card-base;
+
+    &__section {
+        animation: fadeIn 0.5s ease;
+        &:not(:last-child) {
+            margin-bottom: calc(var(--spacing-unit) * 3);
+        }
     }
 
-    .table-row {
-        transition: background-color 0.2s;
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: var(--spacing-unit);
+        margin-bottom: calc(var(--spacing-unit) * 1.5);
 
-        // ++++++++++ ZEBRA STRIPING ADDED HERE ++++++++++
-        &:nth-child(even) {
-            background-color: $light-gray;
+        h3, h4 {
+            margin: 0;
+            font-size: 1.5rem;
         }
-        // +++++++++++++++++++++++++++++++++++++++++++++++
+    }
+}
 
-        &:hover {
-            background-color: $row-hover-color;
-        }
+// --- Info Grid (Profile Tab) ---
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: calc(var(--spacing-unit) * 1.5);
 
-        // Remove bottom border from the very last row
-        &:last-child {
-            border-bottom: none;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            .user-avatar {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                background-color: $medium-gray;
-                color: $dark-gray;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 600;
-                text-transform: uppercase;
-            }
-            .username { font-weight: 600; margin: 0; color: #2b2b2b;}
-            .name { font-size: 0.9rem; color: $dark-gray; margin: 0; }
-        }
-
-        .email, .date, .role {
-            font-size: 0.95rem;
-            color: $text-color;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .status {
+    &__item {
+        label {
+            display: block;
+            font-size: 0.85rem;
             font-weight: 600;
-            padding: 0.3rem 0.7rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            text-align: center;
-            &.active { background-color: rgba($success-color, 0.1); color: darken($success-color, 10%); }
-            &.inactive { background-color: rgba($danger-color, 0.1); color: darken($danger-color, 10%); }
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
         }
-
-        .actions {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-start;
-            button {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-                border: 1px solid;
-                border-radius: 5px;
-                background: $white;
-                transition: all 0.2s;
-                &.toggle-btn.activate { border-color: $success-color; color: $success-color; &:hover { background: $success-color; color: $white; } }
-                &.toggle-btn.deactivate { border-color: $admin-color; color: $admin-color; &:hover { background: $admin-color; color: $text-color; } }
-                &.delete-btn { border-color: $danger-color; color: $danger-color; &:hover { background: $danger-color; color: $white; } }
-            }
+        p {
+            font-size: 1rem;
+            margin: 0;
         }
     }
 }
 
-//================================================
-// GENERIC BUTTONS
-//================================================
-.edit-btn, .save-btn, .cancel-btn, .refresh-btn, .management-actions button {
-    padding: 0.7rem 1.4rem;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-    border: 1px solid transparent;
+// --- User Management Table (Admin Tab) ---
+.users-table {
+    overflow-x: auto; // For responsiveness on small screens
+
+    &__header, &__row {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr 1fr 1.5fr;
+        align-items: center;
+        gap: var(--spacing-unit);
+        padding: var(--spacing-unit);
+        min-width: 600px; // Prevent extreme squishing
+    }
+
+    &__header {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    &__row {
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color var(--transition-speed) ease;
+
+        &:last-child { border-bottom: none; }
+        &:hover { background-color: var(--bg-subtle); }
+    }
+
+    &__user-info {
+        @include flex-center;
+        justify-content: flex-start;
+        gap: var(--spacing-unit);
+    }
+
+    &__avatar {
+        @include flex-center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--bg-hover);
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    &__status {
+        font-weight: 600;
+        &--active { color: var(--color-success); }
+        &--inactive { color: var(--color-danger); }
+    }
+
+    .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
 }
-.edit-btn, .save-btn, .refresh-btn {
-    background-color: $primary-color;
-    color: $white;
-    &:hover { background-color: $primary-hover; }
+
+// --- Other Admin Sections ---
+.my-products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
 }
-.cancel-btn {
-    background-color: $light-gray;
-    color: $text-color;
-    border-color: $medium-gray;
-    &:hover { background-color: $medium-gray; }
+
+.management-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-unit);
+}
+
+// --- Pagination ---
+.pagination-controls {
+    @include flex-center(var(--spacing-unit));
+    margin-top: calc(var(--spacing-unit) * 1.5);
+}
+.profile-content__section{
+    display: flex;
+    flex-direction: column;
+    gap: 7rem;
+    > *{
+        width: 100%;
+    }
 }

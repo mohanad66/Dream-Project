@@ -5,7 +5,7 @@ import Products from './Pages/Products/index.jsx';
 import About from './Pages/About us/index.jsx';
 import Navbar from './Components/Navbar/index.jsx';
 import "./css/style.scss";
-import FavoritesPage from "./Pages/Favourite/index.jsx";
+import Cart from "./Pages/Cart/index.jsx";
 import ProtectedRoute from './Components/ProtectedRoute/ProtectedRoute.jsx';
 import Login from './Pages/Login/Login.jsx';
 import Register from './Pages/Register/Register.jsx';
@@ -13,7 +13,7 @@ import { useAuth } from './services/auth';
 import ProfilePage from './Pages/Profile/index.jsx';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './services/constants.js';
 import api from './services/api.js';
-
+import CheckoutPage from "./Pages/Checkout/index.jsx"
 export default function App() {
   const {
     data,
@@ -29,7 +29,7 @@ export default function App() {
     // Use the login function from useAuth hook
     await login(userData);
     // Refresh the page after login
-      window.location.href = '/'; // Navigate to home page
+    window.location.href = '/'; // Navigate to home page
   }
 
   const handleLogout = () => {
@@ -67,9 +67,9 @@ export default function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/favourite" element={
+        <Route path="/cart" element={
           <ProtectedRoute>
-            <FavoritesPage categories={data.categories || []} />
+            <Cart categories={data.categories || []} />
           </ProtectedRoute>
         } />
 
@@ -80,7 +80,12 @@ export default function App() {
         } />
         <Route path="/profile" element={
           <ProtectedRoute>
-            <ProfilePage />
+            <ProfilePage categories={data.categories} />
+          </ProtectedRoute>
+        } />
+        <Route path="/checkout" element={
+          <ProtectedRoute>
+            <CheckoutPage/>
           </ProtectedRoute>
         } />
         <Route path='*' element={<Navigate to="/" replace />} />

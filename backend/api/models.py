@@ -9,39 +9,82 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import os
 # ++++++++++ ADDED THIS IMPORT ++++++++++
-from django.contrib.auth import get_user_model
 
-class Author(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    bio = models.TextField(blank=True, help_text="A short bio for the author.")
 
-    def __str__(self):
-        return self.user.username
+# your_app/mixins.py
+
+from django.db import models
+from django.core.exceptions import ValidationError
+from PIL import Image
+
+class ImageHandlingMixin: 
+    """
+    An abstract mixin that provides image validation and optimization.
+    It is NOT a Django model.
+    """
+    # Define common validation parameters that can be overridden
+    MIN_IMAGE_WIDTH = 400
+    MIN_IMAGE_HEIGHT = 400
+    MAX_IMAGE_WIDTH = 1600
+    MAX_IMAGE_HEIGHT = 1600
+    ENFORCE_LANDSCAPE = True
+
+    # This Meta class is no longer needed because it's not a model
+    # class Meta:
+    #     abstract = True
+
+    def clean_image(self):
+        if not hasattr(self, 'image') or not self.image:
+            return
+        
+        try:
+            # The rest of your clean_image method is perfect
+            with Image.open(self.image) as img:
+                width, height = img.size
+
+                if width < self.MIN_IMAGE_WIDTH or height < self.MIN_IMAGE_HEIGHT:
+                    raise ValidationError(
+                        f"Image must be at least {self.MIN_IMAGE_WIDTH}x{self.MIN_IMAGE_HEIGHT} pixels. "
+                        f"Current size: {width}x{height}"
+                    )
+                
+                if self.ENFORCE_LANDSCAPE and width < height:
+                    raise ValidationError(
+                        "Image width must be equal to or greater than its height. "
+                        f"Current dimensions: {width}x{height}"
+                    )
+        except Exception as e:
+            raise ValidationError(f"Could not process image: {str(e)}")
+
+    def optimize_image(self):
+        if not hasattr(self, 'image') or not self.image:
+            return
+        
+        try:
+            # The rest of your optimize_image method is perfect
+            with Image.open(self.image.path) as img:
+                if img.mode in ('RGBA', 'P'):
+                    img = img.convert('RGB')
+
+                if img.width > self.MAX_IMAGE_WIDTH or img.height > self.MAX_IMAGE_HEIGHT:
+                    ratio = min(self.MAX_IMAGE_WIDTH / img.width, self.MAX_IMAGE_HEIGHT / img.height)
+                    new_size = (int(img.width * ratio), int(img.height * ratio))
+                    img = img.resize(new_size, Image.LANCZOS)
+                
+                img.save(self.image.path, quality=85, optimize=True)
+        except Exception:
+            pass
 
     def clean(self):
+        # The super().clean() call will now correctly refer to the
+        # models.Model's clean method from the Product class.
         super().clean()
-        if not (self.user.is_staff or self.user.is_superuser):
-            raise ValidationError("Author must be a staff member or superuser.")
+        self.clean_image()
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
-        
-def get_default_author():
-    # ++++++++++ THIS IS THE CORRECTED PART ++++++++++
-    User = get_user_model()  # Get the actual User model
-    default_user, created = User.objects.get_or_create(
-        username='default_author',
-        defaults={'is_staff': False, 'is_superuser': False}
-    )
-    # ++++++++++++++++++++++++++++++++++++++++++++++++
-    if created:
-        # Set a default password so the user is usable
-        default_user.set_password(os.urandom(12).hex()) # Use hex for a string password
-        default_user.save()
-        
-    author, _ = Author.objects.get_or_create(user=default_user)
-    return author.pk
+        self.optimize_image()
 
 class CarouselImg(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -124,13 +167,15 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('products_by_category', args=[self.slug])
 
-class Product(models.Model):
-    author = models.ForeignKey(
-        "Author",
-        on_delete=models.SET_DEFAULT,
-        default=get_default_author,
-        related_name='products',
-        verbose_name="Product Author",
+class Product(models.Model , ImageHandlingMixin):
+    MIN_IMAGE_WIDTH = 400
+    MIN_IMAGE_HEIGHT = 400
+    
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='products'
     )
     image = models.ImageField(
         upload_to='products/',
@@ -148,38 +193,13 @@ class Product(models.Model):
         editable=False,
         help_text="URL-friendly version of the name (auto-generated)"
     )
-    category = models.ForeignKey(
-        'Category',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='products',
-        verbose_name="Product Category",
-        help_text="Select product category"
-    )
-    description = models.TextField(
-        max_length=500,
-        help_text="Detailed product description (max 500 chars)"
-    )
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(0.01)],
-        help_text="Price in USD (min $0.01)"
-    )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name="Active",
-        help_text="Is this product available for sale?"
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Creation Date"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Last Updated"
-    )
+    # ... other fields are fine ...
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Product Category", help_text="Select product category")
+    description = models.TextField(max_length=500, help_text="Detailed product description (max 500 chars)")
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Price in USD (min $0.01)")
+    is_active = models.BooleanField(default=True, verbose_name="Active", help_text="Is this product available for sale?")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creation Date")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Last Updated")
     
     class Meta:
         ordering = ['-created_at']
@@ -189,65 +209,20 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} (${self.price}) {self.is_active}"
     
-    def clean(self):
-        super().clean()
-        
-        if self.image:
-            try:
-                with Image.open(self.image) as img:
-                    width, height = img.size
-                    
-                    MIN_DIMENSION = 400
-                    if width < MIN_DIMENSION or height < MIN_DIMENSION:
-                        raise ValidationError(
-                            f"Image should be at least {MIN_DIMENSION}x{MIN_DIMENSION} pixels. "
-                            f"Current size: {width}x{height}"
-                        )
-                    
-                    if width < height:
-                        raise ValidationError(
-                            "Product image width must be equal to or greater than height. "
-                            f"Current dimensions: {width}x{height}"
-                        )
-                        
-            except Exception as e:
-                raise ValidationError(f"Could not process image: {str(e)}")
     
     def save(self, *args, **kwargs):
+        # Add your product-specific logic here
         if not self.slug:
             self.slug = slugify(self.name)
         
-        self.slug = self.slug.lower()
-        self.slug = ''.join(c for c in self.slug if c.isalnum() or c in ['-', '_'])
-        
-        self.full_clean()
-        
+        # Let the mixin handle the rest (cleaning, saving, optimizing)
+        # The super().save() call will now correctly find the mixin's save method.
         super().save(*args, **kwargs)
-        
-        if self.image:
-            self.optimize_image()
-    
-    def optimize_image(self):
-        try:
-            img_path = self.image.path
-            with Image.open(img_path) as img:
-                if img.mode in ('RGBA', 'P'):
-                    img = img.convert('RGB')
-                
-                MAX_DIMENSION = 1600
-                
-                if max(img.size) > MAX_DIMENSION:
-                    ratio = MAX_DIMENSION / max(img.size)
-                    new_size = (int(img.width * ratio), int(img.height * ratio))
-                    img = img.resize(new_size, Image.LANCZOS)
-                
-                img.save(img_path, quality=85, optimize=True)
-        except Exception:
-            pass
     
     def get_absolute_url(self):
         return reverse('product_detail', args=[self.slug])
     
+    # Your properties are fine
     @property
     def dimensions(self):
         try:
@@ -416,3 +391,11 @@ class Contact(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class Payment(models.Model):
+    amount = models.DecimalField(max_digits=10 , decimal_places=2)
+    currency = models.CharField(max_length=10 , default="usd")
+    stripe_payment_id = models.CharField(max_length=255 , blank=True ,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user_email = models.EmailField()

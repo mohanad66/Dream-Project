@@ -15,11 +15,28 @@ class CarouselImgSerializer(serializers.ModelSerializer):
         model = CarouselImg
         fields = "__all__"
 
-
+class UserDisplaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+        
 class ProductSerializer(serializers.ModelSerializer):
+    owner = UserDisplaySerializer(read_only=True)
+
     class Meta:
         model = Product
-        fields = "__all__"
+        fields = [
+            "id", "owner", "image", "name", "slug", "category", 
+            "description", "price", "is_active", "created_at", "updated_at"
+        ]
+
+    def create(self, validated_data):
+        # Get the owner (which is a User instance) from the context.
+        owner = self.context['request'].user
+        validated_data['owner'] = owner
+        
+        product = Product.objects.create(**validated_data)
+        return product
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -162,7 +179,8 @@ class AdminUserSerializer(UserSerializer):
             **UserSerializer.Meta.extra_kwargs,
             'is_active': {'read_only': False},  # Must be writable
             'is_staff': {'read_only': True},    # Keep staff status read-only
-            'is_superuser': {'read_only': True} # Keep superuser read-only
+            'is_superuser': {'read_only': True},
+            "last_login" : {"read_only": True}
         }
         
     def to_representation(self, instance):
@@ -174,3 +192,14 @@ class AdminUserSerializer(UserSerializer):
             representation.pop('last_login', None)
             representation.pop('date_joined', None)
         return representation
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ["id" , 'amount' , 'currency' , 'stripe_payment_id' , 'created_at' , 'user_email']
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name']

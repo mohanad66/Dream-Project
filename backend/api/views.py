@@ -1,32 +1,30 @@
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny , IsAdminUser
-from rest_framework.response import Response
-# ++++++++++ ADDED 'viewsets' ++++++++++
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import status, generics, viewsets
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.generics import ListAPIView
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from .serializer import *
 from .models import *
 import logging
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes, force_str
-from django.conf import settings
+import stripe
 
 logger = logging.getLogger(__name__ )
 User = get_user_model()
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
 class ProductAdminViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().select_related('owner')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 class CategoryAdminViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -42,10 +40,8 @@ class ContactAdminViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
-# ++++++++++++++++++++++++++++++++++++++++++
 
 
-# Auth Views
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     
@@ -91,10 +87,14 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10  # Match the expected page size, or make it configurable
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_all_users(request):
-
     try:
         users = User.objects.all().order_by('-date_joined')
         
@@ -107,20 +107,25 @@ def get_all_users(request):
                 Q(username__icontains=search) |
                 Q(email__icontains=search)
             )
-            
+        
+        # +++ ADD PAGINATION LOGIC +++
+        paginator = StandardResultsSetPagination()
+        paginated_users = paginator.paginate_queryset(users, request)
+        
         serializer = UserSerializer(
-            users, 
+            paginated_users, # Use the paginated queryset
             many=True,
             context={'is_admin': request.user.is_superuser}
         )
-        return Response(serializer.data)
+        
+        # Return the paginated response
+        return paginator.get_paginated_response(serializer.data)
         
     except Exception as e:
         return Response(
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 class UserDetailView(APIView):
     def get_permissions(self):
         if self.request.method in ['PATCH', 'DELETE']:
@@ -173,20 +178,16 @@ class UserDetailView(APIView):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_current_user(request):
-    """Get current authenticated user"""
-    try:
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-    except Exception as e:
-        logger.error(f"User fetch error: {str(e)}")
-        return Response(
-            {"error": "Failed to retrieve user data"}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+class CurrentUserView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
 
+    def get_object(self):
+        return self.request.user
+
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH':
+            return UserProfileUpdateSerializer
+        return UserSerializer
 
 # Public Content Views
 def create_public_list_view(model, serializer, *, order_by=None, filter_active=False):
@@ -233,7 +234,7 @@ get_carouselImg = create_public_list_view(
     CarouselImg, CarouselImgSerializer, filter_active=True
 )
 get_product = create_public_list_view(
-    Product, ProductSerializer, order_by="price"
+    Product, ProductSerializer, filter_active=True # Keep filtering for active products
 )
 get_category = create_public_list_view(
     Category, CategorySerializer, filter_active=True
@@ -244,3 +245,45 @@ get_services = create_public_list_view(
 get_contact = create_public_list_view(
     Contact, ContactSerializer
 )
+
+class PaymentListView(ListAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+
+class CreatePaymentIntentView(APIView):
+    def post(self,request):
+        amount = request.data.get('amount')
+        currency = request.data.get('currency')
+        email = request.data.get('user_email')
+        if not email:
+            return Response({"error" : "Invalid Email"} , status=400)
+        if not amount:
+            return Response({"error" : "Invalid Amount"} , status=400)
+        if not currency:
+            return Response({"error" : "Currency is Required"} , status=400)
+        
+        supported_currencies = ["usd" , "egp"]
+        if currency.lower() not in supported_currencies:
+            return Response({"error" : "Unsupported Currency"} ,status=400)
+        
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount = int(amount),
+                currency=currency
+            )
+            payment_data = {
+                "amount": amount ,
+                "currency": currency ,
+                "stripe_payment_id" : intent["id"],
+                "user_email": email
+            }
+            serializer = PaymentSerializer(data = payment_data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    "clientSecret" : intent["client_secret"],
+                    "payment" : serializer.data,
+                } , status=status.HTTP_201_CREATED)
+            return Response(serializer.errors , status=status.HTTP_400_BAD_REQUEST)
+        except stripe.error.StripeError as e:
+            return Response({"error": str(e)} , status=400)
