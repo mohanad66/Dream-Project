@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import Card from '../../Components/Card'
 import Carousel from '../../Components/Carousel'
 import ServiceCard from '../../Components/Services Card';
-import ServicesCard from '../../Components/Services Card';
 import "./css/style.scss"
 import { Link } from "react-router-dom"
 export default function Home({ contacts = [], img = [], categories = [], products = [], services = [] }) {

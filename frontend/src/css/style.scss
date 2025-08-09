@@ -13,6 +13,9 @@ html {
 }
 // Base Body Styles - Mobile First
 body {
+  #root{
+    background-color: #fff ;
+  }
   overflow-x: hidden;
   margin: 0;
   padding: 0;

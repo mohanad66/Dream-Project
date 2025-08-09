@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaSearch, FaHeart, FaUser, FaShoppingCart , FaHandHoldingHeart , FaInfoCircle   } from 'react-icons/fa';
+import { FaHome, FaSearch , FaShoppingCart , FaInfoCircle   } from 'react-icons/fa';
 import "./css/style.scss";
 import { IoLogOut } from "react-icons/io5";
+import { FaStore } from "react-icons/fa";
 
 export default function Navbar({onLogout}) {
   const location = useLocation();
@@ -30,17 +31,17 @@ export default function Navbar({onLogout}) {
               to="/products"
               className={`ufo-navbar__link ${activeLink === "/products" ? 'ufo-navbar__link--active' : ''}`}
             >
-              <FaShoppingCart className="ufo-navbar__icon" />
+              <FaStore className="ufo-navbar__icon" />
               <span className="ufo-navbar__label">Products</span>
             </Link>
             
             
             <Link
-              to="/favourite"
-              className={`ufo-navbar__link ${activeLink === "/favourite" ? 'ufo-navbar__link--active' : ''}`}
+              to="/cart"
+              className={`ufo-navbar__link ${activeLink === "/cart" ? 'ufo-navbar__link--active' : ''}`}
             >
-              <FaHandHoldingHeart className="ufo-navbar__icon" />
-              <span className="ufo-navbar__label">Loved</span>
+              <FaShoppingCart  className="ufo-navbar__icon" />
+              <span className="ufo-navbar__label">Cart</span>
             </Link>
             
             {/* <Link

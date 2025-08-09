@@ -1,351 +1,357 @@
-// Variables
-$primary-color: #25D366;
-$secondary-color: #2e7d32;
-$text-color: #333;
-$light-text: #666;
-$border-color: #e0e0e0;
-$shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-$hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-$transition: all 0.3s ease;
+/* ==========================================================================
+   Card Component Styles - v3 (Premium Refinement)
+   ========================================================================== */
 
-// Mixins
-@mixin flex-center {
+// --- 1. Design System (CSS Variables for Theming) ---
+:root {
+  --card-bg: #ffffff;
+  --card-border-color: #eef0f2;
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --card-hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  --card-radius: 16px;
+
+  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  --color-primary: #0071e3; // A strong, modern blue
+  --color-primary-dark: #0066cc;
+  --color-success: #34c759;
+  --color-success-dark: #2ea44a;
+  --color-whatsapp: #25D366;
+  --color-whatsapp-dark: #1ebe57;
+  --color-danger: #ff453a;
+
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-on-dark: #ffffff;
+
+  --transition-fast: 0.2s ease;
+  --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+// --- 2. Mixins ---
+@mixin flex-center($gap: 0) {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: $gap;
 }
 
-@mixin card-hover-effect {
-  transform: translateY(-5px);
-  box-shadow: $hover-shadow;
-}
-
-// Card Styles
+// --- 3. Base Card Style ---
 .card {
+  padding: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
-  border: 1px solid $border-color;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: $shadow;
   height: 100%;
-  min-height: 500px;
-  transition: $transition;
-  background: white;
-  -webkit-transition: $transition;
-  -moz-transition: $transition;
-  -ms-transition: $transition;
-  -o-transition: $transition;
+  position: relative;
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
 
   &:hover {
-    @include card-hover-effect;
+    transform: translateY(-8px);
+    box-shadow: var(--card-hover-shadow);
   }
 
-  &-image {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
+  // Image container with shine effect
+  .card-image-container {
+    overflow: hidden;
+    position: relative;
     cursor: pointer;
+    border-top-left-radius: var(--card-radius);
+    border-top-right-radius: var(--card-radius);
+
+    .card-image {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    // Shine effect on hover
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left var(--transition-fast);
+    }
+  }
+  
+  &:hover .card-image-container::after {
+    left: 100%;
+    transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 1.25rem;
   }
 
   h2 {
-    font-size: 1.0rem;
-    margin: 0.8rem 1rem 0;
-    color: $text-color;
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 0.5rem;
   }
 
   .price {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: $secondary-color;
-    margin: 0.5rem 1rem;
+    color: var(--color-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
   }
 
-  p {
-    font-size: 0.9rem;
-    color: $light-text;
-    margin: 0 1rem 1rem;
+  .card-content {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
     flex-grow: 1;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    line-height: 1.4;
-    
-  }
-
-  &-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    width: 70%;
-    min-height: 100px; //
-    p{
-      color: #000 !important;
-    }
-  }
-
-  .whatsapp-btn {
-    @include flex-center;
-    gap: 8px;
-    background-color: $primary-color;
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem;
-     border-radius: 4px;
-    font-weight: 500;
-    transition: $transition;
-    margin-top: auto; // This pushes the button to bottom
-
-    &:hover {
-      background-color: darken($primary-color, 10%);
-    }
-
-    img {
-      width: 30px;
-      height: 30px;
-      margin: 0;
-    }
+    margin-bottom: 1.5rem;
   }
 }
 
+// --- 4. Action Buttons ---
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: auto;
+}
 
-// Popup Styles
-.card-popup {
-  &-overlay {
-    .popup-left {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-top: auto;
-      padding: 1.5rem;
-      max-width: 50%;
-      .card-price{
-        margin-bottom:0 !important;
-      }
-      .whatsapp-btn {
-        @include flex-center;
-        gap: 8px;
-        background-color: $primary-color;
-        color: white;
-        text-decoration: none;
-        padding: 0.8rem;
-        border-radius: 4px;
-        font-weight: 500;
-        transition: $transition;
-        width: 100%;
+.btn {
+  @include flex-center(8px);
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all var(--transition-fast);
 
-        &:hover {
-          background-color: darken($primary-color, 10%);
-        }
-        h2{
-          margin-bottom:0 !important;
-        }
-        img {
-          width: 40px;
-          height: 40px;
-          margin: 0;
-        }
-      }
-    }
-
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    @include flex-center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 
-  &-rectangle {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    gap: 50px;
-    width: 90%;
-    margin: 5%;
-    margin-bottom: 10%;
-    border: transparent 20px solid;
-    min-height: 500px;
-    max-width: 1200px;
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.add-to-cart-btn {
+  @extend .btn;
+  background-color: #f5f5f7;
+  color: var(--text-primary);
+  border-color: #d2d2d7;
+
+  &:hover:not(:disabled) {
+    background-color: #e5e5e7;
+  }
+
+  &:disabled {
+    background-color: var(--color-success);
+    color: var(--text-on-dark);
+    border-color: var(--color-success);
+    cursor: not-allowed;
+  }
+}
+
+.buy-now-btn {
+  @extend .btn;
+  background-color: var(--color-primary);
+  color: var(--text-on-dark);
+
+  &:hover {
+    background-color: var(--color-primary-dark);
+  }
+}
+
+.whatsapp-btn {
+  @extend .btn;
+  background-color: var(--color-whatsapp);
+  color: var(--text-on-dark);
+  margin-top: 0.75rem;
+
+  &:hover {
+    background-color: var(--color-whatsapp-dark);
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--card-border-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 2;
+  @include flex-center;
+  font-size: 1.2rem;
+  color: var(--color-danger);
+  transition: transform var(--transition-fast), background-color var(--transition-fast);
+
+  &:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
+// --- 5. Popup / Modal ---
+.card-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  @include flex-center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card-popup-rectangle {
+  background-color: var(--card-bg);
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.popup-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
     max-height: 90vh;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    position: relative;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    -ms-border-radius: 10px;
-    -o-border-radius: 10px;
+    overflow-y: auto;
   }
 }
 
-.popup {
-  &-content {
-    display: flex;
-    flex-direction: row;
-    overflow-y: auto;
-    gap: 30px;
+.popup-right { // Image
+  background-color: #f5f5f7;
+  @include flex-center;
+  overflow: hidden;
+
+  .popup-img {
     width: 100%;
-
-    p {
-      min-height: 70px;
-      //
-    }
-
-    @media (max-width: 768px) {
-      flex-direction: column;
-      padding: 20px;
-    }
-  }
-
-  &-left {
-    flex: 1;
-    padding-right: 30px;
-    *{
-      margin-top: 0;
-    }
-
-    .popup-content {
-      padding-left: 0;
-      margin-top: 0;
-      color: #000 !important;
-    }
-
-    @media (max-width: 768px) {
-      padding-right: 0;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      font-size: 1.2rem;
-      margin-bottom: 15px;
-      color: darken($text-color, 10%);
-    }
-  }
-
-  &-right {
-    flex: 1;
-    @include flex-center;
-
-  }
-
-  &-img,
-  .img {
-    width: 100%;
-    height: 400px;
-    object-fit: contain;
-    border-radius: 20px !important;
-    position: relative;
-    -webkit-border-radius: 20px !important;
-    -moz-border-radius: 20px !important;
-    -ms-border-radius: 20px !important;
-    -o-border-radius: 20px !important;
-
-    @media(max-width: 768px) {
-      height: 300px;
-    }
-
+    height: 100%;
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 4px;
-      border-radius: 20px !important;
-      -webkit-border-radius: 20px !important;
-      -moz-border-radius: 20px !important;
-      -ms-border-radius: 20px !important;
-      -o-border-radius: 20px !important;
     }
+  }
+}
+
+.popup-left { // Details
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  @media (max-width: 800px) {
+    padding: 2rem;
+  }
+
+  h2 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .card-price {
+    font-size: 2rem;
+    color: var(--color-primary);
+    font-weight: 700;
+    margin: 0.5rem 0 1.5rem;
+  }
+
+  .card-category {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    background-color: #f5f5f7;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: 500;
+  }
+
+  .popup-content-full {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    flex-grow: 1;
+  }
+
+  .popup-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: auto;
   }
 }
 
 .close-btn {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.05);
   border: none;
-  font-size: 1.5rem;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
   cursor: pointer;
-  color: $light-text;
+  color: var(--text-secondary);
   z-index: 10;
-  transition: $transition;
+  @include flex-center;
+  transition: all var(--transition-fast);
 
   &:hover {
-    color: $text-color;
+    background: rgba(0, 0, 0, 0.1);
+    transform: rotate(90deg) scale(1.1);
+    color: var(--text-primary);
   }
-}
-
-.card {
-  &-price {
-    font-size: 1.3rem;
-    color: $secondary-color;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-
-  &-category {
-    font-size: 0.9rem;
-    color: $light-text;
-    margin-bottom: 15px;
-  }
-
-  &-tags {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-  }
-
-
-}
-
-.tag {
-  background-color: #f0f0f0;
-  color: #555;
-  padding: 4px 8px;
-  border-radius: 4px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-  font-size: 0.8rem;
-}
-
-// Responsive adjustments
-@media (max-width: 768px) {
-  .card-popup-rectangle {
-    width: 95%;
-  }
-}
-.favorite-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    z-index: 10;
-    color: #000000;
-    text-shadow: 0 0 3px rgba(0,0,0,0.5);
-    transition: all 0.2s ease;
-}
-
-.favorite-btn:hover {
-    transform: scale(1.1);
-}
-
-.card {
-    position: relative; /* Add this to position the favorite button correctly */
-}
-.card-category{
-  margin-bottom:0 !important;
-}
-.popup-content{
-  font-size:1rem;
 }

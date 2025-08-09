@@ -8,40 +8,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 import os
-# ++++++++++ ADDED THIS IMPORT ++++++++++
 from django.contrib.auth import get_user_model
-
-class Author(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    bio = models.TextField(blank=True, help_text="A short bio for the author.")
-
-    def __str__(self):
-        return self.user.username
-
-    def clean(self):
-        super().clean()
-        if not (self.user.is_staff or self.user.is_superuser):
-            raise ValidationError("Author must be a staff member or superuser.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-        
-def get_default_author():
-    # ++++++++++ THIS IS THE CORRECTED PART ++++++++++
-    User = get_user_model()  # Get the actual User model
-    default_user, created = User.objects.get_or_create(
-        username='default_author',
-        defaults={'is_staff': False, 'is_superuser': False}
-    )
-    # ++++++++++++++++++++++++++++++++++++++++++++++++
-    if created:
-        # Set a default password so the user is usable
-        default_user.set_password(os.urandom(12).hex()) # Use hex for a string password
-        default_user.save()
-        
-    author, _ = Author.objects.get_or_create(user=default_user)
-    return author.pk
 
 class CarouselImg(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -125,12 +92,11 @@ class Category(models.Model):
         return reverse('products_by_category', args=[self.slug])
 
 class Product(models.Model):
-    author = models.ForeignKey(
-        "Author",
-        on_delete=models.SET_DEFAULT,
-        default=get_default_author,
-        related_name='products',
-        verbose_name="Product Author",
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='products'
     )
     image = models.ImageField(
         upload_to='products/',
@@ -416,3 +382,11 @@ class Contact(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class Payment(models.Model):
+    amount = models.DecimalField(max_digits=10 , decimal_places=2)
+    currency = models.CharField(max_length=10 , default="usd")
+    stripe_payment_id = models.CharField(max_length=255 , blank=True ,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user_email = models.EmailField()

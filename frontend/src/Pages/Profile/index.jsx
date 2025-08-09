@@ -1,50 +1,81 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import api from '../../services/api';
 import './css/styles.scss';
 import { PasswordChangeSection } from '../../Components/PasswordChange/PasswordChange';
 import { AddItemModal } from '../../Components/AddItemModal/index';
+import Card from '../../Components/Card';
 
-export default function Profile() {
-    // State for user data, loading, and errors
+const ProductCard = ({ product, categories }) => (
+    <Card card={product} categories={categories} />
+);
+
+export default function Profile({ categories = [] }) {
+    // --- STATE MANAGEMENT ---
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    // State for UI control
     const [activeTab, setActiveTab] = useState('profile');
     const [editMode, setEditMode] = useState(false);
-
-    // State for Admin Panel
-    const [allUsers, setAllUsers] = useState([]);
-    const [adminLoading, setAdminLoading] = useState(false);
-
-    // State for forms
-    const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
-    });
-
-    // State for the "Add Item" modal
+    const [formData, setFormData] = useState({ first_name: '', last_name: '' });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalConfig, setModalConfig] = useState(null);
+    const [allUsers, setAllUsers] = useState([]);
+    const [adminLoading, setAdminLoading] = useState(false);
+    const [myProducts, setMyProducts] = useState([]);
+    const [productsLoading, setProductsLoading] = useState(false);
+    const [pagination, setPagination] = useState({
+        count: 0,
+        next: null,
+        previous: null,
+        currentPage: 1,
+    });
 
-    // Derived user permissions
-    const isSuperuser = user?.is_superuser;
-    const isAdmin = user?.is_staff || user?.is_superuser;
+    // --- DATA FETCHING ---
+    const fetchAllUsers = useCallback(async (page = 1) => {
+        // Guard clause moved inside to use fresh user state
+        if (!user?.is_superuser) return;
+        setAdminLoading(true);
+        try {
+            const response = await api.get(`/api/user/all/?page=${page}`);
+            setAllUsers(response.data.results);
+            setPagination({
+                count: response.data.count,
+                next: response.data.next,
+                previous: response.data.previous,
+                currentPage: page,
+            });
+        } catch (err) {
+            setError("Failed to load user list.");
+            console.error(err);
+        } finally {
+            setAdminLoading(false);
+        }
+    }, [user]); // Depend on the user object
 
-    // Fetch current user data on component mount
+    const fetchMyProducts = useCallback(async () => {
+        if (!user || !(user.is_staff || user.is_superuser)) return;
+        setProductsLoading(true);
+        try {
+            const response = await api.get('/api/products/');
+            const userProducts = response.data.filter(product => product.owner?.id === user.id);
+            setMyProducts(userProducts);
+        } catch (err) {
+            console.error("Failed to fetch products:", err);
+            setError("Failed to load your products.");
+        } finally {
+            setProductsLoading(false);
+        }
+    }, [user]); // Depend on the user object
+
     useEffect(() => {
         const getUser = async () => {
             try {
                 const response = await api.get("/api/user/myuser/");
                 setUser(response.data);
-                setFormData({
-                    first_name: response.data.first_name || '',
-                    last_name: response.data.last_name || '',
-                });
+                setFormData({ first_name: response.data.first_name || '', last_name: response.data.last_name || '' });
             } catch (err) {
-                console.error("Failed to fetch user data:", err);
-                setError("Failed to load user data. Please try again later.");
+                setError("Failed to load user data.");
+                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -52,37 +83,16 @@ export default function Profile() {
         getUser();
     }, []);
 
-    // Fetch all users when admin tab is opened
-    const fetchAllUsers = async () => {
-        if (!isAdmin) {
-            setError("Unauthorized access");
-            return;
-        }
-        setAdminLoading(true);
-        setError(null);
-        try {
-            const response = await api.get("/api/user/all/");
-            if (!Array.isArray(response.data)) {
-                throw new Error("Invalid user data format");
-            }
-            setAllUsers(response.data);
-        } catch (err) {
-            console.error("Failed to fetch all users:", err);
-            const errorMessage = err.response?.status === 403 ? "Permission denied" : "Failed to load user list";
-            setError(errorMessage);
-            setAllUsers([]);
-        } finally {
-            setAdminLoading(false);
-        }
-    };
-
     useEffect(() => {
-        if (activeTab === 'admin' && isAdmin && allUsers.length === 0) {
-            fetchAllUsers();
+        if (user && (user.is_staff || user.is_superuser) && activeTab === 'admin') {
+            fetchMyProducts();
+            if (user.is_superuser) {
+                fetchAllUsers();
+            }
         }
-    }, [activeTab, isAdmin, allUsers.length]);
+    }, [activeTab, user, fetchMyProducts, fetchAllUsers]);
 
-    // Function to open and configure the modal for adding content
+    // --- EVENT HANDLERS ---
     const handleOpenModal = (type) => {
         let config = {};
         switch (type) {
@@ -96,9 +106,7 @@ export default function Profile() {
                         { name: 'price', label: 'Price', type: 'number', required: true },
                         { name: 'image', label: 'Product Image', type: 'file', required: true },
                         { name: 'category', label: 'Category', type: 'select', required: false },
-                        // Changed default to true for is_active
                         { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true },
-                        { name: 'best_products', label: 'Is a Featured Product?', type: 'checkbox', default: false },
                     ]
                 };
                 break;
@@ -109,21 +117,8 @@ export default function Profile() {
                     fields: [{ name: 'name', label: 'Category Name', type: 'text', required: true }]
                 };
                 break;
-            case 'Service':
-                config = {
-                    title: 'Add New Service',
-                    endpoint: '/api/admin/services/',
-                    fields: [
-                        { name: 'name', label: 'Service Name', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'price', label: 'Price', type: 'number', required: true },
-                        { name: 'image', label: 'Service Image', type: 'file', required: true },
-                        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true },
-                    ]
-                };
-                break;
             case 'Contact':
-                config = {
+                 config = {
                     title: 'Add New Contact',
                     endpoint: '/api/admin/contacts/',
                     fields: [
@@ -142,11 +137,7 @@ export default function Profile() {
         setIsModalOpen(true);
     };
 
-    // Handlers for form inputs and actions
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -154,10 +145,8 @@ export default function Profile() {
             const response = await api.patch("/api/user/myuser/", formData);
             setUser(response.data);
             setEditMode(false);
-            setError(null);
         } catch (err) {
-            console.error("Failed to update user:", err);
-            setError("Failed to update profile. Please try again.");
+            setError("Failed to update profile.");
         }
     };
 
@@ -166,148 +155,157 @@ export default function Profile() {
             await api.patch(`/api/user/${userId}/`, { is_active: !currentStatus });
             setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, is_active: !currentStatus } : u));
         } catch (err) {
-            console.error("Failed to update user status:", err);
             setError("Failed to update user status.");
         }
     };
 
     const handleDeleteUser = async (userId) => {
-        if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+        if (!window.confirm("Are you sure? This action is irreversible.")) return;
         try {
             await api.delete(`/api/user/${userId}/`);
             setAllUsers(prev => prev.filter(u => u.id !== userId));
         } catch (err) {
-            console.error("Failed to delete user:", err);
             setError("Failed to delete user.");
         }
     };
 
-    // Loading and error states
-    if (loading) {
-        return <div className="profile-container"><div className="loading-spinner"></div><p>Loading user data...</p></div>;
-    }
-    if (error) {
-        return <div className="profile-container error"><div className="error-message"><span className="error-icon">⚠️</span>{error}<button onClick={() => window.location.reload()} className="retry-btn">Retry</button></div></div>;
-    }
-    if (!user) {
-        return <div className="profile-container"><p>No user data available</p></div>;
-    }
+    const getUserRole = (user) => {
+        if (user.is_superuser) return 'Super Admin';
+        if (user.is_staff) return 'Admin';
+        return 'User';
+    };
+
+    // --- RENDER LOGIC ---
+    if (loading) return <div className="profile-container"><div className="loading-spinner" /></div>;
+    if (error) return <div className="profile-container error-message"><p>{error}</p></div>;
+    if (!user) return null;
+
+    // Calculate permissions on every render to ensure they are fresh
+    const isSuperuser = user.is_superuser;
+    const isAdmin = user.is_staff || user.is_superuser;
 
     return (
         <div className="profile-container">
-            <div className="profile-header">
-                <div className="avatar">
+            <header className="profile-header">
+                <div className="profile-header__avatar">
                     {user.first_name && user.last_name ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` : user.username.charAt(0).toUpperCase()}
                 </div>
-                <h1>
-                    {user.first_name || user.username} {user.last_name || ""}
-                    {user.is_superuser && <span className="badge superuser">Super Admin</span>}
-                    {user.is_staff && !user.is_superuser && <span className="badge admin">Admin</span>}
-                </h1>
-                <p className="username">@{user.username}</p>
-                <p className="email">{user.email}</p>
-            </div>
+                <h1 className="profile-header__name">{user.first_name || user.username} {user.last_name || ""}</h1>
+                <p className="profile-header__username">@{user.username}</p>
+                <p className="profile-header__email">{user.email}</p>
+                <div>
+                    {isSuperuser && <span className="profile-header__badge profile-header__badge--superuser">Super Admin</span>}
+                    {isAdmin && !isSuperuser && <span className="profile-header__badge profile-header__badge--admin">Admin</span>}
+                </div>
+            </header>
 
-            <div className="profile-tabs">
-                <button className={activeTab === 'profile' ? 'active' : ''} onClick={() => setActiveTab('profile')}>Profile</button>
-                <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>Settings</button>
-                {isAdmin && <button className={activeTab === 'admin' ? 'active' : ''} onClick={() => setActiveTab('admin')}>Admin Panel</button>}
-            </div>
+            <nav className="profile-tabs">
+                <button className={`profile-tabs__button ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>Profile</button>
+                <button className={`profile-tabs__button ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>Settings</button>
+                {isAdmin && <button className={`profile-tabs__button ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>Admin Panel</button>}
+            </nav>
 
-            <div className="profile-content">
+            <main className="profile-content">
                 {activeTab === 'profile' && (
-                    <div className="profile-info">
-                        <div className="info-section">
-                            <div className="section-header">
-                                <h3>Personal Information</h3>
-                                {!editMode && <button className="edit-btn" onClick={() => setEditMode(true)}>Edit Profile</button>}
-                            </div>
-                            {editMode ? (
-                                <form onSubmit={handleSave}>
-                                    <div className="info-grid">
-                                        <div className="info-item"><label>First Name</label><input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} /></div>
-                                        <div className="info-item"><label>Last Name</label><input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} /></div>
-                                        <div className="info-item"><label>Username</label><p>{user.username}</p></div>
-                                        <div className="info-item"><label>Email</label><p>{user.email}</p></div>
-                                    </div>
-                                    <div className="form-actions">
-                                        <button type="button" className="cancel-btn" onClick={() => setEditMode(false)}>Cancel</button>
-                                        <button type="submit" className="save-btn">Save Changes</button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <div className="info-grid">
-                                    <div className="info-item"><label>First Name</label><p>{user.first_name || 'Not provided'}</p></div>
-                                    <div className="info-item"><label>Last Name</label><p>{user.last_name || 'Not provided'}</p></div>
-                                    <div className="info-item"><label>Username</label><p>{user.username}</p></div>
-                                    <div className="info-item"><label>Email</label><p style={{ fontSize: "14px" }}>{user.email}</p></div>
-                                    <div className="info-item"><label>Account Type</label><p>{user.is_superuser ? 'Super Administrator' : user.is_staff ? 'Administrator' : 'Regular User'}</p></div>
-                                    <div className="info-item"><label>Member Since</label><p>{new Date(user.date_joined).toLocaleDateString()}</p></div>
-                                    <div className="info-item"><label>Last Login</label><p>{user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</p></div>
-                                </div>
-                            )}
+                    <section className="profile-content__section">
+                        <div className="profile-content__header">
+                            <h3>Personal Information</h3>
+                            {!editMode && <button className="button button--secondary" onClick={() => setEditMode(true)}>Edit</button>}
                         </div>
-                    </div>
+                        {editMode ? (
+                            <form onSubmit={handleSave}>
+                                <div className="info-grid">
+                                    <div className="info-grid__item"><label>First Name</label><input type="text" name="first_name" value={formData.first_name} onChange={handleInputChange} className="form-input" /></div>
+                                    <div className="info-grid__item"><label>Last Name</label><input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} className="form-input" /></div>
+                                </div>
+                                <div className="form-actions">
+                                    <button type="button" className="button button--text" onClick={() => setEditMode(false)}>Cancel</button>
+                                    <button type="submit" className="button button--primary">Save Changes</button>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="info-grid">
+                                <div className="info-grid__item"><label>First Name</label><p>{user.first_name || 'N/A'}</p></div>
+                                <div className="info-grid__item"><label>Last Name</label><p>{user.last_name || 'N/A'}</p></div>
+                                <div className="info-grid__item"><label>Username</label><p>{user.username}</p></div>
+                                <div className="info-grid__item"><label>Email</label><p>{user.email}</p></div>
+                                <div className="info-grid__item"><label>Member Since</label><p>{new Date(user.date_joined).toLocaleDateString()}</p></div>
+                            </div>
+                        )}
+                    </section>
                 )}
 
                 {activeTab === 'settings' && (
-                    <div className="settings-section">
-                        <h3>Account Settings</h3>
+                    <section className="profile-content__section">
+                        <div className="profile-content__header"><h3>Account Settings</h3></div>
                         <PasswordChangeSection />
-                    </div>
+                    </section>
                 )}
 
                 {activeTab === 'admin' && isAdmin && (
-                    <div className="admin-section">
-                        <h3>Admin Panel</h3>
-                        <div className="admin-stats">
-                            <div className="stat-card"><h4>Total Users</h4><p className="stat-number">{allUsers.length}</p></div>
-                            <div className="stat-card"><h4>Active Users</h4><p className="stat-number">{allUsers.filter(u => u.is_active).length}</p></div>
-                            <div className="stat-card"><h4>Admin Users</h4><p className="stat-number">{allUsers.filter(u => u.is_staff || u.is_superuser).length}</p></div>
+                    <section className="profile-content__section">
+                        <div className="profile-content__header"><h3>Admin Panel</h3></div>
+
+                        <div className="my-products-section">
+                            <div className="profile-content__header">
+                                <h4>My Products ({myProducts.length})</h4>
+                                <button onClick={fetchMyProducts} className="button button--secondary" disabled={productsLoading}>{productsLoading ? 'Refreshing...' : 'Refresh'}</button>
+                            </div>
+                            {productsLoading ? <div className="loading-spinner" /> : myProducts.length > 0 ? (
+                                <div className="my-products-grid cards-container">{myProducts.map(p => <ProductCard key={p.id} product={p} categories={categories} />)}</div>
+                            ) : <p>You have not created any products yet.</p>}
                         </div>
-                        <div className="user-management">
-                            <div className="section-header"><h4>User Management</h4><button onClick={fetchAllUsers} className="refresh-btn" disabled={adminLoading}>{adminLoading ? 'Loading...' : 'Refresh'}</button></div>
-                            {adminLoading ? <div className="loading">Loading users...</div> : (
-                                <div className="users-table">
-                                    <div className="table-header"><span>User</span><span>Email</span><span>Status</span><span>Role</span><span>Joined</span><span>Actions</span></div>
-                                    {allUsers.map(userItem => (
-                                        <div key={userItem.id} className="table-row">
-                                            <div className="user-info">
-                                                <div className="user-avatar">{userItem.first_name && userItem.last_name ? `${userItem.first_name.charAt(0)}${userItem.last_name.charAt(0)}` : userItem.username.charAt(0).toUpperCase()}</div>
-                                                <div><p className="username">{userItem.username}</p><p className="name">{userItem.first_name} {userItem.last_name}</p></div>
-                                            </div>
-                                            <span className="email">{userItem.email}</span>
-                                            <span className={`status ${userItem.is_active ? 'active' : 'inactive'}`}>{userItem.is_active ? 'Active' : 'Inactive'}</span>
-                                            <span className="role">{userItem.is_superuser ? 'Super Admin' : userItem.is_staff ? 'Admin' : 'User'}</span>
-                                            <span className="date">{new Date(userItem.date_joined).toLocaleDateString()}</span>
-                                            <div className="actions">
-                                                {userItem.id !== user.id && (
-                                                    <>
-                                                        <button className={`toggle-btn ${userItem.is_active ? 'deactivate' : 'activate'}`} onClick={() => handleUserStatusToggle(userItem.id, userItem.is_active)}>{userItem.is_active ? 'Deactivate' : 'Activate'}</button>
-                                                        {(isSuperuser) && <button className="delete-btn" onClick={() => handleDeleteUser(userItem.id)}>Delete</button>}
-                                                    </>
-                                                )}
-                                                {userItem.id === user.id && <span className="self-indicator">You</span>}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+
                         {isSuperuser && (
-                            <div className="management-section">
-                                <h4>Content Management</h4>
-                                <div className="management-actions">
-                                    <button onClick={() => handleOpenModal('Product')}>Add Product</button>
-                                    <button onClick={() => handleOpenModal('Category')}>Add Category</button>
-                                    <button onClick={() => handleOpenModal('Service')}>Add Service</button>
-                                    <button onClick={() => handleOpenModal('Contact')}>Add Contact</button>
-                                </div>
+                            <div className="user-management-section">
+                                <div className="profile-content__header"><h4>User Management</h4></div>
+                                {adminLoading ? <div className="loading-spinner" /> : (
+                                    <>
+                                        <div className="users-table">
+                                            <div className="users-table__header">
+                                                <span>User</span><span>Email</span><span>Status</span><span>Role</span><span>Actions</span>
+                                            </div>
+                                            {Array.isArray(allUsers) && allUsers.map(userItem => (
+                                                <div key={userItem.id} className="users-table__row">
+                                                    <div className="users-table__user-info">
+                                                        <div className="users-table__avatar">{userItem.first_name ? userItem.first_name.charAt(0) : userItem.username.charAt(0)}</div>
+                                                        <p>{userItem.username}</p>
+                                                    </div>
+                                                    <span>{userItem.email}</span>
+                                                    <span className={`status-pill status-pill--${userItem.is_active ? 'active' : 'inactive'}`}>{userItem.is_active ? 'Active' : 'Inactive'}</span>
+                                                    <span>{getUserRole(userItem)}</span>
+                                                    <div className="actions">
+                                                        {userItem.id !== user.id && (
+                                                            <>
+                                                                <button className="button button--small button--secondary" onClick={() => handleUserStatusToggle(userItem.id, userItem.is_active)}>{userItem.is_active ? 'Deactivate' : 'Activate'}</button>
+                                                                <button className="button button--small button--danger" onClick={() => handleDeleteUser(userItem.id)}>Delete</button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="pagination-controls">
+                                            <button onClick={() => fetchAllUsers(pagination.currentPage - 1)} disabled={!pagination.previous} className="button">Previous</button>
+                                            <span>Page {pagination.currentPage} of {Math.ceil(pagination.count / 10)}</span>
+                                            <button onClick={() => fetchAllUsers(pagination.currentPage + 1)} disabled={!pagination.next} className="button">Next</button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
-                    </div>
+
+                        <div className="management-section">
+                            <div className="profile-content__header"><h4>Content Management</h4></div>
+                            <div className="management-actions">
+                                <button className="button button--primary" onClick={() => handleOpenModal('Product')}>Add Product</button>
+                                {isSuperuser && <button className="button button--primary" onClick={() => handleOpenModal('Category')}>Add Category</button>}
+                                {isSuperuser && <button className="button button--primary" onClick={() => handleOpenModal('Contact')}>Add Contact</button>}
+                            </div>
+                        </div>
+                    </section>
                 )}
-            </div>
+            </main>
 
             {isModalOpen && (
                 <AddItemModal
@@ -316,7 +314,9 @@ export default function Profile() {
                     onSuccess={() => {
                         setIsModalOpen(false);
                         alert(`${modalConfig.title.replace('Add New ', '')} added successfully!`);
-                        // Optionally refresh data here, e.g., fetchAllUsers() if a user was added.
+                        if (modalConfig.endpoint.includes('products')) {
+                            fetchMyProducts();
+                        }
                     }}
                 />
             )}

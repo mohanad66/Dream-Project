@@ -1,33 +1,39 @@
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny , IsAdminUser
-from rest_framework.response import Response
-# ++++++++++ ADDED 'viewsets' ++++++++++
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import status, generics, viewsets
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.generics import ListAPIView
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from .serializer import *
 from .models import *
 import logging
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes, force_str
-from django.conf import settings
+import stripe
 
 logger = logging.getLogger(__name__ )
 User = get_user_model()
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
+
 class ProductAdminViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().select_related('owner')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_staff and not user.is_superuser:
+            raise serializers.ValidationError("You do not have permission to create products.")
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 class CategoryAdminViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -42,10 +48,8 @@ class ContactAdminViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
-# ++++++++++++++++++++++++++++++++++++++++++
 
 
-# Auth Views
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     
@@ -244,3 +248,45 @@ get_services = create_public_list_view(
 get_contact = create_public_list_view(
     Contact, ContactSerializer
 )
+
+class PaymentListView(ListAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+
+class CreatePaymentIntentView(APIView):
+    def post(self,request):
+        amount = request.data.get('amount')
+        currency = request.data.get('currency')
+        email = request.data.get('user_email')
+        if not email:
+            return Response({"error" : "Invalid Email"} , status=400)
+        if not amount:
+            return Response({"error" : "Invalid Amount"} , status=400)
+        if not currency:
+            return Response({"error" : "Currency is Required"} , status=400)
+        
+        supported_currencies = ["usd" , "egp"]
+        if currency.lower() not in supported_currencies:
+            return Response({"error" : "Unsupported Currency"} ,status=400)
+        
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount = int(amount),
+                currency=currency
+            )
+            payment_data = {
+                "amount": amount ,
+                "currency": currency ,
+                "stripe_payment_id" : intent["id"],
+                "user_email": email
+            }
+            serializer = PaymentSerializer(data = payment_data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    "clientSecret" : intent["client_secret"],
+                    "payment" : serializer.data,
+                } , status=status.HTTP_201_CREATED)
+            return Response(serializer.errors , status=status.HTTP_400_BAD_REQUEST)
+        except stripe.error.StripeError as e:
+            return Response({"error": str(e)} , status=400)
