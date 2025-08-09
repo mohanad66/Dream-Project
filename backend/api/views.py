@@ -1,6 +1,7 @@
 from rest_framework.permissions import IsAuthenticated, AllowAny , IsAdminUser
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import status, generics, viewsets
 from rest_framework.generics import ListAPIView
@@ -18,22 +19,13 @@ User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
-
 class ProductAdminViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related('owner')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
-
     def perform_create(self, serializer):
-        user = self.request.user
-        if not user.is_staff and not user.is_superuser:
-            raise serializers.ValidationError("You do not have permission to create products.")
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        serializer.save(owner=self.request.user)
+
 class CategoryAdminViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -95,10 +87,14 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10  # Match the expected page size, or make it configurable
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def get_all_users(request):
-
     try:
         users = User.objects.all().order_by('-date_joined')
         
@@ -111,27 +107,34 @@ def get_all_users(request):
                 Q(username__icontains=search) |
                 Q(email__icontains=search)
             )
-            
+        
+        # +++ ADD PAGINATION LOGIC +++
+        paginator = StandardResultsSetPagination()
+        paginated_users = paginator.paginate_queryset(users, request)
+        
         serializer = UserSerializer(
-            users, 
+            paginated_users, # Use the paginated queryset
             many=True,
             context={'is_admin': request.user.is_superuser}
         )
-        return Response(serializer.data)
+        
+        # Return the paginated response
+        return paginator.get_paginated_response(serializer.data)
         
     except Exception as e:
         return Response(
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 class UserDetailView(APIView):
     def get_permissions(self):
+        # Permissions remain the same
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
     
     def get(self, request, pk):
+        # GET request logic remains the same
         user = get_object_or_404(User, pk=pk)
         if user != request.user and not request.user.is_staff:
             return Response(
@@ -142,30 +145,39 @@ class UserDetailView(APIView):
         serializer_class = AdminUserSerializer if request.user.is_staff else UserSerializer
         return Response(serializer_class(user).data)
     
+    # +++ UPDATED: The PATCH method is now more powerful +++
     def patch(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
-        
-        if user == request.user:
+        # Only superusers can modify other users
+        if not request.user.is_superuser:
             return Response(
-                {"detail": "You cannot modify your own status"},
+                {"detail": "You do not have permission to modify user roles."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        user_to_modify = get_object_or_404(User, pk=pk)
+        
+        # Prevent a superuser from modifying themselves or another superuser
+        if user_to_modify == request.user or user_to_modify.is_superuser:
+            return Response(
+                {"detail": "You cannot modify your own status or that of another superuser."},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        if 'is_active' not in request.data or len(request.data) > 1:
-            return Response(
-                {"detail": "Only is_active field can be modified"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        user.is_active = request.data['is_active']
-        user.save()
-        
-        return Response(
-            {"status": f"User {'deactivated' if not user.is_active else 'reactivated'}"},
-            status=status.HTTP_200_OK
+        # Use the new serializer to validate and perform the update
+        serializer = AdminUserUpdateSerializer(
+            instance=user_to_modify, 
+            data=request.data, 
+            partial=True # partial=True is crucial for PATCH requests
         )
-    
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(UserSerializer(user_to_modify).data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, pk):
+        # DELETE request logic remains the same
         user = get_object_or_404(User, pk=pk)
         
         if user == request.user:
@@ -176,21 +188,16 @@ class UserDetailView(APIView):
         
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+class CurrentUserView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_current_user(request):
-    """Get current authenticated user"""
-    try:
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
-    except Exception as e:
-        logger.error(f"User fetch error: {str(e)}")
-        return Response(
-            {"error": "Failed to retrieve user data"}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    def get_object(self):
+        return self.request.user
 
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH':
+            return UserProfileUpdateSerializer
+        return UserSerializer
 
 # Public Content Views
 def create_public_list_view(model, serializer, *, order_by=None, filter_active=False):
@@ -237,7 +244,7 @@ get_carouselImg = create_public_list_view(
     CarouselImg, CarouselImgSerializer, filter_active=True
 )
 get_product = create_public_list_view(
-    Product, ProductSerializer, order_by="price"
+    Product, ProductSerializer, filter_active=True # Keep filtering for active products
 )
 get_category = create_public_list_view(
     Category, CategorySerializer, filter_active=True

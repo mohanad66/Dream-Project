@@ -1,10 +1,27 @@
-from django.urls import path, include # +++ ADD include
-from rest_framework.routers import DefaultRouter # +++ ADD DefaultRouter
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
 )
-from .views import *
+# Make sure to import the new class-based view and remove the old one
+from .views import (
+    ProductAdminViewSet,
+    CategoryAdminViewSet,
+    ServiceAdminViewSet,
+    ContactAdminViewSet,
+    get_product,
+    get_category,
+    get_carouselImg,
+    get_services,
+    get_contact,
+    CustomTokenObtainPairView,
+    CreateUserView,
+    CurrentUserView,  # <--- IMPORT THIS
+    get_all_users,
+    UserDetailView,
+    PasswordChangeView
+)
 
 # ++++++++++ SETUP ADMIN ROUTER ++++++++++
 admin_router = DefaultRouter()
@@ -25,22 +42,19 @@ urlpatterns = [
     # Authentication endpoints
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path('token/verify/', TokenVerifyView.as_view(), name='token_verify'), # <--- ADD THIS LINE
-
+    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    
     # User endpoints
     path("user/register/", CreateUserView.as_view(), name="register"),
-    path("user/myuser/", get_current_user, name="get_user"),
+    
+    # +++ THIS IS THE CORRECTED LINE +++
+    path("user/myuser/", CurrentUserView.as_view(), name="get_user"),
+    
     path('user/all/', get_all_users, name='get_all_users'),
     path("user/<int:pk>/", UserDetailView.as_view() , name="user-detail"),
     path('auth/password/change/', PasswordChangeView.as_view(), name='password-change'),
 
-    # ++++++++++ PAYMENT ENDPOINTS ++++++++++
-    path("payments/", PaymentListView.as_view(), name="payment-list"),
-    path("payments/create-intent/", CreatePaymentIntentView.as_view(), name="create-payment-intent"),
-    # +++++++++++++++++++++++++++++++++++++++
-
     # ++++++++++ ADD ADMIN URLS ++++++++++
-    # This includes all the URLs for the admin viewsets (e.g., /api/admin/products/)
     path("admin/", include(admin_router.urls)),
     # ++++++++++++++++++++++++++++++++++++
 ]
