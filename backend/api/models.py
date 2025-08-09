@@ -197,7 +197,6 @@ class Product(models.Model , ImageHandlingMixin):
     # ... other fields are fine ...
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Product Category", help_text="Select product category")
     description = models.TextField(max_length=500, help_text="Detailed product description (max 500 chars)")
-<<<<<<< HEAD
     price = models.DecimalField(
             max_digits=10,
             decimal_places=2,
@@ -205,9 +204,7 @@ class Product(models.Model , ImageHandlingMixin):
             validators=[MinValueValidator(Decimal('0.01'))],
             help_text="Price in USD (min $0.01)"
     )    
-=======
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Price in USD (min $0.01)")
->>>>>>> e1d8e026536fb41fa5a49ad98f6a6ae4cf02aca3
     is_active = models.BooleanField(default=True, verbose_name="Active", help_text="Is this product available for sale?")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creation Date")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Last Updated")

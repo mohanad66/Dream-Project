@@ -191,18 +191,15 @@ class UserDetailView(APIView):
 class CurrentUserView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
-<<<<<<< HEAD
     def get_object(self):
         return self.request.user
 
-=======
 class CurrentUserView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
 
->>>>>>> e1d8e026536fb41fa5a49ad98f6a6ae4cf02aca3
     def get_serializer_class(self):
         if self.request.method == 'PATCH':
             return UserProfileUpdateSerializer
