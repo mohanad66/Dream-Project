@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from .serializer import *
 from .models import *
 import logging
+from django.conf import settings
 import stripe
 
 logger = logging.getLogger(__name__ )
@@ -128,13 +129,11 @@ def get_all_users(request):
         )
 class UserDetailView(APIView):
     def get_permissions(self):
-        # Permissions remain the same
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
     
     def get(self, request, pk):
-        # GET request logic remains the same
         user = get_object_or_404(User, pk=pk)
         if user != request.user and not request.user.is_staff:
             return Response(
@@ -145,9 +144,11 @@ class UserDetailView(APIView):
         serializer_class = AdminUserSerializer if request.user.is_staff else UserSerializer
         return Response(serializer_class(user).data)
     
-    # +++ UPDATED: The PATCH method is now more powerful +++
     def patch(self, request, pk):
-        # Only superusers can modify other users
+        print(f"Received PATCH request for user {pk}")
+        print(f"Request data: {request.data}")
+        print(f"Request user: {request.user} (superuser: {request.user.is_superuser})")
+        
         if not request.user.is_superuser:
             return Response(
                 {"detail": "You do not have permission to modify user roles."},
@@ -156,28 +157,35 @@ class UserDetailView(APIView):
 
         user_to_modify = get_object_or_404(User, pk=pk)
         
-        # Prevent a superuser from modifying themselves or another superuser
-        if user_to_modify == request.user or user_to_modify.is_superuser:
+        # Prevent modifying other superusers
+        if user_to_modify.is_superuser:
             return Response(
-                {"detail": "You cannot modify your own status or that of another superuser."},
+                {"detail": "Cannot modify superuser roles."},
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Use the new serializer to validate and perform the update
-        serializer = AdminUserUpdateSerializer(
+        # Prevent self-modification
+        if user_to_modify == request.user:
+            return Response(
+                {"detail": "You cannot modify your own role."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = AdminUserSerializer(
             instance=user_to_modify, 
             data=request.data, 
-            partial=True # partial=True is crucial for PATCH requests
+            partial=True
         )
         
         if serializer.is_valid():
+            print("Serializer valid - saving changes")
             serializer.save()
-            return Response(UserSerializer(user_to_modify).data, status=status.HTTP_200_OK)
+            return Response(AdminUserSerializer(user_to_modify).data, status=status.HTTP_200_OK)
         
+        print(f"Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        # DELETE request logic remains the same
         user = get_object_or_404(User, pk=pk)
         
         if user == request.user:
@@ -188,6 +196,8 @@ class UserDetailView(APIView):
         
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class CurrentUserView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -267,39 +277,66 @@ class PaymentListView(ListAPIView):
     serializer_class = PaymentSerializer
 
 class CreatePaymentIntentView(APIView):
-    def post(self,request):
+    def post(self, request):
         amount = request.data.get('amount')
-        currency = request.data.get('currency')
+        currency = request.data.get('currency', '').lower()
         email = request.data.get('user_email')
-        if not email:
-            return Response({"error" : "Invalid Email"} , status=400)
-        if not amount:
-            return Response({"error" : "Invalid Amount"} , status=400)
-        if not currency:
-            return Response({"error" : "Currency is Required"} , status=400)
         
-        supported_currencies = ["usd" , "egp"]
-        if currency.lower() not in supported_currencies:
-            return Response({"error" : "Unsupported Currency"} ,status=400)
+        # Validation
+        if not email or '@' not in email:
+            return Response({"error": "Valid email is required"}, status=400)
+            
+        try:
+            amount_int = int(amount)
+            if amount_int <= 0:
+                return Response({"error": "Amount must be positive"}, status=400)
+        except (TypeError, ValueError):
+            return Response({"error": "Invalid amount format"}, status=400)
+        
+        supported_currencies = ["usd", "egp"]
+        if currency not in supported_currencies:
+            return Response({"error": f"Unsupported currency. Supported: {', '.join(supported_currencies)}"}, 
+                          status=400)
+        
+        # EGP-specific validation
+        if currency == "egp":
+            if amount_int < 2500:  # 25 EGP minimum (2500 piasters)
+                return Response({"error": "Minimum amount for EGP is 25 EGP (2500 piasters)"}, 
+                              status=400)
+            if amount_int % 1 != 0:  # Must be whole piasters
+                return Response({"error": "EGP amount must be in whole piasters"}, 
+                              status=400)
         
         try:
             intent = stripe.PaymentIntent.create(
-                amount = int(amount),
-                currency=currency
+                amount=amount_int,
+                currency=currency,
+                receipt_email=email,
+                metadata={
+                    "user_email": email,
+                    "amount_egp": f"{amount_int/100:.2f}" if currency == "egp" else "n/a"
+                }
             )
+            
             payment_data = {
-                "amount": amount ,
-                "currency": currency ,
-                "stripe_payment_id" : intent["id"],
+                "amount": amount_int,
+                "currency": currency,
+                "stripe_payment_id": intent["id"],
                 "user_email": email
             }
-            serializer = PaymentSerializer(data = payment_data)
+            
+            serializer = PaymentSerializer(data=payment_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response({
-                    "clientSecret" : intent["client_secret"],
-                    "payment" : serializer.data,
-                } , status=status.HTTP_201_CREATED)
-            return Response(serializer.errors , status=status.HTTP_400_BAD_REQUEST)
+                    "clientSecret": intent["client_secret"],
+                    "payment": serializer.data,
+                }, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         except stripe.error.StripeError as e:
-            return Response({"error": str(e)} , status=400)
+            logger.error(f"Stripe error: {str(e)}")
+            return Response({"error": f"Payment processing error: {str(e)}"}, status=400)
+        except Exception as e:
+            logger.error(f"Internal error: {str(e)}")
+            return Response({"error": "Internal server error"}, status=500)

@@ -33,16 +33,14 @@ export default function CheckoutForm() {
         setProcessing(true);
 
         try {
-            // 1. Create a Payment Intent on your server with EGP currency
             const response = await api.post('/api/payments/create-intent/', {
-                amount: Math.round(total * 100), // Amount in the smallest currency unit (piastres for EGP)
-                currency: 'egp', // +++ CHANGED FROM 'usd' TO 'egp' +++
+                amount: Math.round(total * 100),
+                currency: 'egp',
                 user_email: email,
             });
 
             const clientSecret = response.data.clientSecret;
 
-            // 2. Confirm the payment on the client
             const payload = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
                     card: elements.getElement(CardElement),
@@ -59,12 +57,13 @@ export default function CheckoutForm() {
                 setError(null);
                 setProcessing(false);
                 setSucceeded(true);
-                // Clear the cart after successful payment
                 localStorage.removeItem('cart');
             }
         } catch (err) {
-            const errorMessage = err.response ? `Server error: ${err.response.status}` : err.message;
-            setError(`An unexpected error occurred: ${errorMessage}`);
+            // Improved error handling to show server response details
+            const errorMessage = err.response?.data?.error ||
+                (err.response ? `Server error: ${err.response.status}` : err.message);
+            setError(`Payment error: ${errorMessage}`);
             setProcessing(false);
         }
     };
@@ -77,7 +76,7 @@ export default function CheckoutForm() {
             </div>
         );
     }
-    
+
     if (cartItems.length === 0 && !succeeded) {
         return (
             <div className="empty-checkout">

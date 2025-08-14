@@ -175,11 +175,15 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class AdminUserSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 
+                  'is_active', 'is_staff', 'is_superuser', 'date_joined']
+        read_only_fields = ['id', 'date_joined']
         extra_kwargs = {
             **UserSerializer.Meta.extra_kwargs,
             'is_active': {'read_only': False},  # Must be writable
-            'is_staff': {'read_only': True},    # Keep staff status read-only
-            'is_superuser': {'read_only': True},
+            'is_staff': {'read_only': True , 'required': False},    # Keep staff status read-only
+            'is_superuser': {'read_only': True , 'required': False},
             "last_login" : {"read_only": True}
         }
         

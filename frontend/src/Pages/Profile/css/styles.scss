@@ -65,8 +65,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -78,6 +85,8 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--bg-body);
     color: var(--text-primary);
+    padding: 10px 0 !important;
+    margin-bottom: 25vh !important;
 }
 
 .loading-spinner {
@@ -92,8 +101,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 
@@ -108,6 +122,7 @@
     &:hover {
         transform: translateY(-2px);
     }
+
     &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
@@ -117,26 +132,38 @@
     &--primary {
         background-color: var(--color-primary);
         color: var(--text-on-primary);
-        &:hover:not(:disabled) { background-color: var(--color-primary-dark); }
+
+        &:hover:not(:disabled) {
+            background-color: var(--color-primary-dark);
+        }
     }
 
     &--secondary {
         background-color: var(--bg-subtle);
         color: var(--text-primary);
         border: 1px solid var(--border-color);
-        &:hover:not(:disabled) { background-color: var(--bg-hover); }
+
+        &:hover:not(:disabled) {
+            background-color: var(--bg-hover);
+        }
     }
 
     &--danger {
         background-color: var(--color-danger);
         color: var(--text-on-danger);
-        &:hover:not(:disabled) { background-color: var(--color-danger-dark); }
+
+        &:hover:not(:disabled) {
+            background-color: var(--color-danger-dark);
+        }
     }
 
     &--text {
         background: none;
         color: var(--text-secondary);
-        &:hover:not(:disabled) { background-color: var(--bg-subtle); }
+
+        &:hover:not(:disabled) {
+            background-color: var(--bg-subtle);
+        }
     }
 
     &--small {
@@ -196,7 +223,8 @@
         margin: 0;
     }
 
-    &__username, &__email {
+    &__username,
+    &__email {
         color: var(--text-secondary);
         margin: 0.25rem 0;
     }
@@ -214,6 +242,7 @@
             background-color: rgba(40, 167, 69, 0.1);
             color: var(--color-success);
         }
+
         &--superuser {
             background-color: rgba(253, 126, 20, 0.1);
             color: var(--color-warning);
@@ -249,7 +278,8 @@
             transition: transform 0.3s ease;
         }
 
-        &:hover, &.active {
+        &:hover,
+        &.active {
             color: var(--color-primary);
         }
 
@@ -265,6 +295,7 @@
 
     &__section {
         animation: fadeIn 0.5s ease;
+
         &:not(:last-child) {
             margin-bottom: calc(var(--spacing-unit) * 3);
         }
@@ -278,7 +309,8 @@
         padding-bottom: var(--spacing-unit);
         margin-bottom: calc(var(--spacing-unit) * 1.5);
 
-        h3, h4 {
+        h3,
+        h4 {
             margin: 0;
             font-size: 1.5rem;
         }
@@ -299,6 +331,7 @@
             color: var(--text-secondary);
             margin-bottom: 0.25rem;
         }
+
         p {
             font-size: 1rem;
             margin: 0;
@@ -307,10 +340,11 @@
 }
 
 // --- User Management Table (Admin Tab) ---
-.users-table {
+.table {
     overflow-x: auto; // For responsiveness on small screens
 
-    &__header, &__row {
+    &__header,
+    &__row {
         display: grid;
         grid-template-columns: 2fr 2fr 1fr 1fr 1.5fr;
         align-items: center;
@@ -331,8 +365,13 @@
         border-bottom: 1px solid var(--border-color);
         transition: background-color var(--transition-speed) ease;
 
-        &:last-child { border-bottom: none; }
-        &:hover { background-color: var(--bg-subtle); }
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background-color: var(--bg-subtle);
+        }
     }
 
     &__user-info {
@@ -353,8 +392,14 @@
 
     &__status {
         font-weight: 600;
-        &--active { color: var(--color-success); }
-        &--inactive { color: var(--color-danger); }
+
+        &--active {
+            color: var(--color-success);
+        }
+
+        &--inactive {
+            color: var(--color-danger);
+        }
     }
 
     .actions {
@@ -382,11 +427,33 @@
     @include flex-center(var(--spacing-unit));
     margin-top: calc(var(--spacing-unit) * 1.5);
 }
-.profile-content__section{
+
+.profile-content__section {
     display: flex;
     flex-direction: column;
     gap: 7rem;
-    > *{
+
+    >* {
         width: 100%;
     }
+}
+/* styles.scss */
+.role-select {
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: #007bff;
+    background-color: #fff;
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
 }

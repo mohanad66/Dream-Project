@@ -251,3 +251,181 @@ $shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(0, 0, 0, 0.12);
     font-size: 0.95rem;
     font-weight: 500;
 }
+/* Enhanced checkbox styles for the Is Active toggle */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    
+    .checkbox-input {
+        display: none; /* Hide the default checkbox */
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #374151;
+        user-select: none;
+        
+        .checkbox-custom {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            margin-right: 0.75rem;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            
+            &::after {
+                content: '';
+                position: absolute;
+                top: 2px;
+                left: 6px;
+                width: 6px;
+                height: 10px;
+                border: solid #ffffff;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+        }
+        
+        &:hover .checkbox-custom {
+            border-color: #9ca3af;
+        }
+    }
+    
+    .checkbox-input:checked + .checkbox-label .checkbox-custom {
+        background-color: #10b981;
+        border-color: #10b981;
+        
+        &::after {
+            opacity: 1;
+        }
+    }
+    
+    .checkbox-input:focus + .checkbox-label .checkbox-custom {
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+}
+/* Enhanced checkbox styles for the Is Active toggle */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    
+    .checkbox-input {
+        display: none; /* Hide the default checkbox */
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #374151;
+        user-select: none;
+        
+        .checkbox-custom {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            margin-right: 0.75rem;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+            
+            &::after {
+                content: '';
+                position: absolute;
+                top: 2px;
+                left: 6px;
+                width: 6px;
+                height: 10px;
+                border: solid #ffffff;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+        }
+        
+        &:hover .checkbox-custom {
+            border-color: #9ca3af;
+        }
+    }
+    
+    .checkbox-input:checked + .checkbox-label .checkbox-custom {
+        background-color: #10b981;
+        border-color: #10b981;
+        
+        &::after {
+            opacity: 1;
+        }
+    }
+    
+    .checkbox-input:focus + .checkbox-label .checkbox-custom {
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+}
+
+/* Alternative toggle switch style (uncomment to use instead of checkbox) */
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    
+    .toggle-input {
+        display: none;
+    }
+    
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #374151;
+        user-select: none;
+        
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: #d1d5db;
+            border-radius: 12px;
+            margin-right: 0.75rem;
+            transition: background-color 0.2s ease;
+            
+            &::after {
+                content: '';
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 20px;
+                height: 20px;
+                background-color: #ffffff;
+                border-radius: 50%;
+                transition: transform 0.2s ease;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+    
+    .toggle-input:checked + .toggle-label .toggle-switch {
+        background-color: #10b981;
+        
+        &::after {
+            transform: translateX(20px);
+        }
+    }
+    
+    .toggle-input:focus + .toggle-label .toggle-switch {
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+}
+

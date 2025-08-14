@@ -45,7 +45,7 @@ $color-white: #ffffff;
   }
 
   @media (min-width: $breakpoint-large-tablet) {
-    padding: $spacing-unit * 2.5  0;
+    padding: $spacing-unit * 2.5 0;
   }
 }
 
@@ -56,6 +56,13 @@ $color-white: #ffffff;
   min-height: 100vh;
   min-height: 100dvh; // Better mobile support
   font-size: 15px; // Slightly smaller base for mobile
+  display: flex;
+  justify-self: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 5rem;
+  padding: 10px 0 !important;
+  margin-bottom: 25vh !important;
 
   @media (min-width: $breakpoint-tablet) {
     font-size: 16px;
@@ -110,12 +117,13 @@ $color-white: #ffffff;
   @include section-spacing;
   background-color: white !important;
   padding: 0 $spacing-unit;
+  width: 100%;
 
   &-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
     gap: $spacing-unit * 0.75;
-    width: 100%;
+    width: 100% !important;
     margin: 0 5%;
     justify-content: left;
     align-items: start;
@@ -133,7 +141,10 @@ $color-white: #ffffff;
   }
 
   .category {
-    background: linear-gradient(135deg, $secondary-color 0%, $accent-color 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #059bff;
     border-radius: $border-radius;
     transition: $transition;
     cursor: pointer;
@@ -143,10 +154,20 @@ $color-white: #ffffff;
     height: 50px;
     width: 100%;
     aspect-ratio: 1.5;
-    @include flex-center;
-    @include touch-hover-effect;
+    -webkit-transition: $transition;
+    -moz-transition: $transition;
+    -ms-transition: $transition;
+    -o-transition: $transition;
+    -webkit-border-radius: $border-radius;
+    -moz-border-radius: $border-radius;
+    -ms-border-radius: $border-radius;
+    -o-border-radius: $border-radius;
 
-    &::before {
+    &:hover {
+      background: darken(#059bff, 10%);
+    }
+
+    &:before {
       content: '';
       position: absolute;
       top: 0;
@@ -159,10 +180,10 @@ $color-white: #ffffff;
     }
 
     h3 {
+      color: #fff !important;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: $primary-color !important;
       font-size: 0.85rem !important;
       font-weight: 700;
       margin: 0;

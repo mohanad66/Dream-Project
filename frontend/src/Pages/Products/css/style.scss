@@ -25,20 +25,31 @@ $breakpoint-mobile: 768px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
+.products-container {
+  display: flex;
+  justify-self: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 5rem;
+  padding: 10px 0 !important;
+  margin-bottom: 25vh !important;
+}
+
 // Main Container
 .products-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: $spacing-unit * 2;
-  
+  overflow-y: hidden !important;
+
   h1 {
     text-align: center;
     margin-bottom: $spacing-unit * 2;
     color: $text-color;
     font-size: 2.2rem;
     position: relative;
-    padding-bottom: $spacing-unit;
-    
+    padding: $spacing-unit * 2;
+
     &::after {
       content: '';
       position: absolute;
@@ -50,10 +61,10 @@ $breakpoint-mobile: 768px;
       background: linear-gradient(90deg, $primary-color, $secondary-color);
     }
   }
-  
+
   @media (max-width: $breakpoint-mobile) {
     padding: $spacing-unit;
-    
+
     h1 {
       font-size: 1.8rem;
     }
@@ -72,9 +83,11 @@ $breakpoint-mobile: 768px;
   box-shadow: $box-shadow;
   flex-wrap: wrap;
   position: relative;
-  label{
+
+  label {
     color: #000 !important;
   }
+
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
     gap: $spacing-unit;
@@ -85,7 +98,7 @@ $breakpoint-mobile: 768px;
 .filter-group {
   flex: 1;
   min-width: 250px;
-  
+
   label {
     display: block;
     margin-bottom: $spacing-unit * 0.5;
@@ -98,7 +111,9 @@ $breakpoint-mobile: 768px;
 // Input Fields
 .search-filter,
 .category-filter {
-  input, select {
+
+  input,
+  select {
     width: 100%;
     padding: $spacing-unit * 0.75 $spacing-unit;
     border: 1px solid $medium-gray;
@@ -106,7 +121,7 @@ $breakpoint-mobile: 768px;
     font-size: 1rem;
     transition: $transition;
     background-color: white;
-    
+
     &:focus {
       outline: none;
       border-color: $primary-color;
@@ -118,19 +133,19 @@ $breakpoint-mobile: 768px;
 // Price Filter
 .price-filter {
   position: relative;
-  
-  > label {
+
+  >label {
     display: block;
     margin-bottom: $spacing-unit;
     font-weight: 600;
     color: $primary-color;
   }
-  
+
   .price-inputs {
     @include flex-center;
     gap: $spacing-unit;
     margin-bottom: $spacing-unit * 1.5;
-    
+
     input {
       flex: 1;
       padding: $spacing-unit * 0.5;
@@ -139,25 +154,25 @@ $breakpoint-mobile: 768px;
       text-align: center;
       min-width: 80px;
       font-weight: 600;
-      
+
       &:focus {
         outline: none;
         border-color: $primary-color;
       }
     }
-    
+
     span {
       color: $dark-gray;
       font-size: 0.9rem;
     }
   }
-  
+
   .range-slider {
     position: relative;
     height: 6px;
     margin-top: $spacing-unit * 2;
     margin-bottom: $spacing-unit * 3;
-    
+
     input[type="range"] {
       position: absolute;
       width: 100%;
@@ -165,7 +180,7 @@ $breakpoint-mobile: 768px;
       pointer-events: none;
       -webkit-appearance: none;
       z-index: 3;
-      
+
       &::-webkit-slider-thumb {
         pointer-events: all;
         -webkit-appearance: none;
@@ -179,14 +194,14 @@ $breakpoint-mobile: 768px;
         transition: $transition;
         position: relative;
         z-index: 4;
-        
+
         &:hover {
           transform: scale(1.1);
           background: darken($primary-color, 10%);
         }
       }
     }
-    
+
     .slider-track {
       position: absolute;
       width: 100%;
@@ -194,7 +209,7 @@ $breakpoint-mobile: 768px;
       background: $light-gray;
       border-radius: 3px;
       z-index: 1;
-      
+
       .slider-range {
         position: absolute;
         height: 100%;
@@ -221,12 +236,12 @@ $breakpoint-mobile: 768px;
   cursor: pointer;
   transition: $transition;
   box-shadow: $box-shadow;
-  
+
   &:hover {
     background: $primary-color;
     color: white;
   }
-  
+
   @media (max-width: $breakpoint-mobile) {
     position: static;
     transform: none;
@@ -238,13 +253,15 @@ $breakpoint-mobile: 768px;
 // Products Grid
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  width: 90%;
+  margin: 5%;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: $spacing-unit * 1.5;
-  
+
   @media (max-width: $breakpoint-tablet) {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
-  
+
   @media (max-width: $breakpoint-mobile) {
     grid-template-columns: 1fr;
   }
@@ -258,17 +275,17 @@ $breakpoint-mobile: 768px;
   background: white;
   border-radius: $border-radius;
   box-shadow: $box-shadow;
-  
+
   h3 {
     color: $error-color;
     margin-bottom: $spacing-unit * 0.5;
   }
-  
+
   p {
     color: $dark-gray;
     margin-bottom: $spacing-unit;
   }
-  
+
   button {
     padding: $spacing-unit * 0.5 $spacing-unit * 1.5;
     background: $primary-color;
@@ -278,7 +295,7 @@ $breakpoint-mobile: 768px;
     font-weight: 600;
     cursor: pointer;
     transition: $transition;
-    
+
     &:hover {
       background: darken($primary-color, 10%);
     }
@@ -300,11 +317,11 @@ $breakpoint-mobile: 768px;
   .filter-group {
     min-width: 100%;
   }
-  
+
   .price-inputs {
     flex-direction: column;
     align-items: flex-start;
-    
+
     input {
       width: 100%;
     }

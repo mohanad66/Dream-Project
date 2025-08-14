@@ -5,6 +5,13 @@
     margin: 2rem auto;
     padding: 2rem;
     color: #333;
+    display: flex;
+    justify-self: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 5rem;
+    padding: 10px 0 !important;
+    margin-bottom: 25vh !important;
 
     h1 {
         text-align: center;
@@ -52,6 +59,7 @@
             font-weight: 600;
             margin: 0 0 0.5rem;
         }
+
         .item-price {
             font-size: 1rem;
             color: #007bff;
@@ -85,7 +93,8 @@
         text-align: center;
     }
 
-    .summary-line, .summary-total {
+    .summary-line,
+    .summary-total {
         display: flex;
         justify-content: space-between;
         margin-bottom: 1rem;
@@ -100,7 +109,8 @@
         border-top: 1px solid #ddd;
     }
 
-    .checkout-btn, .clear-cart-btn {
+    .checkout-btn,
+    .clear-cart-btn {
         width: 100%;
         padding: 12px;
         border: none;

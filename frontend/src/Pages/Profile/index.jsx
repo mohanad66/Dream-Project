@@ -4,13 +4,15 @@ import './css/styles.scss';
 import { PasswordChangeSection } from '../../Components/PasswordChange/PasswordChange';
 import { AddItemModal } from '../../Components/AddItemModal/index';
 import Card from '../../Components/Card';
+import { useNavigate } from 'react-router-dom';
 
-const ProductCard = ({ product, categories }) => (
-    <Card card={product} categories={categories} />
+const ProductCard = ({ product, categories, onToggleStatus }) => (
+    <Card card={product} categories={categories} onToggleStatus={onToggleStatus} />
 );
 
-export default function Profile({ categories = [] }) {
+export default function Profile({ categories: initialCategories = [] }) {
     // --- STATE MANAGEMENT ---
+    const navigate = useNavigate()
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,16 +25,52 @@ export default function Profile({ categories = [] }) {
     const [adminLoading, setAdminLoading] = useState(false);
     const [myProducts, setMyProducts] = useState([]);
     const [productsLoading, setProductsLoading] = useState(false);
+    const [allCategories, setAllCategories] = useState(initialCategories);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [pagination, setPagination] = useState({
         count: 0,
         next: null,
         previous: null,
         currentPage: 1,
     });
+    const [editingItem, setEditingItem] = useState(null); // Track item being edited
 
     // --- DATA FETCHING ---
+    const handleUserRoleChange = async (userId, newRole) => {
+        if (!window.confirm(`Change this user's role to ${newRole}?`)) return;
+
+        try {
+            let updateData = {};
+            if (newRole === 'Super Admin') {
+                updateData = { is_staff: true, is_superuser: true };
+            } else if (newRole === 'Admin') {
+                updateData = { is_staff: true, is_superuser: false };
+            } else {
+                updateData = { is_staff: false, is_superuser: false };
+            }
+
+            console.log("Sending role update:", updateData);
+
+            await api.patch(`/api/user/${userId}/`, updateData);
+
+            // Update local state
+            setAllUsers(prev => prev.map(u =>
+                u.id === userId ? {
+                    ...u,
+                    ...updateData
+                } : u
+            ));
+
+            // Show success message
+            setError(`Successfully updated role to ${newRole}`);
+            setTimeout(() => setError(null), 3000);
+        } catch (err) {
+            console.error("Role update error:", err.response?.data || err);
+            setError("Failed to update user role: " + (err.response?.data?.detail || "Unknown error"));
+        }
+    };
+
     const fetchAllUsers = useCallback(async (page = 1) => {
-        // Guard clause moved inside to use fresh user state
         if (!user?.is_superuser) return;
         setAdminLoading(true);
         try {
@@ -50,13 +88,13 @@ export default function Profile({ categories = [] }) {
         } finally {
             setAdminLoading(false);
         }
-    }, [user]); // Depend on the user object
+    }, [user]);
 
     const fetchMyProducts = useCallback(async () => {
         if (!user || !(user.is_staff || user.is_superuser)) return;
         setProductsLoading(true);
         try {
-            const response = await api.get('/api/products/');
+            const response = await api.get('/api/admins/products/');
             const userProducts = response.data.filter(product => product.owner?.id === user.id);
             setMyProducts(userProducts);
         } catch (err) {
@@ -65,7 +103,21 @@ export default function Profile({ categories = [] }) {
         } finally {
             setProductsLoading(false);
         }
-    }, [user]); // Depend on the user object
+    }, [user]);
+
+    const fetchAllCategories = useCallback(async () => {
+        if (!user || !(user.is_staff || user.is_superuser)) return;
+        setCategoriesLoading(true);
+        try {
+            const response = await api.get('/api/admin/categories/');
+            setAllCategories(response.data);
+        } catch (err) {
+            console.error("Failed to fetch categories:", err);
+            setError("Failed to load categories.");
+        } finally {
+            setCategoriesLoading(false);
+        }
+    }, [user]);
 
     useEffect(() => {
         const getUser = async () => {
@@ -86,47 +138,73 @@ export default function Profile({ categories = [] }) {
     useEffect(() => {
         if (user && (user.is_staff || user.is_superuser) && activeTab === 'admin') {
             fetchMyProducts();
+            fetchAllCategories();
             if (user.is_superuser) {
                 fetchAllUsers();
             }
         }
-    }, [activeTab, user, fetchMyProducts, fetchAllUsers]);
+    }, [activeTab, user, fetchMyProducts, fetchAllUsers, fetchAllCategories]);
 
     // --- EVENT HANDLERS ---
-    const handleOpenModal = (type) => {
+    const handleOpenModal = (type, item = null) => {
         let config = {};
+        setEditingItem(item); // Set the item being edited
+
         switch (type) {
             case 'Product':
                 config = {
-                    title: 'Add New Product',
-                    endpoint: '/api/admin/products/',
+                    title: item ? 'Edit Product' : 'Add New Product',
+                    endpoint: item ? `/api/admins/products/${item.id}/` : '/api/admins/products/',
+                    method: item ? 'PATCH' : 'POST',
                     fields: [
-                        { name: 'name', label: 'Product Name', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'price', label: 'Price', type: 'number', required: true },
-                        { name: 'image', label: 'Product Image', type: 'file', required: true },
-                        { name: 'category', label: 'Category', type: 'select', required: false },
-                        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true },
+                        { name: 'name', label: 'Product Name', type: 'text', required: true, value: item?.name },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item?.description },
+                        { name: 'price', label: 'Price', type: 'number', required: true, value: item?.price },
+                        { name: 'image', label: 'Product Image', type: 'file', required: !item }, // Not required for edits
+                        {
+                            name: 'category',
+                            label: 'Category',
+                            type: 'select',
+                            required: false,
+                            value: item?.category?.id,
+                            options: allCategories.map(cat => ({ value: cat.id, label: cat.name }))
+                        },
+                        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
                     ]
                 };
                 break;
             case 'Category':
                 config = {
-                    title: 'Add New Category',
-                    endpoint: '/api/admin/categories/',
-                    fields: [{ name: 'name', label: 'Category Name', type: 'text', required: true }]
+                    title: item ? 'Edit Category' : 'Add New Category',
+                    endpoint: item ? `/api/admins/categories/${item.id}/` : '/api/admins/categories/',
+                    method: item ? 'PATCH' : 'POST',
+                    fields: [
+                        { name: 'name', label: 'Category Name', type: 'text', required: true, value: item?.name },
+                        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
+                    ]
                 };
                 break;
             case 'Contact':
-                 config = {
-                    title: 'Add New Contact',
-                    endpoint: '/api/admin/contacts/',
+                config = {
+                    title: item ? 'Edit Contact' : 'Add New Contact',
+                    endpoint: item ? `/api/admins/contacts/${item.id}/` : '/api/admins/contacts/',
+                    method: item ? 'PATCH' : 'POST',
                     fields: [
-                        { name: 'name', label: 'Name (e.g., Main Office)', type: 'text', required: true },
-                        { name: 'value', label: 'Value (e.g., 555-1234)', type: 'text', required: true },
-                        { name: 'contact_type', label: 'Type', type: 'select', required: true, options: ['phone', 'email', 'address', 'social', 'other'] },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false },
-                        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true },
+                        { name: 'name', label: 'Name (e.g., Main Office)', type: 'text', required: true, value: item?.name },
+                        { name: 'value', label: 'Value (e.g., 555-1234)', type: 'text', required: true, value: item?.value },
+                        {
+                            name: 'contact_type',
+                            label: 'Type',
+                            type: 'select',
+                            required: true,
+                            value: item?.contact_type,
+                            options: ['phone', 'email', 'address', 'social', 'other'].map(type => ({
+                                value: type,
+                                label: type.charAt(0).toUpperCase() + type.slice(1)
+                            }))
+                        },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item?.display_order },
+                        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
                     ]
                 };
                 break;
@@ -145,6 +223,12 @@ export default function Profile({ categories = [] }) {
             const response = await api.patch("/api/user/myuser/", formData);
             setUser(response.data);
             setEditMode(false);
+
+            // Add page reload after successful save
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+
         } catch (err) {
             setError("Failed to update profile.");
         }
@@ -167,6 +251,56 @@ export default function Profile({ categories = [] }) {
         } catch (err) {
             setError("Failed to delete user.");
         }
+    };
+
+    const handleCategoryStatusToggle = async (categoryId, currentStatus) => {
+        try {
+            await api.patch(`/api/admins/categories/${categoryId}/`, { is_active: !currentStatus });
+            setAllCategories(prev => prev.map(cat => cat.id === categoryId ? { ...cat, is_active: !currentStatus } : cat));
+        } catch (err) {
+            setError("Failed to update category status.");
+        }
+    };
+
+    const handleProductStatusToggle = async (productId, currentStatus) => {
+        try {
+            await api.patch(`/api/admins/products/${productId}/`, { is_active: !currentStatus });
+            setMyProducts(prev => prev.map(product => product.id === productId ? { ...product, is_active: !currentStatus } : product));
+        } catch (err) {
+            setError("Failed to update product status.");
+        }
+    };
+
+    const handleDeleteProduct = async (productId) => {
+        if (!window.confirm("Are you sure you want to delete this product?")) return;
+        try {
+            await api.delete(`/api/admins/products/${productId}/`);
+            setMyProducts(prev => prev.filter(product => product.id !== productId));
+        } catch (err) {
+            setError("Failed to delete product.");
+        }
+    };
+
+    const handleDeleteCategory = async (categoryId) => {
+        if (!window.confirm("Are you sure you want to delete this category?")) return;
+        try {
+            await api.delete(`/api/admins/categories/${categoryId}/`);
+            setAllCategories(prev => prev.filter(cat => cat.id !== categoryId));
+        } catch (err) {
+            setError("Failed to delete category.");
+        }
+    };
+
+    // Modified onSuccess handler to always reload the page
+    const handleModalSuccess = () => {
+        console.log("Modal success triggered - reloading page"); // Debug log
+        setIsModalOpen(false);
+        setEditingItem(null); // Clear the editing item
+
+        // Add a small delay to ensure modal closes before reload
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
     };
 
     const getUserRole = (user) => {
@@ -252,33 +386,119 @@ export default function Profile({ categories = [] }) {
                                 <button onClick={fetchMyProducts} className="button button--secondary" disabled={productsLoading}>{productsLoading ? 'Refreshing...' : 'Refresh'}</button>
                             </div>
                             {productsLoading ? <div className="loading-spinner" /> : myProducts.length > 0 ? (
-                                <div className="my-products-grid cards-container">{myProducts.map(p => <ProductCard key={p.id} product={p} categories={categories} />)}</div>
+                                <div className="products-table table">
+                                    <div className="products-table__header table__header">
+                                        <span>Product Name</span><span>Status</span><span>Actions</span>
+                                    </div>
+                                    {myProducts.map(product => (
+                                        <div key={product.id} className="products-table__row table__row">
+                                            <span>{product.name}</span>
+                                            <span className={`status-pill status-pill--${product.is_active ? 'active' : 'inactive'}`}>{product.is_active ? 'Active' : 'Inactive'}</span>
+                                            <div className="actions">
+                                                <button
+                                                    className="button button--small button--secondary"
+                                                    onClick={() => handleProductStatusToggle(product.id, product.is_active)}
+                                                >
+                                                    {product.is_active ? 'Deactivate' : 'Activate'}
+                                                </button>
+                                                <button
+                                                    className="button button--small button--primary"
+                                                    onClick={() => handleOpenModal('Product', product)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    className="button button--small button--danger"
+                                                    onClick={() => handleDeleteProduct(product.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             ) : <p>You have not created any products yet.</p>}
                         </div>
 
+                        <div className="category-management-section management-section">
+                            <div className="profile-content__header">
+                                <h4>Category Management</h4>
+                                <button onClick={fetchAllCategories} className="button button--secondary" disabled={categoriesLoading}>{categoriesLoading ? 'Refreshing...' : 'Refresh'}</button>
+                            </div>
+                            {categoriesLoading ? <div className="loading-spinner" /> : allCategories.length > 0 ? (
+                                <div className="categories-table table">
+                                    <div className="categories-table__header table__header">
+                                        <span>Category Name</span><span>Status</span><span>Actions</span>
+                                    </div>
+                                    {allCategories.map(category => (
+                                        <div key={category.id} className="categories-table__row table__row">
+                                            <span>{category.name}</span>
+                                            <span className={`status-pill status-pill--${category.is_active ? 'active' : 'inactive'}`}>{category.is_active ? 'Active' : 'Inactive'}</span>
+                                            <div className="actions">
+                                                <button
+                                                    className="button button--small button--secondary"
+                                                    onClick={() => handleCategoryStatusToggle(category.id, category.is_active)}
+                                                >
+                                                    {category.is_active ? 'Deactivate' : 'Activate'}
+                                                </button>
+                                                <button
+                                                    className="button button--small button--primary"
+                                                    onClick={() => handleOpenModal('Category', category)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    className="button button--small button--danger"
+                                                    onClick={() => handleDeleteCategory(category.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : <p>No categories found.</p>}
+                        </div>
+
                         {isSuperuser && (
-                            <div className="user-management-section">
+                            <div className="user-management-section management-section">
                                 <div className="profile-content__header"><h4>User Management</h4></div>
                                 {adminLoading ? <div className="loading-spinner" /> : (
                                     <>
-                                        <div className="users-table">
-                                            <div className="users-table__header">
+                                        <div className="users-table table">
+                                            <div className="users-table__header table__header">
                                                 <span>User</span><span>Email</span><span>Status</span><span>Role</span><span>Actions</span>
                                             </div>
                                             {Array.isArray(allUsers) && allUsers.map(userItem => (
-                                                <div key={userItem.id} className="users-table__row">
-                                                    <div className="users-table__user-info">
-                                                        <div className="users-table__avatar">{userItem.first_name ? userItem.first_name.charAt(0) : userItem.username.charAt(0)}</div>
+                                                <div key={userItem.id} className="users-table__row table__row">
+                                                    <div className="users-table__user-info table__user-info">
+                                                        <div className="users-table__avatar table__avatar">
+                                                            {userItem.first_name ? userItem.first_name.charAt(0) : userItem.username.charAt(0)}
+                                                        </div>
                                                         <p>{userItem.username}</p>
                                                     </div>
                                                     <span>{userItem.email}</span>
-                                                    <span className={`status-pill status-pill--${userItem.is_active ? 'active' : 'inactive'}`}>{userItem.is_active ? 'Active' : 'Inactive'}</span>
-                                                    <span>{getUserRole(userItem)}</span>
+                                                    <span className={`status-pill status-pill--${userItem.is_active ? 'active' : 'inactive'}`}>
+                                                        {userItem.is_active ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                    <span>
+                                                        {userItem.is_superuser ? "Super Admin" : userItem.is_staff ? "Admin" : "User"}
+                                                    </span>
                                                     <div className="actions">
                                                         {userItem.id !== user.id && (
                                                             <>
-                                                                <button className="button button--small button--secondary" onClick={() => handleUserStatusToggle(userItem.id, userItem.is_active)}>{userItem.is_active ? 'Deactivate' : 'Activate'}</button>
-                                                                <button className="button button--small button--danger" onClick={() => handleDeleteUser(userItem.id)}>Delete</button>
+                                                                <button
+                                                                    className="button button--small button--secondary"
+                                                                    onClick={() => handleUserStatusToggle(userItem.id, userItem.is_active)}
+                                                                >
+                                                                    {userItem.is_active ? 'Deactivate' : 'Activate'}
+                                                                </button>
+                                                                <button
+                                                                    className="button button--small button--danger"
+                                                                    onClick={() => handleDeleteUser(userItem.id)}
+                                                                >
+                                                                    Delete
+                                                                </button>
                                                             </>
                                                         )}
                                                     </div>
@@ -298,26 +518,28 @@ export default function Profile({ categories = [] }) {
                         <div className="management-section">
                             <div className="profile-content__header"><h4>Content Management</h4></div>
                             <div className="management-actions">
-                                <button className="button button--primary" onClick={() => handleOpenModal('Product')}>Add Product</button>
-                                {isSuperuser && <button className="button button--primary" onClick={() => handleOpenModal('Category')}>Add Category</button>}
-                                {isSuperuser && <button className="button button--primary" onClick={() => handleOpenModal('Contact')}>Add Contact</button>}
+                                <button className="button button--primary" onClick={() => handleOpenModal('Product')}>Add New Product</button>
+                                <button className="button button--primary" onClick={() => handleOpenModal('Category')}>Add New Category</button>
+                                <button className="button button--primary" onClick={() => handleOpenModal('Contact')}>Add New Contact</button>
                             </div>
                         </div>
                     </section>
                 )}
             </main>
 
-            {isModalOpen && (
+            {isModalOpen && modalConfig && (
                 <AddItemModal
                     config={modalConfig}
-                    onClose={() => setIsModalOpen(false)}
-                    onSuccess={() => {
+                    onClose={() => {
+                        console.log("Modal closing"); // Debug log
                         setIsModalOpen(false);
-                        alert(`${modalConfig.title.replace('Add New ', '')} added successfully!`);
-                        if (modalConfig.endpoint.includes('products')) {
-                            fetchMyProducts();
-                        }
+                        // Force reload whenever modal closes (after any operation)
+                        setTimeout(() => {
+                            console.log("Reloading page after modal close");
+                            window.location.reload();
+                        }, 300);
                     }}
+                    onSuccess={handleModalSuccess}
                 />
             )}
         </div>
