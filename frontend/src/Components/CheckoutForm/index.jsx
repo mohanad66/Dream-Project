@@ -68,6 +68,16 @@ export default function CheckoutForm() {
         }
     };
 
+    // Redirect to home after 2 seconds if payment succeeded or cart is empty (not succeeded)
+    useEffect(() => {
+        if (succeeded || (cartItems.length === 0 && !succeeded)) {
+            const timer = setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [succeeded, cartItems.length]);
+
     if (succeeded) {
         return (
             <div className="payment-success">
@@ -93,13 +103,11 @@ export default function CheckoutForm() {
                 {cartItems.map(item => (
                     <div key={item.id} className="summary-item">
                         <span>{item.name}</span>
-                        {/* +++ UPDATED CURRENCY DISPLAY +++ */}
                         <span>{parseFloat(item.price).toFixed(2)} EGP</span>
                     </div>
                 ))}
                 <div className="summary-total">
                     <span>Total</span>
-                    {/* +++ UPDATED CURRENCY DISPLAY +++ */}
                     <span>{total.toFixed(2)} EGP</span>
                 </div>
             </div>

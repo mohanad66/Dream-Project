@@ -1,459 +1,854 @@
 /* ==========================================================================
-   Profile Page Styles - Final Polished Version
+   Enhanced Profile Page Styles
+   - Better organization
+   - Modern CSS features
+   - Enhanced accessibility
+   - Improved responsive design
    ========================================================================== */
 
-// --- 1. Design Tokens (Global Variables) ---
+// 1. Design Tokens (Enhanced Variables)
 :root {
-    // Color Palette
-    --color-primary: #007bff;
-    --color-primary-dark: #0056b3;
-    --color-danger: #dc3545;
-    --color-danger-dark: #b02a37;
-    --color-success: #28a745;
-    --color-warning: #fd7e14;
-
-    // Backgrounds & Surfaces
-    --bg-body: #f8f9fa;
-    --bg-surface: #ffffff;
-    --bg-subtle: #f1f3f5;
-    --bg-hover: #e9ecef;
-
-    // Text Colors
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    --text-on-primary: #ffffff;
-    --text-on-danger: #ffffff;
-
-    // Borders & Shadows
-    --border-color: #dee2e6;
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-
-    // Layout
-    --border-radius-sm: 4px;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-    --spacing-unit: 1rem; // Base spacing unit (e.g., 16px)
-    --transition-speed: 0.2s;
+  // Colors
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --secondary: #8b5cf6;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #06b6d4;
+  
+  // Text
+  --text-primary: #2b2b2b;
+  --text-secondary: #64748b;
+  --text-on-primary: #ffffff;
+  
+  // Backgrounds
+  --bg-body: #f8f9fa;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f3f5;
+  --bg-overlay: rgba(0, 0, 0, 0.1);
+  
+  // Borders
+  --border-color: #e2e8f0;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --border-radius-full: 9999px;
+  
+  // Shadows
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-primary: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  
+  // Spacing
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  // Transitions
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  
+  // Typography
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 }
 
+// Dark mode variables
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --bg-body: #0f172a;
+    --bg-surface: #1e293b;
+    --bg-subtle: #334155;
+    --border-color: #334155;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}
 
-/* --- 2. Mixins & Placeholders (Reusable Patterns) --- */
-@mixin flex-center($gap: 0) {
-    display: flex;
+// 2. Base Styles
+.profile-container {
+  padding: var(--space-xl);
+  font-family: var(--font-family);
+  background: linear-gradient(135deg, var(--bg-body) 0%, var(--bg-body) 100%);
+  min-height: 100vh;
+  position: relative;
+  color: var(--text-primary);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(var(--primary), 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(var(--success), 0.05) 0%, transparent 50%);
+    z-index: -1;
+    pointer-events: none;
+  }
+}
+
+// 3. Utility Classes (Reusable)
+.u-flex {
+  display: flex;
+  
+  &-center {
+    @extend .u-flex;
     align-items: center;
     justify-content: center;
-    gap: $gap;
+  }
+  
+  &-between {
+    @extend .u-flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
-%card-base {
-    background-color: var(--bg-surface);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: calc(var(--spacing-unit) * 2);
+.u-gap {
+  &-xs { gap: var(--space-xs); }
+  &-sm { gap: var(--space-sm); }
+  &-md { gap: var(--space-md); }
+  &-lg { gap: var(--space-lg); }
 }
 
-%button-reset {
-    border: none;
-    background: none;
+.u-text {
+  &-primary { color: var(--text-primary); }
+  &-secondary { color: var(--text-secondary); }
+  &-center { text-align: center; }
+  &-bold { font-weight: var(--font-weight-bold); }
+}
+
+// 4. Card Component
+.card {
+  background: var(--bg-surface);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  &--flat {
+    box-shadow: none;
+    border: 1px solid var(--border-color);
+  }
+}
+
+// 5. Profile Header
+.profile-header {
+  @extend .card;
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+  }
+
+  &__avatar {
+    @extend .u-flex-center;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto var(--space-md);
+    border-radius: var(--border-radius-full);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: var(--text-on-primary);
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-semibold);
+    border: 4px solid var(--bg-surface);
+    box-shadow: 0 0 0 4px var(--primary);
+    position: relative;
+    z-index: 1;
+    
+    // Initials fallback for avatar
+    &[data-initials]::before {
+      content: attr(data-initials);
+    }
+  }
+
+  &__name {
+    font-size: 1.75rem;
+    font-weight: var(--font-weight-bold);
+    margin: var(--space-sm) 0;
+    line-height: 1.2;
+  }
+
+  &__email {
+    color: var(--text-secondary);
+    margin: var(--space-xs) 0;
+    font-size: 1rem;
+  }
+
+  &__meta {
+    @extend .u-flex-center;
+    @extend .u-gap-sm;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: var(--space-md);
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-full);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    
+    &--admin {
+      background: rgba(var(--success), 0.1);
+      color: var(--success);
+    }
+
+    &--superuser {
+      background: rgba(var(--warning), 0.1);
+      color: var(--warning);
+    }
+    
+    &--premium {
+      background: rgba(var(--secondary), 0.1);
+      color: var(--secondary);
+    }
+    
+    &--verified {
+      @extend .u-flex-center;
+      @extend .u-gap-xs;
+      background: rgba(var(--success), 0.1);
+      color: var(--success);
+      
+      &::before {
+        content: '✓';
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+// 6. Tabs Navigation (Accessible)
+.profile-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  
+  &__container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    
+    &::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+  }
+
+  &__list {
+    display: flex;
+    list-style: none;
     padding: 0;
+    margin: 0;
+    min-width: max-content;
+  }
+
+  &__item {
+    position: relative;
+  }
+
+  &__button {
+    all: unset;
+    padding: var(--space-md) var(--space-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
     cursor: pointer;
-    font-family: inherit;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+    transition: color var(--transition-fast);
+    position: relative;
+    white-space: nowrap;
+    
+    &:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+      border-radius: var(--border-radius-sm);
     }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-/* --- 3. Base & Global Styles --- */
-.profile-container {
-    max-width: 1200px;
-    margin: calc(var(--spacing-unit) * 2) auto;
-    padding: var(--spacing-unit);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--bg-body);
-    color: var(--text-primary);
-    padding: 10px 0 !important;
-    margin-bottom: 25vh !important;
-}
-
-.loading-spinner {
-    /* Add your preferred loading spinner styles here */
-    border: 4px solid var(--bg-hover);
-    border-top: 4px solid var(--color-primary);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 2rem auto;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-
-/* --- 4. Reusable Components (Buttons, Forms) --- */
-.button {
-    @extend %button-reset;
-    padding: 0.6rem 1.2rem;
-    border-radius: var(--border-radius-md);
-    font-weight: 600;
-    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
 
     &:hover {
-        transform: translateY(-2px);
+      color: var(--primary);
     }
 
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: translateY(0);
+    &[aria-selected="true"] {
+      color: var(--primary);
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 3px 3px 0 0;
+      }
     }
-
-    &--primary {
-        background-color: var(--color-primary);
-        color: var(--text-on-primary);
-
-        &:hover:not(:disabled) {
-            background-color: var(--color-primary-dark);
-        }
-    }
-
-    &--secondary {
-        background-color: var(--bg-subtle);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-
-        &:hover:not(:disabled) {
-            background-color: var(--bg-hover);
-        }
-    }
-
-    &--danger {
-        background-color: var(--color-danger);
-        color: var(--text-on-danger);
-
-        &:hover:not(:disabled) {
-            background-color: var(--color-danger-dark);
-        }
-    }
-
-    &--text {
-        background: none;
-        color: var(--text-secondary);
-
-        &:hover:not(:disabled) {
-            background-color: var(--bg-subtle);
-        }
-    }
-
-    &--small {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.875rem;
-    }
+  }
 }
 
-.form-input {
+// 7. Content Sections
+.profile-content {
+  @extend .card;
+  
+  &__section {
+    animation: fadeIn 0.5s var(--transition-normal);
+    margin-bottom: var(--space-xl);
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__header {
+    @extend .u-flex-between;
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+  
+  &__actions {
+    @extend .u-flex;
+    @extend .u-gap-sm;
+  }
+}
+
+// 8. Info Grid (Responsive)
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-lg);
+  
+  &__item {
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xs);
+      font-weight: var(--font-weight-medium);
+    }
+
+    p {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+    
+    &--editable {
+      position: relative;
+      
+      &:hover {
+        .edit-button {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+.edit-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  background: var(--bg-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-xs);
+  line-height: 0;
+  
+  &:focus {
+    opacity: 1;
+  }
+}
+
+// 9. Enhanced Tables (Improved)
+.table {
+  width: 100%;
+  border-collapse: separate; // Changed from collapse for better border-radius support
+  border-spacing: 0;
+  border-radius: var(--border-radius-md);
+  background: var(--bg-surface);
+  overflow: hidden;
+  
+  &__wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius-md);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    
+    // Gradient overlay for horizontal scrolling indication
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 20px;
+      background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.05) 100%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    
+    &.has-scroll::after {
+      opacity: 1;
+    }
+  }
+
+  th, td {
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    
+    &:first-child {
+      padding-left: var(--space-lg);
+    }
+    
+    &:last-child {
+      padding-right: var(--space-lg);
+    }
+  }
+
+  th {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    background: var(--bg-subtle);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  tr {
+    transition: background-color var(--transition-fast);
+    position: relative;
+    
+    &:last-child td {
+      border-bottom: none;
+    }
+    
+    &:hover {
+      background-color: rgba(var(--primary), 0.03);
+    }
+    
+    // Row selection state
+    &[aria-selected="true"] {
+      background-color: rgba(var(--primary), 0.08);
+    }
+  }
+
+  &__avatar {
+    @extend .u-flex-center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--border-radius-full);
+    background: var(--bg-subtle);
+    font-weight: var(--font-weight-semibold);
+    margin-right: var(--space-sm);
+    flex-shrink: 0;
+    overflow: hidden;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  
+  &__user {
+    @extend .u-flex;
+    @extend .u-gap-sm;
+    align-items: center;
+    min-width: 200px;
+  }
+
+  &__status {
+    display: inline-flex;
+    align-items: center;
+    font-weight: var(--font-weight-medium);
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-full);
+    background-color: rgba(var(--success), 0.1);
+    
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: var(--border-radius-full);
+      margin-right: var(--space-xs);
+      flex-shrink: 0;
+    }
+
+    &--active {
+      color: var(--success);
+      background-color: rgba(var(--success), 0.1);
+      
+      &::before {
+        background: var(--success);
+      }
+    }
+
+    &--inactive {
+      color: var(--danger);
+      background-color: rgba(var(--danger), 0.1);
+      
+      &::before {
+        background: var(--danger);
+      }
+    }
+    
+    &--pending {
+      color: var(--warning);
+      background-color: rgba(var(--warning), 0.1);
+      
+      &::before {
+        background: var(--warning);
+      }
+    }
+  }
+  
+  // Responsive cell stacking
+  @media (max-width: 768px) {
+    &--stackable {
+      thead {
+        display: none;
+      }
+      
+      tr {
+        display: block;
+        padding: var(--space-md);
+        border-bottom: 1px solid var(--border-color);
+      }
+      
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-sm) 0;
+        border-bottom: none;
+        
+        &::before {
+          content: attr(data-label);
+          font-weight: var(--font-weight-semibold);
+          color: var(--text-secondary);
+          margin-right: var(--space-md);
+          flex: 1;
+        }
+        
+        > * {
+          flex: 2;
+        }
+      }
+    }
+  }
+  
+  // Zebra striping option
+  &--striped {
+    tr:nth-child(even) {
+      background-color: var(--bg-subtle);
+      
+      &:hover {
+        background-color: rgba(var(--primary), 0.05);
+      }
+    }
+  }
+}
+// 10. Buttons & Forms (Enhanced)
+.button {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  user-select: none;
+  
+  &:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: var(--primary);
+    color: var(--text-on-primary);
+    
+    &:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    
+    &:active:not(:disabled) {
+      background: var(--primary-active);
+      transform: translateY(0);
+    }
+  }
+
+  &--secondary {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--bg-subtle) 90%, black);
+    }
+  }
+  
+  &--danger {
+    background: var(--danger);
+    color: var(--text-on-primary);
+    
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--danger) 90%, black);
+      transform: translateY(-1px);
+    }
+  }
+  
+  &--icon {
+    padding: 0.5rem;
+    border-radius: var(--border-radius-full);
+    line-height: 0;
+  }
+  
+  &--sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+.form {
+  &-group {
+    margin-bottom: var(--space-md);
+  }
+  
+  &-label {
+    display: block;
+    margin-bottom: var(--space-xs);
+    font-weight: var(--font-weight-medium);
+    font-size: 0.9rem;
+  }
+  
+  &-input {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    font-size: 1rem;
-    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    
     &:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.1);
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: var(--shadow-primary);
     }
+    
+    &--select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 16px 12px;
+      padding-right: 2.5rem;
+    }
+  }
+  
+  &-help {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+  }
 }
 
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-unit);
-    margin-top: calc(var(--spacing-unit) * 1.5);
-}
-
-
-/* --- 5. Page-Specific Component Blocks --- */
-
-// --- Profile Header ---
-.profile-header {
-    @extend %card-base;
-    text-align: center;
-    margin-bottom: calc(var(--spacing-unit) * 2);
-
-    &__avatar {
-        @include flex-center;
-        width: 100px;
-        height: 100px;
-        margin: 0 auto var(--spacing-unit);
-        border-radius: 50%;
-        background-color: var(--color-primary);
-        color: var(--text-on-primary);
-        font-size: clamp(2rem, 8vw, 2.5rem);
-        font-weight: 600;
-        border: 4px solid var(--bg-surface);
-        box-shadow: 0 0 0 4px var(--color-primary);
-    }
-
-    &__name {
-        font-size: clamp(1.5rem, 5vw, 2rem);
-        font-weight: 700;
-        margin: 0;
-    }
-
-    &__username,
-    &__email {
-        color: var(--text-secondary);
-        margin: 0.25rem 0;
-    }
-
-    &__badge {
-        display: inline-block;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.3rem 0.7rem;
-        border-radius: 20px;
-        margin-top: var(--spacing-unit);
-        vertical-align: middle;
-
-        &--admin {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: var(--color-success);
-        }
-
-        &--superuser {
-            background-color: rgba(253, 126, 20, 0.1);
-            color: var(--color-warning);
-        }
-    }
-}
-
-// --- Tab Navigation ---
-.profile-tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: calc(var(--spacing-unit) * 2);
-    border-bottom: 1px solid var(--border-color);
-
-    &__button {
-        @extend %button-reset;
-        padding: var(--spacing-unit) calc(var(--spacing-unit) * 1.5);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        position: relative;
-        transition: color var(--transition-speed) ease;
-
-        &::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background-color: var(--color-primary);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        &:hover,
-        &.active {
-            color: var(--color-primary);
-        }
-
-        &.active::after {
-            transform: scaleX(1);
-        }
-    }
-}
-
-// --- Main Content Area ---
-.profile-content {
-    @extend %card-base;
-
-    &__section {
-        animation: fadeIn 0.5s ease;
-
-        &:not(:last-child) {
-            margin-bottom: calc(var(--spacing-unit) * 3);
-        }
-    }
-
-    &__header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: var(--spacing-unit);
-        margin-bottom: calc(var(--spacing-unit) * 1.5);
-
-        h3,
-        h4 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
-    }
-}
-
-// --- Info Grid (Profile Tab) ---
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: calc(var(--spacing-unit) * 1.5);
-
-    &__item {
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        p {
-            font-size: 1rem;
-            margin: 0;
-        }
-    }
-}
-
-// --- User Management Table (Admin Tab) ---
-.table {
-    overflow-x: auto; // For responsiveness on small screens
-
-    &__header,
-    &__row {
-        display: grid;
-        grid-template-columns: 2fr 2fr 1fr 1fr 1.5fr;
-        align-items: center;
-        gap: var(--spacing-unit);
-        padding: var(--spacing-unit);
-        min-width: 600px; // Prevent extreme squishing
-    }
-
-    &__header {
-        font-weight: 600;
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        border-bottom: 2px solid var(--border-color);
-    }
-
-    &__row {
-        border-bottom: 1px solid var(--border-color);
-        transition: background-color var(--transition-speed) ease;
-
-        &:last-child {
-            border-bottom: none;
-        }
-
-        &:hover {
-            background-color: var(--bg-subtle);
-        }
-    }
-
-    &__user-info {
-        @include flex-center;
-        justify-content: flex-start;
-        gap: var(--spacing-unit);
-    }
-
-    &__avatar {
-        @include flex-center;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: var(--bg-hover);
-        font-weight: 600;
-        flex-shrink: 0;
-    }
-
-    &__status {
-        font-weight: 600;
-
-        &--active {
-            color: var(--color-success);
-        }
-
-        &--inactive {
-            color: var(--color-danger);
-        }
-    }
-
-    .actions {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-}
-
-// --- Other Admin Sections ---
-.my-products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.management-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-unit);
-}
-
-// --- Pagination ---
-.pagination-controls {
-    @include flex-center(var(--spacing-unit));
-    margin-top: calc(var(--spacing-unit) * 1.5);
-}
-
-.profile-content__section {
-    display: flex;
-    flex-direction: column;
-    gap: 7rem;
-
-    >* {
-        width: 100%;
-    }
-}
-/* styles.scss */
+// 11. Role Select (Enhanced)
 .role-select {
-  padding: 5px 8px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  background-color: #f8f8f8;
+  padding: 0.5rem 2.5rem 0.5rem 0.8rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
   
   &:hover {
-    border-color: #007bff;
-    background-color: #fff;
+    border-color: var(--primary);
   }
   
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    box-shadow: var(--shadow-primary);
+    border-color: var(--primary);
+  }
+  
+  &--admin { border-left: 3px solid var(--success); }
+  &--user { border-left: 3px solid var(--primary); }
+  &--guest { border-left: 3px solid var(--warning); }
+}
+
+// 12. Loading States
+.loading {
+  &-spinner {
+    border: 3px solid var(--bg-subtle);
+    border-top: 3px solid var(--primary);
+    border-radius: var(--border-radius-full);
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    
+    &--large {
+      width: 40px;
+      height: 40px;
+      border-width: 4px;
+      margin: 2rem auto;
+    }
+  }
+  
+  &-skeleton {
+    background: var(--bg-subtle);
+    border-radius: var(--border-radius-md);
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+      );
+      animation: shimmer 1.5s infinite;
+    }
+  }
+}
+
+// 13. Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+// 14. Responsive Adjustments
+@media (max-width: 768px) {
+  .profile-container {
+    padding: var(--space-md);
+  }
+  
+  .profile-header {
+    &__avatar {
+      width: 80px;
+      height: 80px;
+      font-size: 1.8rem;
+    }
+    
+    &__name {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .profile-tabs {
+    &__button {
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.9rem;
+    }
+  }
+  
+  .profile-content {
+    padding: var(--space-md);
+  }
+}
+
+// 15. Print Styles
+@media print {
+  .profile-container {
+    padding: 0;
+    background: none !important;
+    
+    &::before {
+      display: none;
+    }
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+  
+  .button {
+    display: none !important;
   }
 }

@@ -1,45 +1,27 @@
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from django.conf import settings
 from django.urls import reverse
-from decimal import Decimal
-from io import BytesIO
-from PIL import Image
-import os
-# ++++++++++ ADDED THIS IMPORT ++++++++++
-
-
-# your_app/mixins.py
-
 from django.db import models
-from django.core.exceptions import ValidationError
+from decimal import Decimal
 from PIL import Image
 
+# =============================================== #
 class ImageHandlingMixin: 
-    """
-    An abstract mixin that provides image validation and optimization.
-    It is NOT a Django model.
-    """
-    # Define common validation parameters that can be overridden
     MIN_IMAGE_WIDTH = 400
     MIN_IMAGE_HEIGHT = 400
     MAX_IMAGE_WIDTH = 1600
     MAX_IMAGE_HEIGHT = 1600
     ENFORCE_LANDSCAPE = True
 
-    # This Meta class is no longer needed because it's not a model
-    # class Meta:
-    #     abstract = True
-
     def clean_image(self):
         if not hasattr(self, 'image') or not self.image:
             return
         
         try:
-            # The rest of your clean_image method is perfect
             with Image.open(self.image) as img:
                 width, height = img.size
 
@@ -62,7 +44,6 @@ class ImageHandlingMixin:
             return
         
         try:
-            # The rest of your optimize_image method is perfect
             with Image.open(self.image.path) as img:
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
@@ -77,8 +58,6 @@ class ImageHandlingMixin:
             pass
 
     def clean(self):
-        # The super().clean() call will now correctly refer to the
-        # models.Model's clean method from the Product class.
         super().clean()
         self.clean_image()
 
@@ -194,13 +173,11 @@ class Product(models.Model , ImageHandlingMixin):
         editable=False,
         help_text="URL-friendly version of the name (auto-generated)"
     )
-    # ... other fields are fine ...
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Product Category", help_text="Select product category")
     description = models.TextField(max_length=500, help_text="Detailed product description (max 500 chars)")
     price = models.DecimalField(
             max_digits=10,
             decimal_places=2,
-            # +++ 2. USE Decimal('0.01') INSTEAD OF 0.01 +++
             validators=[MinValueValidator(Decimal('0.01'))],
             help_text="Price in USD (min $0.01)"
     )    
@@ -219,18 +196,14 @@ class Product(models.Model , ImageHandlingMixin):
     
     
     def save(self, *args, **kwargs):
-        # Add your product-specific logic here
         if not self.slug:
             self.slug = slugify(self.name)
-        
-        # Let the mixin handle the rest (cleaning, saving, optimizing)
-        # The super().save() call will now correctly find the mixin's save method.
+            
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
         return reverse('product_detail', args=[self.slug])
     
-    # Your properties are fine
     @property
     def dimensions(self):
         try:
@@ -318,7 +291,7 @@ class Service(models.Model):
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
                 
-                if self.image.size > 10_000_000:  # 10MB
+                if self.image.size > 10_000_000:
                     max_dimension = 5000
                     if max(img.size) > max_dimension:
                         ratio = max_dimension / max(img.size)

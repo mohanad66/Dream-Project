@@ -14,6 +14,7 @@ import ProfilePage from './Pages/Profile/index.jsx';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './services/constants.js';
 import api from './services/api.js';
 import CheckoutPage from "./Pages/Checkout/index.jsx"
+import { useLocation } from 'react-router-dom';
 export default function App() {
   const {
     data,
@@ -39,6 +40,9 @@ export default function App() {
   }
 
   if (isLoading) return <div className='loading'>loading...</div>
+
+  // Track path changes to conditionally render Navbar
+  const location = useLocation();
 
   return (
     <>
@@ -90,7 +94,7 @@ export default function App() {
         } />
         <Route path='*' element={<Navigate to="/" replace />} />
       </Routes>
-      {localStorage.getItem(ACCESS_TOKEN) !== null ? <Navbar onLogout={handleLogout} /> : null}
+      {(localStorage.getItem(ACCESS_TOKEN) !== null && location.pathname !== "/checkout") ? <Navbar onLogout={handleLogout} /> : null}
     </>
   );
 }

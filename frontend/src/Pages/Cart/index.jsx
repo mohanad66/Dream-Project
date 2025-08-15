@@ -91,7 +91,7 @@ export default function Cart() {
                             <span>FREE</span>
                         </div>
                         <div className="summary-total">
-                            <span>Total</span>
+                            <span>Total : </span>
                             <span>{subtotal.toFixed(2)} L.E</span>
                         </div>
                         <button className="checkout-btn" onClick={handleCheckout}>

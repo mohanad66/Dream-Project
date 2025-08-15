@@ -5,8 +5,8 @@
 // --- 1. Design System (SCSS Variables) ---
 $card-bg: #ffffff;
 $card-border-color: #eef0f2;
-$card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-$card-hover-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+$card-shadow: 5px 5px 12px rgba(0, 0, 0, 0.8);
+$card-hover-shadow: 5px 12px 30px rgba(0, 0, 0, 1);
 $card-radius: 16px;
 
 $font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -19,8 +19,8 @@ $color-whatsapp: #25D366;
 $color-whatsapp-dark: #1ebe57;
 $color-danger: #ff453a;
 
-$text-primary: #1d1d1f;
-$text-secondary: #6e6e73;
+$text-primary: #ffffff;
+$text-secondary: #757575;
 $text-on-dark: #ffffff;
 
 $transition-fast: 0.2s ease;
@@ -46,6 +46,7 @@ $transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   height: 100%;
   position: relative;
   transition: transform $transition-smooth, box-shadow $transition-smooth;
+  gap: .75rem;
   
   &:hover {
     transform: translateY(-8px);
@@ -113,6 +114,7 @@ $transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     line-height: 1.6;
     flex-grow: 1;
     margin-bottom: 1.5rem;
+    overflow-wrap: break-word;
   }
 }
 
@@ -151,7 +153,7 @@ $transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 .add-to-cart-btn {
   @extend .btn;
   background-color: #f5f5f7;
-  color: $text-primary;
+  color: $text-secondary;
   border-color: #d2d2d7;
 
   &:hover:not(:disabled) {
