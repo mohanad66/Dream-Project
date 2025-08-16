@@ -8,7 +8,16 @@ import { FaTrash } from 'react-icons/fa';
 export default function Cart() {
     const [cartItems, setCartItems] = useState([]);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        // Simulate loading time or wait for data to be ready
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 1500); // Adjust timing as needed
 
+        // Cleanup timer on component unmount
+        return () => clearTimeout(timer);
+    }, []);
     // Load cart items from localStorage when the component mounts
     useEffect(() => {
         const items = JSON.parse(localStorage.getItem('cart')) || [];
@@ -42,7 +51,14 @@ export default function Cart() {
         // For now, it will just navigate to a placeholder route.
         navigate('/checkout');
     };
-
+    if (isLoading) {
+        return (
+            <div className="loading-container">
+                <div className="loading-spinner">
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="cart-page-container">
             <h1>Your Shopping Cart</h1>
@@ -67,7 +83,7 @@ export default function Cart() {
                                 />
                                 <div className="item-details">
                                     <h3 className="item-name">{item.name}</h3>
-                                    <p className="item-price">{parseFloat(item.price ).toFixed(2)} L.E</p>
+                                    <p className="item-price">{parseFloat(item.price).toFixed(2)} L.E</p>
                                 </div>
                                 <button
                                     className="remove-item-btn"

@@ -39,9 +39,14 @@ export default function App() {
     window.location.href = '/login';
   }
 
-  if (isLoading) return <div className='loading'>loading...</div>
-
-  // Track path changes to conditionally render Navbar
+   if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+        </div>
+      </div>
+    );
+  }
   const location = useLocation();
 
   return (
@@ -89,7 +94,7 @@ export default function App() {
         } />
         <Route path="/checkout" element={
           <ProtectedRoute>
-            <CheckoutPage/>
+            <CheckoutPage />
           </ProtectedRoute>
         } />
         <Route path='*' element={<Navigate to="/" replace />} />

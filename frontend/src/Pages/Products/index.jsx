@@ -7,7 +7,16 @@ export default function Products({ categories = [], products = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    // Simulate loading time or wait for data to be ready
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500); // Adjust timing as needed
 
+    // Cleanup timer on component unmount
+    return () => clearTimeout(timer);
+  }, [categories, products, ]);
   // State management
   const [selectedCategory, setSelectedCategory] = useState(
     queryParams.get('category') || 'all'
@@ -108,6 +117,14 @@ export default function Products({ categories = [], products = [] }) {
 
   const hasUncategorizedProducts = processedProducts.some(p => p.category === null);
 
+   if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="products-container">
       <h1>Our Products</h1>

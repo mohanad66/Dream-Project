@@ -427,11 +427,14 @@ export default function Profile({ categories: initialCategories = [] }) {
   };
 
   // Render loading state
-  if (loading) return (
-    <div className="profile-container">
-      <div className="loading-spinner" />
-    </div>
-  );
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <div className="loading-spinner">
+                </div>
+            </div>
+        );
+    }
 
   // Render error state
   if (error) return (

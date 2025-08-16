@@ -78,6 +78,14 @@ export default function Card({ card, categories }) {
                     <div className="card-popup-rectangle" onClick={e => e.stopPropagation()}>
                         <button className="close-btn" onClick={() => setShowPopup(false)}>×</button>
                         <div className="popup-content">
+                            <div className="popup-right">
+                                <div ref={fancyboxRef} className="popup-img">
+                                    <img 
+                                        src={`http://127.0.0.1:8000${card.image}`} 
+                                        alt={card.name} 
+                                    />
+                                </div>
+                            </div>
                             <div className="popup-left">
                                 <div className="popup-header">
                                     <h2>{card.name}</h2>
@@ -91,14 +99,12 @@ export default function Card({ card, categories }) {
                                     )}
                                 </div>
                                 
-                                {/* Scrollable content area */}
                                 <div className="popup-scrollable">
-                                    <p className='popup-content-full'>
+                                    <div className="popup-content-full">
                                         {card.description || 'No description available'}
-                                    </p>
+                                    </div>
                                 </div>
 
-                                {/* Action buttons */}
                                 <div className="popup-actions">
                                     <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={isAddedToCart}>
                                         <FaShoppingCart /> {isAddedToCart ? 'Added!' : 'Add to Cart'}
@@ -106,19 +112,6 @@ export default function Card({ card, categories }) {
                                     <button className="buy-now-btn" onClick={handleBuyNow}>
                                         <FaBolt /> Buy Now
                                     </button>
-                                </div>
-                            </div>
-                            <div className="popup-right">
-                                <div ref={fancyboxRef} className="img popup-img">
-                                    <a 
-                                        data-fancybox={`gallery${crypto.randomUUID()}`} 
-                                        href={`http://127.0.0.1:8000${card.image}`}
-                                    >
-                                        <img 
-                                            src={`http://127.0.0.1:8000${card.image}`} 
-                                            alt={card.name} 
-                                        />
-                                    </a>
                                 </div>
                             </div>
                         </div>
