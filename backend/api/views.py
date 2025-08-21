@@ -1,18 +1,19 @@
 from rest_framework.permissions import IsAuthenticated, AllowAny , IsAdminUser
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import status, generics, viewsets
 from rest_framework.generics import ListAPIView
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import JsonResponse
+from django.conf import settings
 from .serializer import *
 from .models import *
 import logging
-from django.conf import settings
 import stripe
 
 logger = logging.getLogger(__name__ )
@@ -216,7 +217,7 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
         return UserSerializer
 
 # Public Content Views
-def create_public_list_view(model, serializer, *, order_by=None, filter_active=False):
+def create_public_list_view(model, serializer, order_by=None, filter_active=False):
     @api_view(["GET"])
     @permission_classes([AllowAny])
     def view_func(request):

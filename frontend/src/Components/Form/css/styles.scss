@@ -371,3 +371,78 @@
         }
     }
 }
+// Additional styles you might need
+.input-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.field-error {
+    color: #e74c3c;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.form-input {
+    &.error {
+        border-color: #e74c3c;
+        background-color: #fdf2f2;
+    }
+    
+    &.valid {
+        border-color: #27ae60;
+        background-color: #f2fdf2;
+    }
+}
+
+.password-input-container {
+    position: relative;
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+    }
+}
+
+.password-strength {
+    .strength-good { color: #27ae60; }
+    .strength-weak { color: #e67e22; }
+}
+
+.link-button {
+    color: #3498db;
+    cursor: pointer;
+    text-decoration: underline;
+    
+    &:hover {
+        color: #2980b9;
+    }
+}
+
+.spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.form-button.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

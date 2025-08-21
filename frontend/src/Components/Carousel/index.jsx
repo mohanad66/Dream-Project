@@ -121,7 +121,6 @@ const Carousel = ({ images = [], contacts }) => {
 
           <div className="contact-columns">
             {/* Left Column */}
-            <div className="contact-col">
               {/* Static phone number */}
 
 
@@ -129,15 +128,9 @@ const Carousel = ({ images = [], contacts }) => {
               {contacts.slice(0, Math.ceil(contacts.length / 2)).map(contact => (
                 <ContactItem key={contact.id} contact={contact} />
               ))}
-            </div>
-
-            {/* Right Column */}
-            <div className="contact-col">
-              {/* Dynamic contact methods - second half */}
               {contacts.slice(Math.ceil(contacts.length / 2)).map(contact => (
                 <ContactItem key={contact.id} contact={contact} />
               ))}
-            </div>
           </div>
         </div>
       </div>
@@ -176,7 +169,7 @@ function ContactItem({ contact }) {
         {getIconComponent()}
       </div>
       <div className="contact-details">
-        <span className="contact-name">{contact.name}</span>
+        <span className="contact-name">{contact.name}</span><br/>
         {contact.contact_type === 'email' ? (
           <a href={`mailto:${contact.value}`} className="contact-value">
             {contact.value}

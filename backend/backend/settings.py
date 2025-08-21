@@ -160,7 +160,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS" , "").split(',')
-
+CORS_ALLOW_CREDENTIALS = True
+AUTHENTICATION_BACKEN ={
+    "django.contrib.auth.backend.ModelBackend",
+}
 JAZZMIN_SETTINGS = {
     "site_title": "Admin",
     "site_header": "Admin",
@@ -198,20 +201,5 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     },
 }
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
-
-FRONTEND_URL = "http://localhost:5173" 
+LOGIN_RIDERECT_URL = "/callback/"
+SOCIALACCOUNT_STORE_TOKENS = True

@@ -40,6 +40,13 @@ urlpatterns = [
         'delete': 'destroy'
     }), name='admin-category-detail'),
     
+    path('admins/categorys/', CategoryAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-category-list'),
+    path('admins/categorys/<int:pk>/', CategoryAdminViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    }), name='admin-category-detail'),
     # Services
     path('admins/services/', ServiceAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-service-list'),
     path('admins/services/<int:pk>/', ServiceAdminViewSet.as_view({

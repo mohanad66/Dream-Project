@@ -43,6 +43,8 @@ export default function Profile({ categories: initialCategories = [] }) {
     productsLoading: false,
     allCategories: initialCategories,
     categoriesLoading: false,
+    allContacts: [], // Added contacts state
+    contactsLoading: false, // Added contacts loading state
     pagination: {
       count: 0,
       next: null,
@@ -68,6 +70,8 @@ export default function Profile({ categories: initialCategories = [] }) {
     productsLoading,
     allCategories,
     categoriesLoading,
+    allContacts,
+    contactsLoading,
     pagination,
     editingItem
   } = state;
@@ -184,7 +188,7 @@ export default function Profile({ categories: initialCategories = [] }) {
     setState(prev => ({ ...prev, categoriesLoading: true }));
     
     try {
-      const response = await fetchData('/api/admin/categories/');
+      const response = await fetchData('/api/admins/categories/');
       setState(prev => ({
         ...prev,
         allCategories: response.data,
@@ -195,6 +199,28 @@ export default function Profile({ categories: initialCategories = [] }) {
         ...prev,
         error: "Failed to load categories.",
         categoriesLoading: false
+      }));
+    }
+  }, [isAdmin, fetchData]);
+
+  // Added fetchAllContacts function
+  const fetchAllContacts = useCallback(async () => {
+    if (!isAdmin) return;
+    
+    setState(prev => ({ ...prev, contactsLoading: true }));
+    
+    try {
+      const response = await fetchData('/api/admins/contacts/');
+      setState(prev => ({
+        ...prev,
+        allContacts: response.data,
+        contactsLoading: false
+      }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: "Failed to load contacts.",
+        contactsLoading: false
       }));
     }
   }, [isAdmin, fetchData]);
@@ -230,11 +256,12 @@ export default function Profile({ categories: initialCategories = [] }) {
     if (isAdmin && activeTab === 'admin') {
       fetchMyProducts();
       fetchAllCategories();
+      fetchAllContacts(); // Added contact fetching
       if (isSuperuser) {
         fetchAllUsers();
       }
     }
-  }, [activeTab, isAdmin, isSuperuser, fetchMyProducts, fetchAllCategories, fetchAllUsers]);
+  }, [activeTab, isAdmin, isSuperuser, fetchMyProducts, fetchAllCategories, fetchAllContacts, fetchAllUsers]);
 
   // Modal handling
   const handleOpenModal = (type, item = null) => {
@@ -270,8 +297,8 @@ export default function Profile({ categories: initialCategories = [] }) {
           required: true,
           value: item?.contact_type,
           options: ['phone', 'email', 'address', 'social', 'other'].map(type => ({
-            value: type,
-            label: type.charAt(0).toUpperCase() + type.slice(1)
+            id: type,
+            name: type.charAt(0).toUpperCase() + type.slice(1)
           }))
         },
         { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item?.display_order },
@@ -330,12 +357,18 @@ export default function Profile({ categories: initialCategories = [] }) {
       await updateData(`/api/admins/${entityType}s/${id}/`, { is_active: !currentStatus });
       
       setState(prev => {
-        const newItems = prev[`my${entityType === 'product' ? 'Products' : 'Categories'}`].map(item => 
+        let stateKey;
+        if (entityType === 'product') stateKey = 'myProducts';
+        else if (entityType === 'category') stateKey = 'allCategories';
+        else if (entityType === 'contact') stateKey = 'allContacts';
+        
+        const newItems = prev[stateKey].map(item => 
           item.id === id ? { ...item, is_active: !currentStatus } : item
         );
+        
         return {
           ...prev,
-          [`my${entityType === 'product' ? 'Products' : 'Categories'}`]: newItems
+          [stateKey]: newItems
         };
       });
     } catch (err) {
@@ -348,6 +381,7 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const handleProductStatusToggle = createToggleHandler('product');
   const handleCategoryStatusToggle = createToggleHandler('category');
+  const handleContactStatusToggle = createToggleHandler('contact'); // Added contact toggle handler
 
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
@@ -374,12 +408,16 @@ export default function Profile({ categories: initialCategories = [] }) {
       await updateData(`/api/admins/${entityType}s/${id}/`, {}, 'delete');
       
       setState(prev => {
-        const newItems = prev[`my${entityType === 'product' ? 'Products' : 'Categories'}`].filter(
-          item => item.id !== id
-        );
+        let stateKey;
+        if (entityType === 'product') stateKey = 'myProducts';
+        else if (entityType === 'category') stateKey = 'allCategories';
+        else if (entityType === 'contact') stateKey = 'allContacts';
+        
+        const newItems = prev[stateKey].filter(item => item.id !== id);
+        
         return {
           ...prev,
-          [`my${entityType === 'product' ? 'Products' : 'Categories'}`]: newItems
+          [stateKey]: newItems
         };
       });
     } catch (err) {
@@ -392,6 +430,7 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const handleDeleteProduct = createDeleteHandler('product');
   const handleDeleteCategory = createDeleteHandler('category');
+  const handleDeleteContact = createDeleteHandler('contact'); // Added contact delete handler
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure? This action is irreversible.")) return;
@@ -427,14 +466,14 @@ export default function Profile({ categories: initialCategories = [] }) {
   };
 
   // Render loading state
-    if (loading) {
-        return (
-            <div className="loading-container">
-                <div className="loading-spinner">
-                </div>
-            </div>
-        );
-    }
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+        </div>
+      </div>
+    );
+  }
 
   // Render error state
   if (error) return (
@@ -523,17 +562,22 @@ export default function Profile({ categories: initialCategories = [] }) {
             productsLoading={productsLoading}
             allCategories={allCategories}
             categoriesLoading={categoriesLoading}
+            allContacts={allContacts}
+            contactsLoading={contactsLoading}
             allUsers={allUsers}
             adminLoading={adminLoading}
             pagination={pagination}
             onRefreshProducts={fetchMyProducts}
             onRefreshCategories={fetchAllCategories}
+            onRefreshContacts={fetchAllContacts}
             onRefreshUsers={fetchAllUsers}
             onProductStatusToggle={handleProductStatusToggle}
             onCategoryStatusToggle={handleCategoryStatusToggle}
+            onContactStatusToggle={handleContactStatusToggle}
             onUserStatusToggle={handleUserStatusToggle}
             onDeleteProduct={handleDeleteProduct}
             onDeleteCategory={handleDeleteCategory}
+            onDeleteContact={handleDeleteContact}
             onDeleteUser={handleDeleteUser}
             onOpenModal={handleOpenModal}
           />
@@ -640,17 +684,22 @@ const AdminTab = ({
   productsLoading,
   allCategories,
   categoriesLoading,
+  allContacts,
+  contactsLoading,
   allUsers,
   adminLoading,
   pagination,
   onRefreshProducts,
   onRefreshCategories,
+  onRefreshContacts,
   onRefreshUsers,
   onProductStatusToggle,
   onCategoryStatusToggle,
+  onContactStatusToggle,
   onUserStatusToggle,
   onDeleteProduct,
   onDeleteCategory,
+  onDeleteContact,
   onDeleteUser,
   onOpenModal
 }) => (
@@ -710,6 +759,33 @@ const AdminTab = ({
         />
       ) : (
         <p>No categories found.</p>
+      )}
+    </div>
+
+    {/* Contacts Section - Added this section */}
+    <div className="contact-management-section management-section">
+      <div className="profile-content__header">
+        <h4>Contact Management</h4>
+        <button 
+          onClick={onRefreshContacts} 
+          className="button button--secondary" 
+          disabled={contactsLoading}
+        >
+          {contactsLoading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+      
+      {contactsLoading ? (
+        <div className="loading-spinner" />
+      ) : allContacts.length > 0 ? (
+        <ContactTable 
+          contacts={allContacts}
+          onStatusToggle={onContactStatusToggle}
+          onEdit={onOpenModal}
+          onDelete={onDeleteContact}
+        />
+      ) : (
+        <p>No contacts found.</p>
       )}
     </div>
 
@@ -852,6 +928,52 @@ const CategoryTable = ({ categories, onStatusToggle, onEdit, onDelete }) => (
           <button
             className="button button--small button--danger"
             onClick={() => onDelete(category.id)}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// Added ContactTable component
+const ContactTable = ({ contacts, onStatusToggle, onEdit, onDelete }) => (
+  <div className="contacts-table table">
+    <div className="contacts-table__header table__header">
+      <span>Contact Name</span>
+      <span>Type</span>
+      <span>Value</span>
+      <span>Status</span>
+      <span>Actions</span>
+    </div>
+    
+    {contacts.map(contact => (
+      <div key={contact.id} className="contacts-table__row table__row">
+        <span>{contact.name}</span>
+        <span className="contact-type-badge">
+          {contact.contact_type?.charAt(0).toUpperCase() + contact.contact_type?.slice(1)}
+        </span>
+        <span className="contact-value">{contact.value}</span>
+        <span className={`status-pill status-pill--${contact.is_active ? 'active' : 'inactive'}`}>
+          {contact.is_active ? 'Active' : 'Inactive'}
+        </span>
+        <div className="actions">
+          <button
+            className="button button--small button--secondary"
+            onClick={() => onStatusToggle(contact.id, contact.is_active)}
+          >
+            {contact.is_active ? 'Deactivate' : 'Activate'}
+          </button>
+          <button
+            className="button button--small button--primary"
+            onClick={() => onEdit('Contact', contact)}
+          >
+            Edit
+          </button>
+          <button
+            className="button button--small button--danger"
+            onClick={() => onDelete(contact.id)}
           >
             Delete
           </button>
