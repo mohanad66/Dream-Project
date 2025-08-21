@@ -1,7 +1,5 @@
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from django.conf import settings
 from django.urls import reverse
