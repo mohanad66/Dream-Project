@@ -1,18 +1,9 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
 )
-# Make sure to import the new class-based view and remove the old one
 from .views import *
-
-# ++++++++++ SETUP ADMIN ROUTER ++++++++++
-admin_router = DefaultRouter()
-admin_router.register(r'products', ProductAdminViewSet, basename='admin-product')
-admin_router.register(r'categories', CategoryAdminViewSet, basename='admin-category')
-admin_router.register(r'services', ServiceAdminViewSet, basename='admin-service')
-admin_router.register(r'contacts', ContactAdminViewSet, basename='admin-contact')
 # +++++++++++++++++++++++++++++++++++++++++
 
 urlpatterns = [
@@ -64,23 +55,16 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy'
     }), name='admin-contact-detail'),
-
     # Authentication endpoints
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
-    
     # User endpoints
     path("user/register/", CreateUserView.as_view(), name="register"),
-    
-    # +++ THIS IS THE CORRECTED LINE +++
     path("user/myuser/", CurrentUserView.as_view(), name="get_user"),
-    
     path('user/all/', get_all_users, name='get_all_users'),
     path('user/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     path('auth/password/change/', PasswordChangeView.as_view(), name='password-change'),
     path("payments/create-intent/", CreatePaymentIntentView.as_view(), name="CreatePaymentIntentView"),
-    # ++++++++++ ADD ADMIN URLS ++++++++++
-    path("admin/", include(admin_router.urls)),
     # ++++++++++++++++++++++++++++++++++++
 ]

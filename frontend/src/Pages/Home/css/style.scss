@@ -171,7 +171,8 @@ body {
 
 // Enhanced Title
 .title {
-  grid-column: 1/-1;
+  grid-column: -1/1;
+  width: 100% !important;
   @include container;
   @include flex-center;
   position: relative;
@@ -294,6 +295,7 @@ body {
   @include container;
   @include section-spacing;
   position: relative;
+  width: 95%;
 
   &.services {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, rgba(236, 72, 153, 0.03) 100%);
