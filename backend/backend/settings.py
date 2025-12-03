@@ -152,8 +152,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
@@ -166,33 +169,126 @@ AUTHENTICATION_BACKEN ={
     "django.contrib.auth.backend.ModelBackend",
 }
 JAZZMIN_SETTINGS = {
-    "site_title": "Admin",
-    "site_header": "Admin",
-    "welcome_sign": "Welcome to the admin panel",
+    # Site branding
+    "site_title": "ProAdmin",
+    "site_header": "Professional Administration",
+    "site_brand": "ProAdmin",
+    "site_logo": None,  # Add your logo path here
+    "login_logo": None,  # Add your login logo path here
+    "login_logo_dark": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,  # Add favicon path here
+    
+    # Welcome text
+    "welcome_sign": "Welcome to Professional Admin Dashboard",
+    
+    # Copyright
+    "copyright": "Your Company Ltd",
+    
+    # Search model
+    "search_model": ["auth.User", "auth.Group"],
+    
+    # User avatar
+    "user_avatar": None,
+    
+    # Top Menu
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Support", "url": "https://github.com/your-repo", "new_window": True},
+        {"model": "auth.User"},
+        {"app": "books"},
+    ],
+    
+    # User menu on the top right
+    "usermenu_links": [
+        {"name": "Support", "url": "https://github.com/your-repo", "new_window": True},
+        {"model": "auth.user"}
+    ],
+    
+    # Side Menu ordering
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    
+    # Custom links to append to app groups
+    "custom_links": {
+        "books": [{
+            "name": "Make Messages", 
+            "url": "make_messages", 
+            "icon": "fas fa-comments",
+            "permissions": ["books.view_book"]
+        }]
+    },
+    
+    # Icons for side menu
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+    },
+    
+    # Icons for models (use Font Awesome or similar)
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    
+    # Related modal
+    "related_modal_active": False,
+    
+    # Custom CSS/JS
+    "custom_css": None,  # Add this line
+    "custom_js": None,
+    
+    # Show language chooser
+    "show_ui_builder": False,
+    
+    # Changeform templates
+    "changeform_format": "horizontal_tabs",  # or "vertical_tabs", "collapsible", "carousel"
+    "changeform_format_overrides": {
+        "auth.user": "collapsible", 
+        "auth.group": "vertical_tabs"
+    },
+    
+    # Language chooser
+    "language_chooser": False,
 }
 
 
 JAZZMIN_UI_TWEAKS = {
-    "theme": "darkly",
-    "dark_mode_theme": "solar",
-    "navbar_small_text": True,
+    # Theme Selection
+    "theme": "cyborg",  # Modern dark theme (alternatives: "slate", "superhero", "darkly")
+    "dark_mode_theme": "cyborg",  # Consistent dark mode
+    
+    # Typography
+    "navbar_small_text": False,
     "footer_small_text": True,
     "body_small_text": False,
     "brand_small_text": False,
+    "brand_colour": False,
+    
+    # Accent colors
     "accent": "accent-primary",
+    
+    # Navbar
     "navbar": "navbar-dark",
-    "no_navbar_border": False,
+    "no_navbar_border": True,  # Cleaner look
     "navbar_fixed": True,
-    "layout_boxed": False,
+    
+    # Layout
+    "layout_boxed": False,  # Full-width modern design
     "footer_fixed": False,
+    
+    # Sidebar
     "sidebar_fixed": True,
     "sidebar": "sidebar-dark-primary",
-    "sidebar_nav_small_text": True,
+    "sidebar_nav_small_text": False,  # Better readability
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": True,
-    "sidebar_nav_compact_style": True,
+    "sidebar_nav_compact_style": False,  # More spacious
     "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
+    "sidebar_nav_flat_style": True,  # Modern flat design
+    
+    # Button styling
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
