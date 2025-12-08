@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+from unidecode import unidecode  # Install with: 
 from django.conf import settings
 from django.urls import reverse
 from django.db import models
@@ -125,6 +126,9 @@ class CarouselImg(models.Model):
                 img.save(img_path, quality=85, optimize=True)
         except Exception:
             pass
+        
+    def __str__(self):
+        return self.name
     
 class Category(models.Model):
     name = models.CharField(max_length=20, unique=True)
@@ -139,7 +143,17 @@ class Category(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            # Convert Arabic to transliterated text, then slugify
+            transliterated = unidecode(self.name)
+            self.slug = slugify(transliterated)
+            
+            # If slug still exists, add a number
+            original_slug = self.slug
+            counter = 1
+            while Category.objects.filter(slug=self.slug).exists():
+                self.slug = f'{original_slug}-{counter}'
+                counter += 1
+        
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
@@ -194,9 +208,38 @@ class Product(models.Model , ImageHandlingMixin):
     
     
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-            
+        if not self.slug or self.slug == '':
+            # Create base slug from name
+            if self.name:
+                # Convert Arabic to ASCII
+                ascii_name = unidecode(str(self.name))
+                base_slug = slugify(ascii_name)
+                
+                # If slug is empty after processing, use a fallback
+                if not base_slug or base_slug == '':
+                    base_slug = 'product'
+                
+                # Make slug unique
+                self.slug = base_slug
+                counter = 1
+                original_slug = self.slug
+                
+                while Product.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                    self.slug = f'{original_slug}-{counter}'
+                    counter += 1
+                    # Prevent infinite loop
+                    if counter > 100:
+                        self.slug = f'{original_slug}-{uuid.uuid4().hex[:8]}'
+                        break
+            else:
+                # If no name, generate unique slug
+                self.slug = f'product-{uuid.uuid4().hex[:8]}'
+        else:
+            # If slug already exists but belongs to another product
+            if Product.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                base_slug = slugify(unidecode(str(self.name))) if self.name else 'product'
+                self.slug = f'{base_slug}-{uuid.uuid4().hex[:8]}'
+        
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):

@@ -215,21 +215,21 @@ body {
 
   &-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill , minmax(140px, 1fr));
     gap: $spacing-md;
     width: 100%;
 
     @media (min-width: $breakpoint-sm) {
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: $spacing-lg;
     }
 
     @media (min-width: $breakpoint-md) {
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     }
 
     @media (min-width: $breakpoint-lg) {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: $spacing-xl;
     }
   }

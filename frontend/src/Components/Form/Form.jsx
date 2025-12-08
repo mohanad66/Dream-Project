@@ -137,7 +137,7 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                 <h1>{formTitle}</h1>
 
                 {error && (
-                    <div className="error-message" style={{ whiteSpace: "pre-line" }}>
+                    <div className="error" style={{ whiteSpace: "pre-line" }}>
                         {error}
                     </div>
                 )}

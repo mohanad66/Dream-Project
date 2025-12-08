@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import "./css/style.scss";
 import useFancybox from '../Fancy Box';
-import { FaShoppingCart, FaBolt } from 'react-icons/fa';
+import { FaShoppingCart, FaBolt, FaPlus, FaMinus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 export default function Card({ card, categories }) {
     const [showPopup, setShowPopup] = useState(false);
     const [isAddedToCart, setIsAddedToCart] = useState(false);
+    const [quantity, setQuantity] = useState(1);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,22 +32,41 @@ export default function Card({ card, categories }) {
             : card.description;
     };
 
+    const handleQuantityChange = (change) => {
+        const newQuantity = quantity + change;
+        if (newQuantity >= 1 && newQuantity <= 99) {
+            setQuantity(newQuantity);
+        }
+    };
+
     const handleAddToCart = () => {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        if (!cart.some(item => item.id === card.id)) {
-            cart.push(card);
-            localStorage.setItem('cart', JSON.stringify(cart));
+        const existingItemIndex = cart.findIndex(item => item.id === card.id);
+        
+        if (existingItemIndex !== -1) {
+            // Update quantity if item exists
+            cart[existingItemIndex].quantity = (cart[existingItemIndex].quantity || 1) + quantity;
+        } else {
+            // Add new item with quantity
+            cart.push({ ...card, quantity });
         }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
         setIsAddedToCart(true);
         setTimeout(() => setIsAddedToCart(false), 2000);
     };
 
     const handleBuyNow = () => {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        if (!cart.some(item => item.id === card.id)) {
-            cart.push(card);
-            localStorage.setItem('cart', JSON.stringify(cart));
+        const existingItemIndex = cart.findIndex(item => item.id === card.id);
+        
+        if (existingItemIndex !== -1) {
+            cart[existingItemIndex].quantity = (cart[existingItemIndex].quantity || 1) + quantity;
+        } else {
+            cart.push({ ...card, quantity });
         }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
         navigate('/checkout');
     };
 
@@ -103,6 +123,34 @@ export default function Card({ card, categories }) {
                                     <div className="popup-content-full">
                                         {card.description || 'No description available'}
                                     </div>
+                                </div>
+
+                                <div className="quantity-selector">
+                                    <button 
+                                        className="quantity-btn" 
+                                        onClick={() => handleQuantityChange(-1)}
+                                        disabled={quantity <= 1}
+                                    >
+                                        <FaMinus />
+                                    </button>
+                                    <input 
+                                        type="number" 
+                                        className="quantity-input" 
+                                        value={quantity}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value) || 1;
+                                            if (val >= 1 && val <= 99) setQuantity(val);
+                                        }}
+                                        min="1"
+                                        max="99"
+                                    />
+                                    <button 
+                                        className="quantity-btn" 
+                                        onClick={() => handleQuantityChange(1)}
+                                        disabled={quantity >= 99}
+                                    >
+                                        <FaPlus />
+                                    </button>
                                 </div>
 
                                 <div className="popup-actions">

@@ -116,6 +116,7 @@ class UserSerializer(serializers.ModelSerializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
     def validate(self, attrs):
+
         username = attrs.get('username', 'Unknown')
         logger.info(f"Token validation attempt for user: {username}")
         
@@ -142,6 +143,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             logger.error(f"Validation error for user {username}: {str(e)}")
             raise
         except Exception as e:
+            print(f"Authentication error: {e}")
             logger.error(f"Unexpected error during token validation for user {username}: {str(e)}")
             raise serializers.ValidationError("Authentication failed. Please check your credentials.")
 

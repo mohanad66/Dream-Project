@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from 'react-icons/bs';
 import './css/style.scss';
 import useFancybox from '../Fancy Box';
-import { FiMail ,  FiPhone , FiInfo , } from "react-icons/fi";
+import { FiMail ,  FiPhone , FiInfo, FiLink , } from "react-icons/fi";
 import { FaFacebook, FaWhatsapp ,FaGithub , FaLinkedin ,FaInstagram ,FaTwitter} from "react-icons/fa";
 
 const Carousel = ({ images = [], contacts }) => {
@@ -126,10 +126,10 @@ const Carousel = ({ images = [], contacts }) => {
 
               {/* Dynamic contact methods - first half */}
               {contacts.slice(0, Math.ceil(contacts.length / 2)).map(contact => (
-                <ContactItem key={contact.id} contact={contact} />
+                contact.is_active && <ContactItem key={contact.id} contact={contact} />
               ))}
               {contacts.slice(Math.ceil(contacts.length / 2)).map(contact => (
-                <ContactItem key={contact.id} contact={contact} />
+                contact.is_active && <ContactItem key={contact.id} contact={contact} />
               ))}
           </div>
         </div>

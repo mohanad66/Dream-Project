@@ -1,28 +1,50 @@
-// src/Components/CheckoutForm/index.jsx - UPDATED FOR EGP
+// src/Components/CheckoutForm/index.jsx - UPDATED FOR EGP WITH QUANTITY
 
 import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import api from '../../services/api'; // Your configured axios instance
+import api from '../../services/api';
 import './css/style.scss';
 
-export default function CheckoutForm() {
+export default function CheckoutForm({ cartItems: propCartItems, totalAmount: propTotal, totalItems: propTotalItems }) {
     const stripe = useStripe();
     const elements = useElements();
 
     const [email, setEmail] = useState('');
     const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
     const [error, setError] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [succeeded, setSucceeded] = useState(false);
 
-    // Load cart from localStorage
+    // Load cart from localStorage or use props
     useEffect(() => {
-        const items = JSON.parse(localStorage.getItem('cart')) || [];
-        setCartItems(items);
-        const cartTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
-        setTotal(cartTotal);
-    }, []);
+        if (propCartItems && propTotal !== undefined) {
+            // Use props if available
+            setCartItems(propCartItems);
+            setTotal(propTotal);
+            setTotalItems(propTotalItems || 0);
+        } else {
+            // Fallback to localStorage
+            const items = JSON.parse(localStorage.getItem('cart')) || [];
+            const itemsWithQuantity = items.map(item => ({
+                ...item,
+                quantity: item.quantity || 1
+            }));
+            setCartItems(itemsWithQuantity);
+            
+            const cartTotal = itemsWithQuantity.reduce((sum, item) => {
+                const price = parseFloat(item.price) || 0;
+                const quantity = item.quantity || 1;
+                return sum + (price * quantity);
+            }, 0);
+            
+            const itemCount = itemsWithQuantity.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            
+            setTotal(cartTotal);
+            setTotalItems(itemCount);
+        }
+    }, [propCartItems, propTotal, propTotalItems]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -33,10 +55,21 @@ export default function CheckoutForm() {
         setProcessing(true);
 
         try {
+            // Prepare order items with quantities for backend
+            const orderItems = cartItems.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: parseFloat(item.price),
+                quantity: item.quantity || 1,
+                subtotal: (parseFloat(item.price) || 0) * (item.quantity || 1)
+            }));
+
             const response = await api.post('/api/payments/create-intent/', {
-                amount: Math.round(total * 100),
+                amount: Math.round(total * 100), // Convert to cents
                 currency: 'egp',
                 user_email: email,
+                order_items: orderItems, // Send items with quantities
+                total_items: totalItems
             });
 
             const clientSecret = response.data.clientSecret;
@@ -60,7 +93,6 @@ export default function CheckoutForm() {
                 localStorage.removeItem('cart');
             }
         } catch (err) {
-            // Improved error handling to show server response details
             const errorMessage = err.response?.data?.error ||
                 (err.response ? `Server error: ${err.response.status}` : err.message);
             setError(`Payment error: ${errorMessage}`);
@@ -68,7 +100,7 @@ export default function CheckoutForm() {
         }
     };
 
-    // Redirect to home after 2 seconds if payment succeeded or cart is empty (not succeeded)
+    // Redirect to home after 2 seconds if payment succeeded or cart is empty
     useEffect(() => {
         if (succeeded || (cartItems.length === 0 && !succeeded)) {
             const timer = setTimeout(() => {
@@ -83,6 +115,9 @@ export default function CheckoutForm() {
             <div className="payment-success">
                 <h2>Payment Successful!</h2>
                 <p>Thank you for your purchase. A confirmation has been sent to your email.</p>
+                <p className="order-details">
+                    Total items: {totalItems} | Total paid: {total.toFixed(2)} EGP
+                </p>
             </div>
         );
     }
@@ -93,17 +128,22 @@ export default function CheckoutForm() {
                 <h2>Your cart is empty.</h2>
                 <p>Add items to your cart before checking out.</p>
             </div>
-        )
+        );
     }
 
     return (
         <form id="payment-form" onSubmit={handleSubmit}>
             <div className="order-summary">
-                <h3>Order Summary</h3>
+                <h3>Order Summary ({totalItems} item{totalItems !== 1 ? 's' : ''})</h3>
                 {cartItems.map(item => (
                     <div key={item.id} className="summary-item">
-                        <span>{item.name}</span>
-                        <span>{parseFloat(item.price).toFixed(2)} EGP</span>
+                        <div className="item-info">
+                            <span className="item-name">{item.name}</span>
+                            <span className="item-quantity">× {item.quantity || 1}</span>
+                        </div>
+                        <span className="item-price">
+                            {((parseFloat(item.price) || 0) * (item.quantity || 1)).toFixed(2)} EGP
+                        </span>
                     </div>
                 ))}
                 <div className="summary-total">
@@ -131,7 +171,6 @@ export default function CheckoutForm() {
 
             <button disabled={processing || !stripe || succeeded} id="submit-btn">
                 <span id="button-text">
-                    {/* +++ UPDATED CURRENCY DISPLAY +++ */}
                     {processing ? "Processing..." : `Pay ${total.toFixed(2)} EGP`}
                 </span>
             </button>
