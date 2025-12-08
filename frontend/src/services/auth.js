@@ -11,6 +11,7 @@ export const useAuth = () => {
       categories: [],
       products: [],
       services: [],
+      tags: [],
       user: null
     },
     isAuthenticated: false,
@@ -40,6 +41,7 @@ export const useAuth = () => {
         { data: categories },
         { data: products },
         { data: services },
+        { data: tags },
         { data: user }
       ] = await Promise.all([
         api.get('/api/contact/'),
@@ -47,22 +49,21 @@ export const useAuth = () => {
         api.get('/api/categories/'),
         api.get('/api/products/'),
         api.get('/api/services/'),
-        api.get('/api/user/myuser/').catch(() => ({ data: null })) // User endpoint is optional
+        api.get('/api/tags/'),
+        api.get('/api/user/myuser/').catch(() => ({ data: null }))
       ]);
 
       setAuthData({
-        data: { contacts, imgs, categories, products, services, user },
+        data: { contacts, imgs, categories, products, services, tags, user },
         isLoading: false,
-        isSuperuser: user?.is_superuser || false, // Add this line
-
+        isSuperuser: user?.is_superuser || false
       });
       return true;
     } catch (err) {
       setAuthData({
         error: err.message || 'Failed to fetch data',
         isLoading: false,
-        isSuperuser: false, // Default to false on error
-
+        isSuperuser: false
       });
       throw err;
     }
@@ -78,7 +79,6 @@ export const useAuth = () => {
       localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
 
-      // Fetch all data including user profile after login
       await fetchAllData();
 
       setAuthData({
@@ -109,12 +109,12 @@ export const useAuth = () => {
         categories: [],
         products: [],
         services: [],
+        tags: [],
         user: null
       }
     });
   }, [setAuthData]);
 
-  // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
       const token = localStorage.getItem(ACCESS_TOKEN);

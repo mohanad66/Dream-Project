@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import "./css/style.scss";
 import Card from '../../Components/Card';
 
-export default function Products({ categories = [], products = [] }) {
+export default function Products({ categories = [], products = [] ,tags=[] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
@@ -219,7 +219,7 @@ export default function Products({ categories = [], products = [] }) {
       <div className="products-grid">
         {filteredProducts.length > 0 && products.length > 0 ? (
           filteredProducts.map(product => (
-            <Card key={product.id} card={product} categories={categories} />
+            <Card key={product.id} card={product} categories={categories} tags={tags} />
           ))
         ) : filteredProducts.length != products.length ? (
           <div className="no-products">

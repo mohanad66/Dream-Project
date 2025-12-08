@@ -853,6 +853,12 @@ const AdminTab = ({
         >
           Add New Contact
         </button>
+        <button 
+          className="button button--primary" 
+          onClick={() => onOpenModal('Tag')}
+        >
+          Add New Tag
+        </button>
       </div>
     </div>
   </section>

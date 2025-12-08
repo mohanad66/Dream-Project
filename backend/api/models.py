@@ -159,7 +159,35 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('products_by_category', args=[self.slug])
 
+
+class Tag(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+    slug = models.SlugField(max_length=21, unique=True , editable=False)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # Convert Arabic to transliterated text, then slugify
+            transliterated = unidecode(self.name)
+            self.slug = slugify(transliterated)
+            
+            # If slug still exists, add a number
+            original_slug = self.slug
+            counter = 1
+            while Category.objects.filter(slug=self.slug).exists():
+                self.slug = f'{original_slug}-{counter}'
+                counter += 1
+        
+        super().save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        return reverse('products_by_category', args=[self.slug])
+
 class Product(models.Model , ImageHandlingMixin):
+    
     MIN_IMAGE_WIDTH = 400
     MIN_IMAGE_HEIGHT = 400
     
@@ -169,6 +197,7 @@ class Product(models.Model , ImageHandlingMixin):
         null=True,
         related_name='products'
     )
+    tags = models.ManyToManyField('Tag', related_name='products', blank=True, help_text="Select product tags")
     image = models.ImageField(
         upload_to='products/',
         blank=False,

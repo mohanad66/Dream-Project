@@ -43,6 +43,10 @@ class ContactAdminViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
 
+class TagsAdminViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagsSerializer
+    permission_classes = [IsAdminUser]
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -273,6 +277,9 @@ get_contact = create_public_list_view(
     Contact, ContactSerializer
 )
 
+get_tags = create_public_list_view(
+    Tag , TagsSerializer 
+)
 class PaymentListView(ListAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer

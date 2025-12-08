@@ -6,7 +6,7 @@ import useFancybox from '../Fancy Box';
 import { FaShoppingCart, FaBolt, FaPlus, FaMinus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-export default function Card({ card, categories }) {
+export default function Card({ card, categories, tags }) {
     const [showPopup, setShowPopup] = useState(false);
     const [isAddedToCart, setIsAddedToCart] = useState(false);
     const [quantity, setQuantity] = useState(1);
@@ -22,7 +22,6 @@ export default function Card({ card, categories }) {
             document.body.style.overflow = "";
         };
     }, [showPopup]);
-
     const [fancyboxRef] = useFancybox();
 
     const getDescriptionPreview = () => {
@@ -42,15 +41,13 @@ export default function Card({ card, categories }) {
     const handleAddToCart = () => {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const existingItemIndex = cart.findIndex(item => item.id === card.id);
-        
+
         if (existingItemIndex !== -1) {
-            // Update quantity if item exists
             cart[existingItemIndex].quantity = (cart[existingItemIndex].quantity || 1) + quantity;
         } else {
-            // Add new item with quantity
             cart.push({ ...card, quantity });
         }
-        
+
         localStorage.setItem('cart', JSON.stringify(cart));
         setIsAddedToCart(true);
         setTimeout(() => setIsAddedToCart(false), 2000);
@@ -59,13 +56,13 @@ export default function Card({ card, categories }) {
     const handleBuyNow = () => {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const existingItemIndex = cart.findIndex(item => item.id === card.id);
-        
+
         if (existingItemIndex !== -1) {
             cart[existingItemIndex].quantity = (cart[existingItemIndex].quantity || 1) + quantity;
         } else {
             cart.push({ ...card, quantity });
         }
-        
+
         localStorage.setItem('cart', JSON.stringify(cart));
         navigate('/checkout');
     };
@@ -73,15 +70,28 @@ export default function Card({ card, categories }) {
     return (
         <>
             <div className="card">
-                <img 
-                    className='card-image' 
-                    src={`http://127.0.0.1:8000${card.image}`} 
-                    alt={card.name} 
-                    onClick={() => setShowPopup(true)} 
+                <img
+                    className='card-image'
+                    src={`http://127.0.0.1:8000${card.image}`}
+                    alt={card.name}
+                    onClick={() => setShowPopup(true)}
                 />
                 <h2>{card.name}</h2>
                 <span className="price">{card.price} L.E</span>
                 <p className='card-content'>{getDescriptionPreview()}</p>
+
+                <div className="tags">
+                    {card.tags && card.tags.length > 0 ? (
+                        card.tags.map((tagId) => {
+                            const tag = tags.find((t) => t.id === tagId);
+                            return tag ? (
+                                <span key={tagId} className="tag">{tag.name}</span>
+                            ) : null;
+                        })
+                    ) : (
+                        <span className="tag">No tags</span>
+                    )}
+                </div>
 
                 <div className="card-actions">
                     <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={isAddedToCart}>
@@ -100,9 +110,9 @@ export default function Card({ card, categories }) {
                         <div className="popup-content">
                             <div className="popup-right">
                                 <div ref={fancyboxRef} className="popup-img">
-                                    <img 
-                                        src={`http://127.0.0.1:8000${card.image}`} 
-                                        alt={card.name} 
+                                    <img
+                                        src={`http://127.0.0.1:8000${card.image}`}
+                                        alt={card.name}
                                     />
                                 </div>
                             </div>
@@ -118,24 +128,38 @@ export default function Card({ card, categories }) {
                                         <p className="card-category">Category: Uncategorized</p>
                                     )}
                                 </div>
-                                
+
                                 <div className="popup-scrollable">
                                     <div className="popup-content-full">
                                         {card.description || 'No description available'}
                                     </div>
                                 </div>
 
+                                {/* Display product tags in popup */}
+                                <div className="tags">
+                                    {card.tags && card.tags.length > 0 ? (
+                                        card.tags.map((tagId) => {
+                                            const tag = tags.find((t) => t.id === tagId);
+                                            return tag ? (
+                                                <span key={tagId} className="tag">{tag.name}</span>
+                                            ) : null;
+                                        })
+                                    ) : (
+                                        <span className="tag">No tags</span>
+                                    )}
+                                </div>
+
                                 <div className="quantity-selector">
-                                    <button 
-                                        className="quantity-btn" 
+                                    <button
+                                        className="quantity-btn"
                                         onClick={() => handleQuantityChange(-1)}
                                         disabled={quantity <= 1}
                                     >
                                         <FaMinus />
                                     </button>
-                                    <input 
-                                        type="number" 
-                                        className="quantity-input" 
+                                    <input
+                                        type="number"
+                                        className="quantity-input"
                                         value={quantity}
                                         onChange={(e) => {
                                             const val = parseInt(e.target.value) || 1;
@@ -144,8 +168,8 @@ export default function Card({ card, categories }) {
                                         min="1"
                                         max="99"
                                     />
-                                    <button 
-                                        className="quantity-btn" 
+                                    <button
+                                        className="quantity-btn"
                                         onClick={() => handleQuantityChange(1)}
                                         disabled={quantity >= 99}
                                     >

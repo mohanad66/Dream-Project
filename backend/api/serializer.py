@@ -25,10 +25,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = [
-            "id", "owner", "image", "name", "slug", "category", 
-            "description", "price", "is_active", "created_at", "updated_at"
-        ]
+        fields = "__all__"
 
     def create(self, validated_data):
         # Get the owner (which is a User instance) from the context.
@@ -40,6 +37,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = "__all__"
+
+class TagsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = "__all__"

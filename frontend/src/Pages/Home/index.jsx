@@ -5,7 +5,7 @@ import ServiceCard from '../../Components/Services Card';
 import "./css/style.scss"
 import { Link } from "react-router-dom"
 
-export default function Home({ contacts = [], img = [], categories = [], products = [], services = [] }) {
+export default function Home({ contacts = [], img = [], categories = [], products = [], services = []  , tags=[]}) {
   const [isLoading, setIsLoading] = useState(true);
   
   const latestProducts = [...products]
@@ -71,7 +71,7 @@ export default function Home({ contacts = [], img = [], categories = [], product
             .sort(() => 0.5 - Math.random())
             .slice(0, 8)
             .map(product => (
-              <Card key={product.id} card={product} categories={categories} />
+              <Card key={product.id} card={product} categories={categories} tags={tags}  />
             ))
         ) : (
           <div className='empty'><h2>There isn't any Products</h2></div>
@@ -82,7 +82,7 @@ export default function Home({ contacts = [], img = [], categories = [], product
         <h2 className="title">Our Latest Products</h2>
         {latestProducts.length != 0 ? latestProducts.filter(product => product.is_active == true).map(
           product => (
-            <Card key={product.id} card={product} categories={categories} />
+            <Card key={product.id} card={product} categories={categories} tags={tags} />
           ))
         : 
         (<div className='empty'><h2>There isn't any Products</h2></div>)}

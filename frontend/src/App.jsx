@@ -15,6 +15,8 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from './services/constants.js';
 import api from './services/api.js';
 import CheckoutPage from "./Pages/Checkout/index.jsx"
 import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
 export default function App() {
   const {
     data,
@@ -25,28 +27,24 @@ export default function App() {
     logout
   } = useAuth();
 
-  // This function will be passed to your Form component
   async function handleLogin(userData) {
-    // Use the login function from useAuth hook
     await login(userData);
-    // Refresh the page after login
-    window.location.href = '/'; // Navigate to home page
+    window.location.href = '/';
   }
 
   const handleLogout = () => {
     logout();
-    // Force full page refresh after logout
     window.location.href = '/login';
   }
 
-   if (isLoading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">
-        </div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }
+
   const location = useLocation();
 
   return (
@@ -63,6 +61,7 @@ export default function App() {
               services={data.services || []}
               categories={data.categories || []}
               products={data.products || []}
+              tags={data.tags || []}
             />
           </ProtectedRoute>
         } />
@@ -72,6 +71,7 @@ export default function App() {
             <Products
               products={data.products || []}
               categories={data.categories || []}
+              tags={data.tags || []}
             />
           </ProtectedRoute>
         } />
@@ -87,16 +87,19 @@ export default function App() {
             <About />
           </ProtectedRoute>
         } />
+
         <Route path="/profile" element={
           <ProtectedRoute>
-            <ProfilePage categories={data.categories} />
+            <ProfilePage categories={data.categories} tags={data.tags} />
           </ProtectedRoute>
         } />
+
         <Route path="/checkout" element={
           <ProtectedRoute>
             <CheckoutPage />
           </ProtectedRoute>
         } />
+
         <Route path='*' element={<Navigate to="/" replace />} />
       </Routes>
       {(localStorage.getItem(ACCESS_TOKEN) !== null && location.pathname !== "/checkout") ? <Navbar onLogout={handleLogout} /> : null}

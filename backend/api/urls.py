@@ -13,7 +13,7 @@ urlpatterns = [
     path("carousels/", get_carouselImg, name="get_carouselImg"),
     path("services/", get_services, name="get_services"),
     path("contact/", get_contact, name="get_contact"),
-
+    path("tags/" , get_tags , name="get_tags" ),
     path('admins/products/', ProductAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-product-list'),
     path('admins/products/<int:pk>/', ProductAdminViewSet.as_view({
         'get': 'retrieve',
@@ -55,6 +55,17 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy'
     }), name='admin-contact-detail'),
+    
+    # Tags
+    
+    path('admins/tags/', TagsAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-tag-list'),
+    path('admins/tags/<int:pk>/', TagsAdminViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    }), name='admin-tag-detail'),
+    
     # Authentication endpoints
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

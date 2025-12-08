@@ -136,6 +136,7 @@ $breakpoints: (
 // Main Card Component
 // ==========================================
 .card {
+
   background: color(white);
   border-radius: radius(xl);
   box-shadow: shadow(md);
@@ -193,6 +194,40 @@ $breakpoints: (
     font-size: 1.1rem;
     margin-bottom: spacing(md);
     letter-spacing: 0.01em;
+  }
+
+  .price {
+    color: color(primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: spacing(md);
+    letter-spacing: 0.01em;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: spacing(sm);
+    margin-bottom: spacing(md);
+
+    .tag {
+      background: color(primary);
+      color: color(white);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: spacing(xs) spacing(md);
+      border-radius: radius(sm);
+      display: inline-block;
+      letter-spacing: 0.5px;
+      transition: all transition(fast);
+      cursor: default;
+      white-space: nowrap;
+
+      &:hover {
+        background: color(primary-dark);
+        transform: scale(1.05);
+      }
+    }
   }
 
   // Description Preview
@@ -400,18 +435,20 @@ $breakpoints: (
 
     // Image Section
     .popup-right {
-      flex: 0 0 280px; // Fixed width, don't grow or shrink
-
+      flex: 0 0 280px auto; // Fixed width, don't grow or shrink
+      display: flex;
+      justify-content: center;
+      align-self: center;
       .popup-img {
-        width: 280px;
-        height: 280px;
+        width: 380px;
+        height: 100%; // Take all the height of .popup-right
         background: color(neutral-50);
         border-radius: radius(lg);
         overflow: hidden;
         box-shadow: shadow(sm);
 
         img {
-          width: 100%;
+          width: 90%;
           height: 100%;
           object-fit: contain;
         }
@@ -425,9 +462,75 @@ $breakpoints: (
       flex-direction: column;
       min-height: 0; // Allow flex items to shrink
 
+      .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: spacing(sm);
+        margin: 10px;
+
+        .quantity-btn {
+          @include button-variant(color(primary), color(white), color(primary-dark));
+          width: 40px;
+          height: 40px;
+          border-radius: radius(md);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem;
+
+          &:disabled {
+            background: color(neutral-200);
+            color: color(neutral-500);
+          }
+        }
+
+        .quantity-input {
+          width: 60px;
+          text-align: center;
+          font-size: 1rem;
+          border: 1px solid color(neutral-300);
+          border-radius: radius(md);
+          padding: spacing(xs);
+          transition: border-color transition(fast);
+
+          &:focus {
+            border-color: color(primary);
+            outline: none;
+          }
+        }
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: spacing(sm);
+        margin-bottom: spacing(md);
+
+        .tag {
+          background: color(primary);
+          color: color(white);
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: spacing(xs) spacing(md);
+          border-radius: radius(sm);
+          display: inline-block;
+          letter-spacing: 0.5px;
+          transition: all transition(fast);
+          cursor: default;
+          white-space: nowrap;
+          box-shadow: shadow(sm);
+
+          &:hover {
+            background: color(primary-dark);
+            transform: scale(1.05);
+            box-shadow: shadow(md);
+          }
+        }
+      }
+
       .popup-header {
         flex-shrink: 0; // Don't shrink the header
-        margin-bottom: spacing(xl);
+        margin-bottom: spacing(md);
 
         h2 {
           font-size: 1.5rem;
@@ -456,6 +559,8 @@ $breakpoints: (
         flex: 1;
         margin-bottom: spacing(xl);
         overflow: visible; // Remove individual scrolling
+
+
 
         .popup-content-full {
           color: color(neutral-700);
@@ -685,3 +790,25 @@ $breakpoints: (
     border: 2px solid currentColor;
   }
 }
+
+// Card Title (h2)
+h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: color(neutral-900);
+  margin: 0 0 spacing(sm) 0;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+
+  // Handle long titles
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+
+// Price

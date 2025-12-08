@@ -9,6 +9,7 @@ from unfold.admin import ModelAdmin
 # admin.site.register(Category)
 # admin.site.register(Service)
 # admin.site.register(Contact)
+# admin.site.register(Tag)
 
 @admin.register(CarouselImg)
 class CarouselImgAdmin(ModelAdmin):
@@ -27,6 +28,11 @@ class ServiceAdmin(ModelAdmin):
     pass
 
 @admin.register(Contact)
+class ContactAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(Tag)
 class ContactAdmin(ModelAdmin):
     pass
 
