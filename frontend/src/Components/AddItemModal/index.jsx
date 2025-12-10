@@ -7,6 +7,9 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [availableTags, setAvailableTags] = useState([]);
+    const [selectedTags, setSelectedTags] = useState([]);
+    const [newTag, setNewTag] = useState('');
 
     // Initialize form data with default or existing values
     useEffect(() => {
@@ -22,6 +25,11 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
             }
         });
         setFormData(initialData);
+
+        // Initialize selected tags if editing
+        if (initialData.tags) {
+            setSelectedTags(Array.isArray(initialData.tags) ? initialData.tags : []);
+        }
     }, [config]);
 
     // Fetch categories if needed
@@ -37,6 +45,19 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         }
     }, [config.fields]);
 
+    // Fetch tags if needed
+    useEffect(() => {
+        const needsTags = config.fields.some(field =>
+            field.name === 'tags' && field.type === 'tags'
+        );
+
+        if (needsTags) {
+            api.get('/api/admins/tags/')
+                .then(response => setAvailableTags(response.data))
+                .catch(err => console.error("Failed to fetch tags", err));
+        }
+    }, [config.fields]);
+
     const handleInputChange = (e) => {
         const { name, value, type, files, checked } = e.target;
 
@@ -49,6 +70,42 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         }
     };
 
+    const handleTagSelect = (tagId) => {
+        if (selectedTags.includes(tagId)) {
+            setSelectedTags(selectedTags.filter(id => id !== tagId));
+        } else {
+            setSelectedTags([...selectedTags, tagId]);
+        }
+    };
+
+    const handleAddNewTag = async () => {
+        if (!newTag.trim()) return;
+
+        try {
+            const response = await api.post('/api/admins/tags/', { name: newTag.trim() });
+            const createdTag = response.data;
+            
+            // Add to available tags
+            setAvailableTags([...availableTags, createdTag]);
+            
+            // Auto-select the new tag
+            setSelectedTags([...selectedTags, createdTag.id]);
+            
+            // Clear input
+            setNewTag('');
+        } catch (err) {
+            console.error("Failed to create tag", err);
+            const errorMsg = err.response?.data?.name?.[0] || err.response?.data?.detail || 'Failed to create tag. It may already exist.';
+            setError(errorMsg);
+            // Clear error after 3 seconds
+            setTimeout(() => setError(''), 3000);
+        }
+    };
+
+    const handleRemoveTag = (tagId) => {
+        setSelectedTags(selectedTags.filter(id => id !== tagId));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -58,6 +115,9 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
 
         // Prepare form data
         Object.entries(formData).forEach(([key, value]) => {
+            // Skip tags field as we'll handle it separately
+            if (key === 'tags') return;
+
             if (value !== null && value !== undefined) {
                 // Handle file deletion - if editing and file field is empty
                 if (key === 'image' && value === '' && config.method === 'PATCH') {
@@ -67,6 +127,11 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                     submissionData.append(key, value);
                 }
             }
+        });
+
+        // Add selected tags
+        selectedTags.forEach(tagId => {
+            submissionData.append('tags', tagId);
         });
 
         try {
@@ -120,6 +185,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         const isFileField = field.type === 'file';
         const isEditMode = config.method === 'PATCH';
         let filePlaceholder = '';
+        
         if (isFileField && isEditMode && value) {
             if (typeof value === 'string') {
                 // Extract filename from URL
@@ -129,6 +195,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                 filePlaceholder = `Selected file: ${value.name}`;
             }
         }
+
         switch (field.type) {
             case 'textarea':
                 return (
@@ -181,6 +248,72 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                     </div>
                 );
 
+            case 'tags':
+                return (
+                    <div className="tags-field">
+                        {/* Selected Tags */}
+                        <div className="selected-tags">
+                            {selectedTags.map(tagId => {
+                                const tag = availableTags.find(t => t.id === tagId);
+                                return tag ? (
+                                    <span key={tagId} className="tag-badge">
+                                        {tag.name}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveTag(tagId)}
+                                            className="tag-remove"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ) : null;
+                            })}
+                        </div>
+
+                        {/* Available Tags */}
+                        <div className="available-tags">
+                            <label className="tags-label">Select tags:</label>
+                            <div className="tags-grid">
+                                {availableTags.map(tag => (
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        onClick={() => handleTagSelect(tag.id)}
+                                        className={`tag-option ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
+                                    >
+                                        {tag.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Add New Tag */}
+                        <div className="add-tag-section">
+                            <input
+                                type="text"
+                                value={newTag}
+                                onChange={(e) => setNewTag(e.target.value)}
+                                placeholder="Create new tag..."
+                                className="new-tag-input"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleAddNewTag();
+                                    }
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddNewTag}
+                                className="add-tag-btn"
+                                disabled={!newTag.trim()}
+                            >
+                                + Add Tag
+                            </button>
+                        </div>
+                    </div>
+                );
+
             default:
                 return (
                     <input
@@ -209,8 +342,15 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                     {config.fields.map(field => (
                         <div className="form-group" key={field.name}>
                             {/* Don't show label for checkboxes (label is part of the checkbox) */}
-                            {field.type !== 'checkbox' && (
+                            {field.type !== 'checkbox' && field.type !== 'tags' && (
                                 <label htmlFor={field.name}>
+                                    {field.label}
+                                    {field.required && <span className="required">*</span>}
+                                </label>
+                            )}
+
+                            {field.type === 'tags' && (
+                                <label className="tags-main-label">
                                     {field.label}
                                     {field.required && <span className="required">*</span>}
                                 </label>

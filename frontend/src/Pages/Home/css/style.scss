@@ -1,145 +1,7 @@
-// Enhanced Variables for All Screen Sizes
-$primary-color: #2b2b2b;
-$secondary-color: #7d7d7e;
-$accent-color: #e0e7ef;
-$text-color: #333;
-$light-bg: #f8f9fa;
-$white: #ffffff;
-$error-color: #ff4757;
-$success-color: #2ed573;
-$warning-color: #ffa502;
-
-// Enhanced Shadows
-$shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-
-// Modern Border Radius
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 20px;
-$radius-full: 9999px;
-
-// Enhanced Transitions
-$transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-$transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-$transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-
-// Responsive Spacing
-$spacing-xs: 0.25rem;
-$spacing-sm: 0.5rem;
-$spacing-md: 1rem;
-$spacing-lg: 1.5rem;
-$spacing-xl: 2rem;
-$spacing-2xl: 3rem;
-$spacing-3xl: 4rem;
-
-// Enhanced Breakpoints
-$breakpoint-xs: 375px;
-$breakpoint-sm: 576px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 992px;
-$breakpoint-xl: 1200px;
-$breakpoint-2xl: 1400px;
-
-// Typography Scale
-$font-xs: 0.75rem;
-$font-sm: 0.875rem;
-$font-base: 1rem;
-$font-lg: 1.125rem;
-$font-xl: 1.25rem;
-$font-2xl: 1.5rem;
-$font-3xl: 1.875rem;
-$font-4xl: 2.25rem;
-
-// Enhanced Mixins
-@mixin flex-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-@mixin flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-@mixin container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 $spacing-md;
-
-  @media (min-width: $breakpoint-sm) {
-    padding: 0 $spacing-lg;
-  }
-
-  @media (min-width: $breakpoint-xl) {
-    padding: 0 $spacing-xl;
-  }
-}
-
-@mixin card-hover {
-  transition: $transition-normal;
-  
-  @media (hover: hover) {
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: $shadow-lg;
-    }
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-@mixin responsive-text($mobile, $tablet, $desktop: null) {
-  font-size: $mobile;
-  
-  @media (min-width: $breakpoint-md) {
-    font-size: $tablet;
-  }
-  
-  @if $desktop {
-    @media (min-width: $breakpoint-lg) {
-      font-size: $desktop;
-    }
-  }
-}
-
-@mixin section-spacing {
-  padding: $spacing-xl 0;
-
-  @media (min-width: $breakpoint-md) {
-    padding: $spacing-2xl 0;
-  }
-
-  @media (min-width: $breakpoint-lg) {
-    padding: $spacing-3xl 0;
-  }
-}
-
-// Base Styles
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  line-height: 1.6;
-}
-
+@import "../../../css/style.scss";
 // Enhanced Home Container
 .home {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  color: $text-color;
+  color: var(--text-color);
   min-height: 100vh;
   min-height: 100dvh;
   @include responsive-text($font-sm, $font-base, $font-lg);
@@ -148,6 +10,7 @@ body {
   gap: clamp($spacing-xl, 5vw, $spacing-3xl);
   padding: $spacing-md 0;
   position: relative;
+  @include theme-transition;
 
   // Subtle animated background pattern
   &::before {
@@ -162,6 +25,7 @@ body {
       radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
+    @include theme-transition;
   }
 
   @media (min-width: $breakpoint-md) {
@@ -176,13 +40,14 @@ body {
   @include container;
   @include flex-center;
   position: relative;
-  color: $primary-color;
+  color: var(--text-primary);
   margin: $spacing-lg 0;
   @include responsive-text($font-2xl, $font-3xl, $font-4xl);
   font-weight: 800;
   text-align: center;
   line-height: 1.2;
   letter-spacing: -0.025em;
+  @include theme-transition;
 
   // Modern gradient underline
   &::after {
@@ -193,9 +58,10 @@ body {
     transform: translateX(-50%);
     width: clamp(60px, 15%, 120px);
     height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #10b981, #8b5cf6);
+    background: var(--gradient-primary);
     border-radius: $radius-full;
     opacity: 0.8;
+    @include theme-transition;
   }
 
   @media (min-width: $breakpoint-md) {
@@ -236,7 +102,7 @@ body {
 
   .category {
     @include flex-center;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    background: var(--gradient-primary);
     border-radius: $radius-lg;
     @include card-hover;
     cursor: pointer;
@@ -245,6 +111,7 @@ body {
     aspect-ratio: 3/2;
     overflow: hidden;
     box-shadow: $shadow-md;
+    @include theme-transition;
 
     // Glossy overlay effect
     &::before {
@@ -268,7 +135,7 @@ body {
     }
 
     h3 {
-      color: $white;
+      color: #fff !important;
       @include responsive-text($font-sm, $font-base, $font-lg);
       font-weight: 600;
       margin: 0;
@@ -279,12 +146,13 @@ body {
       position: relative;
       line-height: 1.3;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      color: $primary-color;
     }
 
     // Hover gradient change
     @media (hover: hover) {
       &:hover {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        filter: brightness(1.1);
       }
     }
   }
@@ -296,12 +164,14 @@ body {
   @include section-spacing;
   position: relative;
   width: 95%;
+  @include theme-transition;
 
   &.services {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, rgba(236, 72, 153, 0.03) 100%);
     border-radius: $radius-xl;
     margin: $spacing-lg;
     box-shadow: $shadow-sm;
+    border: 1px solid var(--border-color);
   }
 
   // Grid layouts for non-service cards
@@ -337,211 +207,91 @@ body {
   }
 }
 
-// Enhanced Carousel
-.carousel {
-  @include container;
-  margin-bottom: $spacing-xl;
-  border-radius: $radius-xl;
+// Enhanced Product Card Styles
+.product-card {
+  background: var(--bg-card);
+  border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: $shadow-lg;
-  position: relative;
-
-  // Add a subtle border
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: $radius-xl;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  @media (min-width: $breakpoint-md) {
-    margin-bottom: $spacing-2xl;
-  }
-}
-
-// Enhanced Empty State
-.empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: $spacing-3xl $spacing-lg;
-  background: $white;
-  border-radius: $radius-xl;
   box-shadow: $shadow-md;
-  margin: $spacing-lg 0;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  @include card-hover;
+  @include theme-transition;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
   position: relative;
-  overflow: hidden;
 
-  // Subtle background pattern
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  h2 {
-    @include flex-center;
-    color: $error-color;
-    margin: 0;
-    padding: $spacing-lg 0;
-    @include responsive-text($font-xl, $font-2xl, $font-3xl);
-    font-weight: 700;
+  // Product image container
+  .product-image {
     position: relative;
-    z-index: 1;
-  }
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--bg-hover);
 
-  @media (max-width: $breakpoint-sm) {
-    padding: $spacing-xl $spacing-md;
-
-    h2 {
-      @include responsive-text($font-lg, $font-xl);
-      padding: $spacing-md 0;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: $transition-slow;
     }
-  }
-}
 
-// Performance Optimized Animations
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-// Staggered animations
-.categories-grid .category {
-  animation: fadeInUp 0.5s ease-out forwards;
-  opacity: 0;
-  
-  @for $i from 1 through 12 {
-    &:nth-child(#{$i}) {
-      animation-delay: #{$i * 0.1}s;
-    }
-  }
-}
-
-.cards-container > *:not(.title) {
-  animation: slideInLeft 0.6s ease-out forwards;
-  opacity: 0;
-  
-  @for $i from 1 through 12 {
-    &:nth-child(#{$i}) {
-      animation-delay: #{$i * 0.15}s;
-    }
-  }
-}
-
-// Reduce motion for accessibility
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-  
-  .categories-grid .category,
-  .cards-container > *:not(.title) {
-    animation: none;
-    opacity: 1;
-  }
-}
-
-// Enhanced Dark Mode Support
-@media (prefers-color-scheme: dark) {
-  .home {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: #e2e8f0;
-
-    &::before {
-      background-image: 
-        radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-    }
-  }
-
-  .title {
-    color: #f1f5f9;
-  }
-
-  .cards-container {
-    &.bestProducts,
-    &.services {
-      background: rgba(30, 41, 59, 0.5);
-      backdrop-filter: blur(10px);
-    }
-  }
-
-  .category {
-    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-    
+    // Hover effect on image
     @media (hover: hover) {
-      &:hover {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      &:hover img {
+        transform: scale(1.05);
       }
     }
-  }
 
-  .empty {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-
-    &::before {
-      background-image: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.1) 0%, transparent 70%);
+    // Badge overlay
+    .product-badge {
+      position: absolute;
+      top: $spacing-sm;
+      right: $spacing-sm;
+      background: var(--error-color);
+      color: var(--bg-card);
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $radius-full;
+      font-size: $font-xs;
+      font-weight: 600;
+      z-index: 2;
     }
-  }
-}
 
-// Ultra-wide screen optimizations
-@media (min-width: $breakpoint-2xl) {
-  .categories-grid {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
+    // Quick actions overlay
+    .quick-actions {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      gap: $spacing-sm;
+      opacity: 0;
+      transition: $transition-normal;
+      z-index: 3;
 
-  .cards-container {
-    max-width: 1600px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
+      @media (hover: hover) {
+        .product-image:hover & {
+          opacity: 1;
+        }
+      }
 
-// Print styles
-@media print {
-  .home {
-    background: white !important;
-    color: black !important;
-  }
-  
-  .category,
-  .cards-container > * {
-    box-shadow: none !important;
-    break-inside: avoid;
+      button {
+        width: 40px;
+        height: 40px;
+        border-radius: $radius-full;
+        border: none;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        box-shadow: $shadow-lg;
+        cursor: pointer;
+        @include flex-center;
+        transition: $transition-fast;
+
+        &:hover {
+          background: var(--primary-color);
+          color: var(--bg-card);
+          transform: scale(1.1);
+        }
+      }
+    }
   }
 }

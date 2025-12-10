@@ -348,3 +348,7 @@ class CreatePaymentIntentView(APIView):
         except Exception as e:
             logger.error(f"Internal error: {str(e)}")
             return Response({"error": "Internal server error"}, status=500)
+        
+
+
+#  

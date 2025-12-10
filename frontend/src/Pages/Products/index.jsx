@@ -2,34 +2,48 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import "./css/style.scss";
 import Card from '../../Components/Card';
+import api from '../../services/api';
 
-export default function Products({ categories = [], products = [] ,tags=[] }) {
+export default function Products({ categories = [], products = [], tags = [] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+
   useEffect(() => {
-    // Simulate loading time or wait for data to be ready
+    const fetchTags = async () => {
+      try {
+        const response = await api.get('/api/tags/');
+        setAvailableTags(response.data);
+      } catch (err) {
+        console.error("Failed to fetch tags", err);
+      }
+    };
+    fetchTags();
+  }, []);
+  useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500); // Adjust timing as needed
-
-    // Cleanup timer on component unmount
+    }, 1500);
     return () => clearTimeout(timer);
-  }, [categories, products, ]);
-  // State management
+  }, [categories, products,]);
+
   const [selectedCategory, setSelectedCategory] = useState(
     queryParams.get('category') || 'all'
   );
+
   const [searchTerm, setSearchTerm] = useState(
     queryParams.get('search') || ''
   );
+
   const [priceRange, setPriceRange] = useState({
     min: 0,
     max: queryParams.get('maxPrice') ? parseInt(queryParams.get('maxPrice')) : 1000
   });
 
-  // Process products
+
   const processedProducts = useMemo(() => {
     return products
       .filter(product => product.is_active !== false)
@@ -40,7 +54,6 @@ export default function Products({ categories = [], products = [] ,tags=[] }) {
       }));
   }, [products]);
 
-  // Calculate price range
   const actualPriceRange = useMemo(() => {
     if (processedProducts.length === 0) return { min: 0, max: 1000 };
     const prices = processedProducts.map(p => p.price).filter(p => p > 0);
@@ -50,7 +63,6 @@ export default function Products({ categories = [], products = [] ,tags=[] }) {
     };
   }, [processedProducts]);
 
-  // Update price range when products change
   useEffect(() => {
     if (!queryParams.get('minPrice') && !queryParams.get('maxPrice')) {
       setPriceRange({
@@ -60,7 +72,6 @@ export default function Products({ categories = [], products = [] ,tags=[] }) {
     }
   }, [actualPriceRange]);
 
-  // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
@@ -73,27 +84,6 @@ export default function Products({ categories = [], products = [] ,tags=[] }) {
       navigate(`?${newSearch}`, { replace: true });
     }
   }, [selectedCategory, searchTerm, priceRange, actualPriceRange, navigate, location.search]);
-
-  // Filter products (single declaration)
-  const filteredProducts = useMemo(() => {
-    return processedProducts.filter(product => {
-      const categoryMatch = selectedCategory === 'all' ||
-        (selectedCategory === 'uncategorized' ? product.category === null :
-          product.category && product.category.toString() === selectedCategory.toString());
-
-      const searchLower = searchTerm.toLowerCase().trim();
-      const searchMatch = !searchLower ||
-        (product.name && product.name.toLowerCase().includes(searchLower)) ||
-        (product.description && product.description.toLowerCase().includes(searchLower));
-
-      const priceMatch = (product.price || 0) >= priceRange.min &&
-        (product.price || 0) <= priceRange.max;
-
-      return categoryMatch && searchMatch && priceMatch;
-    });
-  }, [processedProducts, selectedCategory, searchTerm, priceRange]);
-
-  // Helper functions
   const handlePriceChange = (e, type) => {
     const value = parseInt(e.target.value) || 0;
     setPriceRange(prev => ({
@@ -103,21 +93,55 @@ export default function Products({ categories = [], products = [] ,tags=[] }) {
         : Math.max(Math.min(value, actualPriceRange.max), prev.min + 1)
     }));
   };
+  const filteredProducts = useMemo(() => {
+    return processedProducts.filter(product => {
+      // Search filter
+      const matchesSearch = searchTerm === '' ||
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const resetFilters = () => {
-    setSelectedCategory('all');
-    setSearchTerm('');
-    setPriceRange({ min: actualPriceRange.min, max: actualPriceRange.max });
+      // Category filter
+      const matchesCategory = selectedCategory === 'all' ||
+        (selectedCategory === 'uncategorized' && product.category === null) ||
+        product.category === parseInt(selectedCategory);
+
+      // Price filter
+      const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+
+      // Tags filter
+      const matchesTags = selectedTags.length === 0 ||
+        (product.tags && selectedTags.some(tagId =>
+          product.tags.some(productTag => productTag.id === tagId || productTag === tagId)
+        ));
+
+      return matchesSearch && matchesCategory && matchesPrice && matchesTags;
+    });
+  }, [processedProducts, searchTerm, selectedCategory, priceRange, selectedTags]);
+
+  // Add tag toggle handler
+  const handleTagToggle = (tagId) => {
+    setSelectedTags(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
   };
 
-  // Modified to show all active categories regardless of whether they have products
+  // Update reset filters function
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setPriceRange(actualPriceRange);
+    setSelectedTags([]); // Add this
+  };
+
   const availableCategories = useMemo(() => {
     return categories.filter(cat => cat.is_active !== false);
   }, [categories]);
 
   const hasUncategorizedProducts = processedProducts.some(p => p.category === null);
 
-   if (isLoading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner">
@@ -162,6 +186,33 @@ export default function Products({ categories = [], products = [] ,tags=[] }) {
               </option>
             )}
           </select>
+        </div>
+
+        {/* Tags Filter */}
+        <div className="tags-filter">
+          <label>Filter by Tags</label>
+          <div className="tags-list">
+            {availableTags.length > 0 ? (
+              availableTags.map(tag => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  className={`tag-filter-btn ${selectedTags.includes(tag.id) ? 'active' : ''}`}
+                  onClick={() => handleTagToggle(tag.id)}
+                >
+                  {tag.name}
+                  {selectedTags.includes(tag.id) && <span className="tag-check">✓</span>}
+                </button>
+              ))
+            ) : (
+              <p className="no-tags">No tags available</p>
+            )}
+          </div>
+          {selectedTags.length > 0 && (
+            <p className="selected-tags-count">
+              {selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''} selected
+            </p>
+          )}
         </div>
 
         {/* Price Filter */}

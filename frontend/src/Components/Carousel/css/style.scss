@@ -1,12 +1,180 @@
-/* Ultra Premium Carousel with Rich Details */
+/* ==========================================================================
+   Ultra Premium Carousel with Rich Details
+   - Enhanced styling with light and dark theme support
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Design System Variables
+   ========================================================================== */
+
+/* Light Theme */
+:root {
+  /* Core Colors */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-active: #1d4ed8;
+  --color-primary-light: #dbeafe;
+  --color-primary-alpha: rgba(59, 130, 246, 0.1);
+
+  --color-secondary: #8b5cf6;
+  --color-secondary-hover: #7c3aed;
+  --color-secondary-light: #ede9fe;
+
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-success-light: #d1fae5;
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-light: #fee2e2;
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-light: #fef3c7;
+
+  /* Neutral Colors */
+  --color-white: #ffffff;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Text Colors */
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-600);
+  --text-muted: var(--color-gray-500);
+  --text-on-primary: var(--color-white);
+  --text-on-dark: var(--color-white);
+
+  /* Background Colors */
+  --bg-body: var(--color-gray-50);
+  --bg-surface: var(--color-white);
+  --bg-elevated: var(--color-white);
+  --bg-subtle: var(--color-gray-100);
+  --bg-muted: var(--color-gray-200);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Border & Radius */
+  --border-color: var(--color-gray-200);
+  --border-color-strong: var(--color-gray-300);
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-2xl: 20px;
+  --border-radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-focus: 0 0 0 3px var(--color-primary-alpha);
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  /* Typography */
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Z-index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* Dark Theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Neutral Colors */
+    --color-gray-50: #0a0a0a;
+    --color-gray-100: #111827;
+    --color-gray-200: #1f2937;
+    --color-gray-300: #374151;
+    --color-gray-400: #4b5563;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #9ca3af;
+    --color-gray-700: #d1d5db;
+    --color-gray-800: #f3f4f6;
+    --color-gray-900: #f9fafb;
+
+    /* Text Colors */
+    --text-primary: var(--color-gray-100);
+    --text-secondary: var(--color-gray-400);
+    --text-muted: var(--color-gray-500);
+
+    /* Background Colors */
+    --bg-body: var(--color-gray-900);
+    --bg-surface: var(--color-gray-800);
+    --bg-elevated: var(--color-gray-700);
+    --bg-subtle: var(--color-gray-800);
+    --bg-muted: var(--color-gray-700);
+
+    /* Border & Radius */
+    --border-color: var(--color-gray-700);
+    --border-color-strong: var(--color-gray-600);
+
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ==========================================================================
+   2. Carousel Component Styles
+   ========================================================================== */
 
 .carousel {
   display: flex;
   gap: 2rem;
+  width: 90%;
+  margin: 0 5%;
   background: 
-    radial-gradient(ellipse at top left, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.06) 0%, transparent 50%),
-    linear-gradient(135deg, #0f0f23 0%, #1a1a2e  50%, #16213e 100%);
+    radial-gradient(ellipse at top left, var(--color-secondary) 10%, transparent 50%),
+    radial-gradient(ellipse at bottom right, var(--color-primary) 10%, transparent 50%),
+    linear-gradient(135deg, var(--bg-body) 0%, var(--bg-subtle) 50%, var(--bg-muted) 100%);
   border-radius: 32px;
   padding: 2.5rem;
   align-items: flex-start;
@@ -18,7 +186,7 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
 
   /* Animated particle background */
   &::before {
@@ -29,9 +197,9 @@
     width: 200%;
     height: 200%;
     background: 
-      radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 40% 90%, rgba(236, 72, 153, 0.06) 0%, transparent 40%);
+      radial-gradient(circle at 20% 30%, var(--color-secondary) 0.1, transparent 40%),
+      radial-gradient(circle at 80% 70%, var(--color-primary) 0.08, transparent 40%),
+      radial-gradient(circle at 40% 90%, var(--color-danger) 0.06, transparent 40%);
     animation: rotate 30s linear infinite;
     pointer-events: none;
   }
@@ -42,14 +210,18 @@
     position: absolute;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--color-secondary) 0.15, transparent 70%);
     border-radius: 50%;
     top: 20%;
     right: 10%;
     animation: float 8s ease-in-out infinite;
     pointer-events: none;
     filter: blur(40px);
-  }
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+}
 
   @keyframes rotate {
     0% { transform: rotate(0deg); }
@@ -73,859 +245,880 @@
     gap: 1rem;
     border-radius: 20px;
   }
+}
 
-  .main-carousel {
-    flex: 2 1 500px;
-    min-width: 400px;
-    background: 
-      linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
-    backdrop-filter: blur(24px) saturate(180%);
+/* ==========================================================================
+   3. Main Carousel Section
+   ========================================================================== */
+
+.main-carousel {
+  flex: 2 1 500px;
+  min-width: 400px;
+  background: 
+    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 
+    0 24px 48px rgba(0, 0, 0, 0.25),
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+
+  /* Glass reflection effect */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Animated border glow */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(45deg, 
+      var(--color-secondary) 0.3, 
+      var(--color-primary) 0.2, 
+      var(--color-danger) 0.2, 
+      var(--color-secondary) 0.3);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    box-shadow: 
-      0 24px 48px rgba(0, 0, 0, 0.25),
-      0 8px 24px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+    animation: borderGlow 3s ease-in-out infinite;
+  }
 
-    /* Glass reflection effect */
+  &:hover::after {
+    opacity: 1;
+  }
+
+  @keyframes borderGlow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  @media (max-width: 900px) {
+    min-width: 100%;
+  }
+
+  @media (max-width: 600px) {
+    min-width: 100%;
+    border-radius: 20px;
+  }
+}
+
+/* ==========================================================================
+   4. Carousel Navigation Arrows
+   ========================================================================== */
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  background: 
+    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  backdrop-filter: blur(16px);
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  font-size: 1.5rem;
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  /* Inner glow effect */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--color-secondary) 0.2, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    color: var(--text-on-primary);
+    background: 
+      linear-gradient(145deg, var(--color-secondary) 0.3, var(--color-primary) 0.2);
+    transform: translateY(-50%) scale(1.15) rotate(5deg);
+    box-shadow: 
+      0 20px 40px var(--color-secondary-alpha),
+      0 8px 20px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(1.05) rotate(2deg);
+  }
+
+  @media (max-width: 600px) {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+}
+
+.arrowLeft { left: 2rem; }
+.arrowRight { right: 2rem; }
+
+@media (max-width: 600px) {
+  .arrowLeft { left: 1rem; }
+  .arrowRight { right: 1rem; }
+}
+
+/* ==========================================================================
+   5. Slider Container & Slides
+   ========================================================================== */
+
+.slider-container {
+  width: 100%;
+  height: 450px;
+  position: relative;
+  overflow: hidden;
+  background: 
+    linear-gradient(135deg, var(--bg-muted) 0%, var(--bg-subtle) 100%);
+  z-index: 2;
+
+  @media (max-width: 600px) {
+    height: 350px;
+  }
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2.5rem;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  transform: translateX(50px) scale(0.95) rotateY(10deg);
+
+  @media (max-width: 600px) {
+    padding: 2rem 1.5rem;
+  }
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0) scale(1) rotateY(0deg);
+  }
+}
+
+/* ==========================================================================
+   6. Slide Content Styles
+   ========================================================================== */
+
+.image-container {
+  width: 100%;
+  max-width: 360px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: 
+    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 8px 20px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  position: relative;
+  backdrop-filter: blur(12px);
+
+  @media (max-width: 600px) {
+    height: 180px;
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+  }
+
+  /* Magic shimmer effect */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, var(--color-secondary) 0.3, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+
+  /* Inner content protection */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: inherit;
+    border-radius: 18px;
+    z-index: 1;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 2;
+    border-radius: 18px;
+
+    &:hover {
+      transform: scale(1.08) rotate(-1deg);
+      filter: brightness(1.1) contrast(1.1);
+    }
+  }
+}
+
+.title1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 50%, var(--color-danger) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 1rem;
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 20px var(--color-secondary-alpha);
+  position: relative;
+
+  /* Animated underline */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-secondary), var(--color-primary), var(--color-danger));
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+
+  &:hover::after {
+    width: 100%;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 1.5rem;
+  }
+}
+
+.description {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+  max-width: 90%;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  @media (max-width: 600px) {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.slide-footer {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+
+  .btn {
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    background: 
+      linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 50%, var(--color-danger) 100%);
+    color: var(--text-on-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 
+      0 12px 24px var(--color-secondary-alpha),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    /* Animated background */
     &::before {
       content: '';
       position: absolute;
       top: 0;
-      left: 0;
-      right: 0;
-      height: 50%;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
-      pointer-events: none;
-      z-index: 1;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.6s ease;
     }
 
-    /* Animated border glow */
+    /* Pulsing glow */
     &::after {
       content: '';
       position: absolute;
-      inset: -1px;
-      background: linear-gradient(45deg, 
-        rgba(139, 92, 246, 0.3) 0%, 
-        rgba(59, 130, 246, 0.2) 25%, 
-        rgba(236, 72, 153, 0.2) 50%, 
-        rgba(139, 92, 246, 0.3) 100%);
-      border-radius: 24px;
-      opacity: 0;
+      inset: -4px;
+      background: linear-gradient(135deg, var(--color-secondary), var(--color-primary), var(--color-danger));
+      border-radius: 50px;
       z-index: -1;
+      opacity: 0;
+      filter: blur(8px);
       transition: opacity 0.3s ease;
-      animation: borderGlow 3s ease-in-out infinite;
     }
 
-    &:hover::after {
-      opacity: 1;
+    &:hover {
+      transform: translateY(-4px) scale(1.08);
+      box-shadow: 
+        0 20px 40px var(--color-secondary-alpha),
+        0 8px 20px rgba(0, 0, 0, 0.3);
+
+      &::before {
+        left: 100%;
+      }
+
+      &::after {
+        opacity: 0.8;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
     }
 
-    @keyframes borderGlow {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.8; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 0.4; }
     }
 
-    @media (max-width: 900px) {
-      min-width: 100%;
+    &:active {
+      transform: translateY(-2px) scale(1.05);
     }
 
     @media (max-width: 600px) {
-      min-width: 100%;
-      border-radius: 20px;
+      padding: 0.75rem 2rem;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   7. Circle Indicator Navigation
+   ========================================================================== */
+
+.circle-indicator {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 2rem;
+  background: 
+    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-color);
+  z-index: 2;
+  position: relative;
+
+  .indicator-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--border-color);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    border: 2px solid var(--border-color);
+
+    /* Ripple effect */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 2px solid var(--color-secondary);
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.3s ease;
     }
 
-    .arrow {
+    /* Inner glow */
+    &::after {
+      content: '';
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 56px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255, 255, 255, 0.8);
-      background: 
-        linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-      backdrop-filter: blur(16px);
+      inset: 2px;
       border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      z-index: 10;
-      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      background: radial-gradient(circle, var(--color-secondary) 0.6, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+      transform: scale(1.4);
+      box-shadow: 
+        0 0 20px var(--color-secondary-alpha),
+        0 0 40px var(--color-secondary-alpha);
+      border-color: var(--bg-elevated);
+
+      &::before {
+        opacity: 1;
+        transform: scale(1.2);
+        animation: ripple 2s ease-in-out infinite;
+      }
+
+      &::after {
+        opacity: 1;
+      }
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+    &:hover:not(.active) {
+      background: var(--color-secondary);
+      transform: scale(1.2);
+      border-color: var(--color-secondary);
+    }
+  }
+}
+
+/* ==========================================================================
+   8. Contact Panel Styles
+   ========================================================================== */
+
+.contact-panel {
+  flex: 1 1 400px;
+  min-width: 320px;
+  background: 
+    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  backdrop-filter: blur(32px) saturate(200%);
+  border-radius: 28px;
+  border: 1px solid var(--border-color);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 
+    0 32px 64px rgba(0, 0, 0, 0.3),
+    0 16px 32px rgba(0, 0, 0, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    min-width: 100%;
+  }
+
+  @media (max-width: 600px) {
+    padding: 2rem;
+    border-radius: 24px;
+  }
+
+  /* Animated gradient mesh background */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, var(--color-secondary) 0.15, transparent 50%),
+      radial-gradient(circle at 80% 80%, var(--color-danger) 0.1, transparent 50%),
+      radial-gradient(circle at 50% 0%, var(--color-primary) 0.08, transparent 50%);
+    animation: meshMove 12s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Floating particles */
+  &::after {
+    content: '✦ ★ ◆ ▲';
+    position: absolute;
+    top: 10%;
+    right: 10%;
+    color: var(--color-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 1rem;
+    animation: particleFloat 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes meshMove {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(-5px, -10px) rotate(1deg); }
+    66% { transform: translate(5px, 5px) rotate(-1deg); }
+  }
+
+  @keyframes particleFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+    50% { transform: translateY(-20px) rotate(180deg); opacity: 0.6; }
+  }
+}
+
+.panel-content {
+  position: relative;
+  z-index: 1;
+
+  h3 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 50%, var(--color-danger) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    letter-spacing: -0.03em;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    /* Animated contact icon */
+    &::before {
+      content: '📞';
       font-size: 1.5rem;
+      animation: bounce 2s ease-in-out infinite;
+      filter: drop-shadow(0 4px 8px var(--color-secondary-alpha));
+    }
+
+    /* Decorative line */
+    &::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--color-secondary) 0.5, transparent);
+      border-radius: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(5deg); }
+    }
+
+    @media (max-width: 600px) {
+      font-size: 1.5rem;
+      
+      &::before {
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  p {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+
+    /* Subtle highlight */
+    &::before {
+      content: '';
+      position: absolute;
+      left: -1rem;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(135deg, var(--color-secondary), var(--color-danger));
+      border-radius: 2px;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 600px) {
+      font-size: 1rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   9. Contact Info Grid
+   ========================================================================== */
+
+.contact-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .info-card {
+    background: var(--bg-elevated);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+
+    /* Hover glow effect */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, var(--color-secondary), var(--color-primary), var(--color-danger), var(--color-secondary));
+      border-radius: 18px;
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.3s ease;
+      filter: blur(8px);
+    }
+
+    &:hover {
+      transform: translateY(-4px) scale(1.02);
       box-shadow: 
         0 12px 24px rgba(0, 0, 0, 0.2),
-        0 4px 12px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        0 4px 12px var(--color-secondary-alpha);
 
-      /* Inner glow effect */
+      &::before {
+        opacity: 0.3;
+      }
+
+      .info-icon {
+        transform: scale(1.2) rotate(10deg);
+      }
+    }
+
+    .info-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+      transition: all 0.3s ease;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .info-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 1rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      line-height: 1.4;
+    }
+  }
+}
+
+/* ==========================================================================
+   10. Contact Actions Section
+   ========================================================================== */
+
+.contact-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .contact-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+
+    &.primary {
+      background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+      color: var(--text-on-primary);
+      box-shadow: 
+        0 8px 16px var(--color-secondary-alpha),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+
       &::before {
         content: '';
         position: absolute;
-        inset: 2px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+      }
+
+      &:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 
+          0 16px 32px var(--color-secondary-alpha),
+          0 4px 16px rgba(0, 0, 0, 0.3);
+
+        &::before {
+          left: 100%;
+        }
+      }
+    }
+
+    &.secondary {
+      background: var(--bg-elevated);
+      backdrop-filter: blur(16px);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+
+      &:hover {
+        background: var(--bg-subtle);
+        transform: translateY(-2px) scale(1.05);
+        border-color: var(--color-secondary);
+        box-shadow: 
+          0 8px 16px rgba(0, 0, 0, 0.2),
+          0 0 20px var(--color-secondary-alpha);
+      }
+    }
+
+    &:active {
+      transform: translateY(-1px) scale(1.02);
+    }
+  }
+}
+
+/* ==========================================================================
+   11. Social Links Section
+   ========================================================================== */
+
+.social-links {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+
+  h4 {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+      content: '🌐';
+      font-size: 1.1rem;
+    }
+  }
+
+  .social-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+
+    .social-item {
+      aspect-ratio: 1;
+      background: var(--bg-elevated);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, var(--color-secondary) 0.2, var(--color-danger) 0.2);
         opacity: 0;
         transition: opacity 0.3s ease;
       }
 
       &:hover {
-        color: #ffffff;
-        background: 
-          linear-gradient(145deg, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.2) 100%);
-        transform: translateY(-50%) scale(1.15) rotate(5deg);
+        transform: translateY(-4px) scale(1.1) rotate(5deg);
+        border-color: var(--color-secondary);
         box-shadow: 
-          0 20px 40px rgba(139, 92, 246, 0.3),
-          0 8px 20px rgba(0, 0, 0, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.4);
+          0 8px 16px rgba(0, 0, 0, 0.2),
+          0 0 20px var(--color-secondary-alpha);
 
         &::before {
           opacity: 1;
         }
       }
 
-      &:active {
-        transform: translateY(-50%) scale(1.05) rotate(2deg);
-      }
-
-      @media (max-width: 600px) {
-        width: 44px;
-        height: 44px;
-        font-size: 1.25rem;
-      }
-    }
-
-    .arrowLeft { left: 2rem; }
-    .arrowRight { right: 2rem; }
-
-    @media (max-width: 600px) {
-      .arrowLeft { left: 1rem; }
-      .arrowRight { right: 1rem; }
-    }
-
-    .slider-container {
-      width: 100%;
-      height: 450px;
-      position: relative;
-      overflow: hidden;
-      background: 
-        linear-gradient(135deg, rgba(15, 15, 35, 0.3) 0%, rgba(26, 26, 46, 0.2) 100%);
-      z-index: 2;
-
-      @media (max-width: 600px) {
-        height: 350px;
-      }
-    }
-
-    .slide {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem 2.5rem;
-      transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-      transform: translateX(50px) scale(0.95) rotateY(10deg);
-
-      @media (max-width: 600px) {
-        padding: 2rem 1.5rem;
-      }
-
-      &.active {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateX(0) scale(1) rotateY(0deg);
-      }
-
-      .image-container {
-        width: 100%;
-        max-width: 360px;
-        height: 240px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: 
-          linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-        border-radius: 20px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 2rem;
-        box-shadow: 
-          0 20px 40px rgba(0, 0, 0, 0.3),
-          0 8px 20px rgba(0, 0, 0, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        position: relative;
-        backdrop-filter: blur(12px);
-
-        @media (max-width: 600px) {
-          height: 180px;
-          margin-bottom: 1.5rem;
-          border-radius: 16px;
-        }
-
-        /* Magic shimmer effect */
-        &::after {
-          content: '';
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: conic-gradient(from 0deg, transparent, rgba(139, 92, 246, 0.3), transparent);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        &:hover::after {
-          opacity: 1;
-        }
-
-        /* Inner content protection */
-        &::before {
-          content: '';
-          position: absolute;
-          inset: 2px;
-          background: inherit;
-          border-radius: 18px;
-          z-index: 1;
-        }
-
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          z-index: 2;
-          border-radius: 18px;
-
-          &:hover {
-            transform: scale(1.08) rotate(-1deg);
-            filter: brightness(1.1) contrast(1.1);
-          }
-        }
-      }
-
-      .title1 {
-        font-size: 2rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #ec4899 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-align: center;
-        margin-bottom: 1rem;
-        letter-spacing: -0.03em;
-        text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-        position: relative;
-
-        /* Animated underline */
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: -8px;
-          left: 50%;
-          width: 0;
-          height: 3px;
-          background: linear-gradient(90deg, #8b5cf6, #3b82f6, #ec4899);
-          border-radius: 2px;
-          transition: all 0.3s ease;
-          transform: translateX(-50%);
-        }
-
-        &:hover::after {
-          width: 100%;
-        }
-
-        @media (max-width: 600px) {
-          font-size: 1.5rem;
-        }
-      }
-
-      .description {
-        font-size: 1.1rem;
-        color: rgba(255, 255, 255, 0.8);
-        text-align: center;
-        line-height: 1.7;
-        margin-bottom: 2.5rem;
-        max-width: 90%;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-
-        @media (max-width: 600px) {
-          font-size: 1rem;
-          margin-bottom: 2rem;
-        }
-      }
-
-      .slide-footer {
-        display: flex;
-        gap: 1.5rem;
-        justify-content: center;
-
-        .btn {
-          padding: 1rem 2.5rem;
-          border-radius: 50px;
-          background: 
-            linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #ec4899 100%);
-          color: #ffffff;
-          font-weight: 700;
-          font-size: 1rem;
-          border: none;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: 
-            0 12px 24px rgba(139, 92, 246, 0.4),
-            0 4px 12px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.3);
-          position: relative;
-          overflow: hidden;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-
-          /* Animated background */
-          &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transition: left 0.6s ease;
-          }
-
-          /* Pulsing glow */
-          &::after {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #ec4899);
-            border-radius: 50px;
-            z-index: -1;
-            opacity: 0;
-            filter: blur(8px);
-            transition: opacity 0.3s ease;
-          }
-
-          &:hover {
-            transform: translateY(-4px) scale(1.08);
-            box-shadow: 
-              0 20px 40px rgba(139, 92, 246, 0.5),
-              0 8px 20px rgba(0, 0, 0, 0.3);
-
-            &::before {
-              left: 100%;
-            }
-
-            &::after {
-              opacity: 0.8;
-              animation: pulse 1.5s ease-in-out infinite;
-            }
-          }
-
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 0.4; }
-          }
-
-          &:active {
-            transform: translateY(-2px) scale(1.05);
-          }
-
-          @media (max-width: 600px) {
-            padding: 0.75rem 2rem;
-            font-size: 0.9rem;
-          }
-        }
-      }
-    }
-
-    .circle-indicator {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      padding: 2rem;
-      background: 
-        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-      backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      z-index: 2;
-      position: relative;
-
-      .indicator-dot {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        position: relative;
-        border: 2px solid rgba(255, 255, 255, 0.1);
-
-        /* Ripple effect */
-        &::before {
-          content: '';
-          position: absolute;
-          inset: -8px;
-          border-radius: 50%;
-          border: 2px solid rgba(139, 92, 246, 0.3);
-          opacity: 0;
-          transform: scale(0.8);
-          transition: all 0.3s ease;
-        }
-
-        /* Inner glow */
-        &::after {
-          content: '';
-          position: absolute;
-          inset: 2px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, transparent 70%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        &.active {
-          background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
-          transform: scale(1.4);
-          box-shadow: 
-            0 0 20px rgba(139, 92, 246, 0.6),
-            0 0 40px rgba(139, 92, 246, 0.3);
-          border-color: rgba(255, 255, 255, 0.3);
-
-          &::before {
-            opacity: 1;
-            transform: scale(1.2);
-            animation: ripple 2s ease-in-out infinite;
-          }
-
-          &::after {
-            opacity: 1;
-          }
-        }
-
-        @keyframes ripple {
-          0% { transform: scale(1.2); opacity: 1; }
-          100% { transform: scale(2); opacity: 0; }
-        }
-
-        &:hover:not(.active) {
-          background: rgba(139, 92, 246, 0.4);
-          transform: scale(1.2);
-          border-color: rgba(139, 92, 246, 0.3);
-        }
-      }
-    }
-  }
-
-  .contact-panel {
-    flex: 1 1 400px;
-    min-width: 320px;
-    background: 
-      linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
-    backdrop-filter: blur(32px) saturate(200%);
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 
-      0 32px 64px rgba(0, 0, 0, 0.3),
-      0 16px 32px rgba(0, 0, 0, 0.2),
-      inset 0 2px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
-
-    @media (max-width: 900px) {
-      min-width: 100%;
-    }
-
-    @media (max-width: 600px) {
-      padding: 2rem;
-      border-radius: 24px;
-    }
-
-    /* Animated gradient mesh background */
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: 
-        radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
-      animation: meshMove 12s ease-in-out infinite;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Floating particles */
-    &::after {
-      content: '✦ ★ ◆ ▲';
-      position: absolute;
-      top: 10%;
-      right: 10%;
-      color: rgba(139, 92, 246, 0.2);
-      font-size: 0.8rem;
-      letter-spacing: 1rem;
-      animation: particleFloat 8s ease-in-out infinite;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    @keyframes meshMove {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(-5px, -10px) rotate(1deg); }
-      66% { transform: translate(5px, 5px) rotate(-1deg); }
-    }
-
-    @keyframes particleFloat {
-      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
-      50% { transform: translateY(-20px) rotate(180deg); opacity: 0.6; }
-    }
-
-    .panel-content {
-      position: relative;
-      z-index: 1;
-
-      h3 {
-        font-size: 1.875rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 50%, #ec4899 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 1rem;
-        letter-spacing: -0.03em;
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-
-        /* Animated contact icon */
-        &::before {
-          content: '📞';
-          font-size: 1.5rem;
-          animation: bounce 2s ease-in-out infinite;
-          filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.3));
-        }
-
-        /* Decorative line */
-        &::after {
-          content: '';
-          flex: 1;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
-          border-radius: 1px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-5px) rotate(5deg); }
-        }
-
-        @media (max-width: 600px) {
-          font-size: 1.5rem;
-          
-          &::before {
-            font-size: 1.25rem;
-          }
-        }
-      }
-
-      p {
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 1.125rem;
-        margin-bottom: 2rem;
-        line-height: 1.7;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        position: relative;
-
-        /* Subtle highlight */
-        &::before {
-          content: '';
-          position: absolute;
-          left: -1rem;
-          top: 0;
-          bottom: 0;
-          width: 3px;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          border-radius: 2px;
-          opacity: 0.6;
-        }
-
-        @media (max-width: 600px) {
-          font-size: 1rem;
-        }
-      }
-
-      .contact-info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-
-        @media (max-width: 600px) {
-          grid-template-columns: 1fr;
-          gap: 1rem;
-        }
-
-        .info-card {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 16px;
-          padding: 1.25rem;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-
-          /* Hover glow effect */
-          &::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            background: linear-gradient(45deg, #8b5cf6, #3b82f6, #ec4899, #8b5cf6);
-            border-radius: 18px;
-            opacity: 0;
-            z-index: -1;
-            transition: opacity 0.3s ease;
-            filter: blur(8px);
-          }
-
-          &:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 
-              0 12px 24px rgba(0, 0, 0, 0.2),
-              0 4px 12px rgba(139, 92, 246, 0.3);
-
-            &::before {
-              opacity: 0.3;
-            }
-
-            .info-icon {
-              transform: scale(1.2) rotate(10deg);
-            }
-          }
-
-          .info-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.75rem;
-            display: block;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-          }
-
-          .info-label {
-            font-size: 0.875rem;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-          }
-
-          .info-value {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            line-height: 1.4;
-          }
-        }
-      }
-
-      .contact-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-
-        .contact-btn {
-          flex: 1;
-          min-width: 120px;
-          padding: 1rem 1.5rem;
-          border-radius: 16px;
-          border: none;
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 0.95rem;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-          text-transform: uppercase;
-          letter-spacing: 0.02em;
-
-          &.primary {
-            background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
-            color: #ffffff;
-            box-shadow: 
-              0 8px 16px rgba(139, 92, 246, 0.3),
-              0 2px 8px rgba(0, 0, 0, 0.2);
-
-            &::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: -100%;
-              width: 100%;
-              height: 100%;
-              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-              transition: left 0.5s ease;
-            }
-
-            &:hover {
-              transform: translateY(-2px) scale(1.05);
-              box-shadow: 
-                0 16px 32px rgba(139, 92, 246, 0.4),
-                0 4px 16px rgba(0, 0, 0, 0.3);
-
-              &::before {
-                left: 100%;
-              }
-            }
-          }
-
-          &.secondary {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(16px);
-            color: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-
-            &:hover {
-              background: rgba(255, 255, 255, 0.15);
-              transform: translateY(-2px) scale(1.05);
-              border-color: rgba(139, 92, 246, 0.5);
-              box-shadow: 
-                0 8px 16px rgba(0, 0, 0, 0.2),
-                0 0 20px rgba(139, 92, 246, 0.2);
-            }
-          }
-
-          &:active {
-            transform: translateY(-1px) scale(1.02);
-          }
-        }
-      }
-
-      .social-links {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-
-        h4 {
-          color: rgba(255, 255, 255, 0.8);
-          font-size: 1rem;
-          font-weight: 600;
-          margin-bottom: 1rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-
-          &::before {
-            content: '🌐';
-            font-size: 1.1rem;
-          }
-        }
-
-        .social-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 0.75rem;
-
-          .social-item {
-            aspect-ratio: 1;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-
-            &::before {
-              content: '';
-              position: absolute;
-              inset: 0;
-              background: linear-gradient(45deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
-              opacity: 0;
-              transition: opacity 0.3s ease;
-            }
-
-            &:hover {
-              transform: translateY(-4px) scale(1.1) rotate(5deg);
-              border-color: rgba(139, 92, 246, 0.5);
-              box-shadow: 
-                0 8px 16px rgba(0, 0, 0, 0.2),
-                0 0 20px rgba(139, 92, 246, 0.3);
-
-              &::before {
-                opacity: 1;
-              }
-            }
-
-            &:nth-child(1) { animation-delay: 0s; }
-            &:nth-child(2) { animation-delay: 0.1s; }
-            &:nth-child(3) { animation-delay: 0.2s; }
-            &:nth-child(4) { animation-delay: 0.3s; }
-          }
-        }
-      }
+      &:nth-child(1) { animation-delay: 0s; }
+      &:nth-child(2) { animation-delay: 0.1s; }
+      &:nth-child(3) { animation-delay: 0.2s; }
+      &:nth-child(4) { animation-delay: 0.3s; }
     }
   }
 }
 
-/* Ultra-enhanced focus styles */
-.carousel .main-carousel .arrow:focus-visible,
-.carousel .main-carousel .circle-indicator .indicator-dot:focus-visible,
-.carousel .main-carousel .slide .btn:focus-visible {
-  outline: 3px solid rgba(139, 92, 246, 0.8);
-  outline-offset: 4px;
-  box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.2);
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .carousel *,
-  .carousel *::before,
-  .carousel *::after {
-    animation: none !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* ==========================================================================
+   12. Contact Method Item Styles
+   ========================================================================== */
 
 .contact-method {
   display: flex;
   gap: 1rem;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-elevated);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 1.25rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -938,7 +1131,7 @@
     content: '';
     position: absolute;
     inset: -2px;
-    background: linear-gradient(45deg, #8b5cf6, #3b82f6, #ec4899, #8b5cf6);
+    background: linear-gradient(45deg, var(--color-secondary), var(--color-primary), var(--color-danger), var(--color-secondary));
     border-radius: 18px;
     opacity: 0;
     z-index: -1;
@@ -950,7 +1143,7 @@
     transform: translateY(-4px) scale(1.02);
     box-shadow: 
       0 12px 24px rgba(0, 0, 0, 0.2),
-      0 4px 12px rgba(139, 92, 246, 0.3);
+      0 4px 12px var(--color-secondary-alpha);
 
     &::before {
       opacity: 0.3;
@@ -967,14 +1160,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(139, 92, 246, 0.15);
+    background: var(--color-secondary);
     border-radius: 50%;
     transition: all 0.3s ease;
     flex-shrink: 0;
 
     .contact-icon {
       font-size: 1.5rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-on-primary);
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
@@ -990,7 +1183,7 @@
     
     .contact-name {
       font-size: 0.875rem;
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-weight: 600;
@@ -1000,7 +1193,7 @@
 
     .contact-value {
       font-size: 1rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
       font-weight: 500;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       line-height: 1.4;
@@ -1009,8 +1202,8 @@
       display: inline-block;
 
       &:hover {
-        color: #8b5cf6;
-        text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        color: var(--color-secondary);
+        text-shadow: 0 0 10px var(--color-secondary-alpha);
       }
     }
   }
@@ -1018,22 +1211,27 @@
   /* Specific styles for different contact types */
   &.email {
     .contact-icon-container {
-      background: rgba(236, 72, 153, 0.15);
+      background: var(--color-danger);
     }
   }
 
   &.phone {
     .contact-icon-container {
-      background: rgba(59, 130, 246, 0.15);
+      background: var(--color-primary);
     }
   }
 
   &.social {
     .contact-icon-container {
-      background: rgba(16, 185, 129, 0.15);
+      background: var(--color-success);
     }
   }
 }
+
+/* ==========================================================================
+   13. Contact Columns Container
+   ========================================================================== */
+
 /* Main Contact Columns Container - Always Scrollable */
 .contact-columns {
   width: 100%;
@@ -1047,7 +1245,7 @@
 
   /* Custom Scrollbar Styling (Matches your theme) */
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.5) rgba(255, 255, 255, 0.05);
+  scrollbar-color: var(--color-secondary) var(--bg-elevated);
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -1055,19 +1253,19 @@
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-elevated);
     border-radius: 4px;
     margin: 4px 0;
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: rgba(139, 92, 246, 0.5);
+    background-color: var(--color-secondary);
     border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     transition: background-color 0.3s ease;
 
     &:hover {
-      background-color: rgba(139, 92, 246, 0.7);
+      background-color: var(--color-secondary-hover);
     }
   }
 
@@ -1093,5 +1291,28 @@
   @media (max-width: 768px) {
     /* If using 2-column layout */
     margin-bottom: 20px;
+  }
+}
+
+/* ==========================================================================
+   14. Focus Styles & Reduced Motion Support
+   ========================================================================== */
+
+/* Ultra-enhanced focus styles */
+.carousel .main-carousel .arrow:focus-visible,
+.carousel .main-carousel .circle-indicator .indicator-dot:focus-visible,
+.carousel .main-carousel .slide .btn:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 6px var(--color-secondary-alpha);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .carousel *,
+  .carousel *::before,
+  .carousel *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
   }
 }

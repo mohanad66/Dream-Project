@@ -1,11 +1,82 @@
-// Updated Cart Variables to Match Home Theme
-$cart-primary: #3b82f6;
-$cart-secondary: #8b5cf6;
-$cart-success: #10b981;
-$cart-danger: #ef4444;
-$cart-text: #ffffff;
-$cart-light-bg: #f8f9fa;
-$cart-dark-bg: #0f172a;
+/* Light Theme */
+.light-theme {
+  --cart-primary: #2563eb;
+  --cart-primary-dark: #1d4ed8;
+  --cart-secondary: #7c3aed;
+  --cart-accent: #e0e7ff;
+  --cart-text: #1e293b;
+  --cart-text-light: #42536e;
+  --cart-light-bg: #f8fafc;
+  --cart-dark-bg: #0f172a;
+  --cart-bg: #f8fafc;
+  --cart-danger: #ef4444;
+  --cart-danger-dark: #a72626;
+  --cart-error: #ef4444;
+  --cart-success: #10b981;
+  --cart-success-dark: #0b8f63;
+  --cart-warning: #f59e0b;
+  --cart-primary-rgb: 37, 99, 235;
+  --cart-secondary-rgb: 124, 58, 237;
+  --cart-theme-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --cart-background: #ffffff;
+  --cart-background-alt: #f8f9fa;
+  --cart-background-card: #ffffff;
+  --cart-text-primary: #1a202c;
+  --cart-text-secondary: #4a5568;
+  --cart-text-muted: #718096;
+  --cart-border: #e2e8f0;
+  --cart-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --cart-shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme */
+.dark-theme {
+  --cart-primary: #0c69ff;
+  --cart-primary-dark: #2563eb;
+  --cart-secondary: #8b5cf6;
+  --cart-accent: #6366f1;
+  --cart-text: #f8fafc;
+  --cart-text-light: #fafafa;
+  --cart-light-bg: #1f2937;
+  --cart-dark-bg: #111827;
+  --cart-bg: #111827;
+  --cart-danger: #ef4444;
+  --cart-danger-dark: #a72626;
+  --cart-error: #ef4444;
+  --cart-success: #10b981;
+  --cart-success-dark: #0b8f63;
+  --cart-warning: #f59e0b;
+  --cart-primary-rgb: 59, 130, 246;
+  --cart-secondary-rgb: 139, 92, 246;
+  --cart-theme-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --cart-background: #0f172a;
+  --cart-background-alt: #1e293b;
+  --cart-background-card: #1e293b;
+  --cart-text-primary: #f1f5f9;
+  --cart-text-secondary: #cbd5e1;
+  --cart-text-muted: #94a3b8;
+  --cart-border: #334155;
+  --cart-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --cart-shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.4);
+}
+
+// Assign SCSS variables to CSS custom properties for dynamic theme support
+$cart-primary: var(--cart-primary);
+$cart-secondary: var(--cart-secondary);
+$cart-accent: var(--cart-accent);
+$cart-text: var(--cart-text);
+$cart-text-light: var(--cart-text-light);
+$cart-light-bg: var(--cart-light-bg);
+$cart-dark-bg: var(--cart-dark-bg);
+$cart-bg: var(--cart-bg);
+$cart-error: var(--cart-error);
+$cart-success: var(--cart-success);
+$cart-success-dark: var(--cart-success-dark);
+$cart-warning: var(--cart-warning);
+$cart-primary-rgb: var(--cart-primary-rgb);
+$cart-secondary-rgb: var(--cart-secondary-rgb);
+$cart-danger: var(--cart-danger);
+$cart-danger-dark: var(--cart-danger-dark);
 $cart-border: #e2e8f0;
 $cart-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 $white: #ffffff;
@@ -43,7 +114,44 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 $transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
-// Mixins
+// ====================
+// THEME VARIABLES
+// ====================
+
+// Light Theme
+$light-colors: (
+  background: #ffffff,
+  background-alt: #f8f9fa,
+  background-card: #ffffff,
+  text-primary: #1a202c,
+  text-secondary: #4a5568,
+  text-muted: #718096,
+  border: #e2e8f0,
+  shadow: 0 4px 6px rgba(0, 0, 0, 0.05),
+  shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.1),
+  overlay: rgba(0, 0, 0, 0.1),
+  overlay-heavy: rgba(0, 0, 0, 0.3)
+);
+
+// Dark Theme
+$dark-colors: (
+  background: #0f172a,
+  background-alt: #1e293b,
+  background-card: #1e293b,
+  text-primary: #f1f5f9,
+  text-secondary: #cbd5e1,
+  text-muted: #94a3b8,
+  border: #334155,
+  shadow: 0 4px 6px rgba(0, 0, 0, 0.3),
+  shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.4),
+  overlay: rgba(0, 0, 0, 0.2),
+  overlay-heavy: rgba(0, 0, 0, 0.6)
+);
+
+// ====================
+// MIXINS
+// ====================
+
 @mixin container {
   width: 100%;
   max-width: 1200px;
@@ -73,16 +181,110 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
 @mixin card-hover {
   transition: $transition-normal;
-  
+
   @media (hover: hover) {
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--cart-shadow-hover);
     }
   }
 
   &:active {
     transform: scale(0.98);
+  }
+}
+
+@mixin theme-transition {
+  transition: var(--cart-theme-transition);
+}
+
+@mixin theme-card {
+  background-color: var(--cart-background-card);
+  border: 1px solid var(--cart-border);
+  border-radius: $radius-md;
+  box-shadow: var(--cart-shadow);
+  color: var(--cart-text-primary);
+  @include theme-transition;
+}
+
+@mixin theme-surface {
+  background-color: var(--cart-background);
+  color: var(--cart-text-primary);
+  @include theme-transition;
+}
+
+@mixin theme-surface-alt {
+  background-color: var(--cart-background-alt);
+  color: var(--cart-text-primary);
+  @include theme-transition;
+}
+
+@mixin theme-text-primary {
+  color: var(--cart-text-primary);
+  @include theme-transition;
+}
+
+@mixin theme-text-secondary {
+  color: var(--cart-text-secondary);
+  @include theme-transition;
+}
+
+@mixin theme-text-muted {
+  color: var(--cart-text-muted);
+  @include theme-transition;
+}
+
+@mixin theme-border {
+  border-color: var(--cart-border);
+  @include theme-transition;
+}
+
+@mixin theme-input {
+  background-color: var(--cart-background-card);
+  color: var(--cart-text-primary);
+  border: 1px solid var(--cart-border);
+  @include theme-transition;
+
+  &::placeholder {
+    color: var(--cart-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $cart-primary;
+    box-shadow: 0 0 0 3px rgba($cart-primary, 0.1);
+  }
+}
+
+@mixin theme-button($variant: primary) {
+  @include theme-transition;
+
+  @if $variant == primary {
+    background-color: $cart-primary;
+    color: $white;
+
+    &:hover {
+      filter: brightness(0.85);
+    }
+  }
+
+  @if $variant == secondary {
+    background-color: var(--cart-background-alt);
+    color: var(--cart-text-primary);
+    border: 1px solid var(--cart-border);
+
+    &:hover {
+      background-color: var(--cart-background-card);
+    }
+  }
+
+  @if $variant == ghost {
+    background-color: transparent;
+    color: var(--cart-text-primary);
+
+    &:hover {
+      background-color: var(--cart-background-alt);
+    }
   }
 }
 
@@ -92,9 +294,45 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Theme toggle animation
+@keyframes themeSwitch {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -102,13 +340,13 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 .cart-page-container {
   @include container;
   padding: $cart-spacing-xl 0;
-  color: $cart-text;
+  color: var(--cart-text);
   display: flex;
   flex-direction: column;
   gap: $cart-spacing-xl;
   min-height: 100vh;
-  min-width:  100dvw;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-width: 100dvw;
+  // background: linear-gradient(135deg, var(--cart-background) 0%, var(--cart-background-alt) 100%);
   position: relative;
 
   &::before {
@@ -118,8 +356,8 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: 
-      radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    background-image:
+      radial-gradient(circle at 25% 25%, rgba(var(--cart-primary-rgb), 0.05) 0%, transparent 50%),
       radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
@@ -132,7 +370,8 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     letter-spacing: -0.025em;
     font-size: 2.25rem;
     position: relative;
-    
+    color: var(--cart-text-primary);
+
     &::after {
       content: '';
       position: absolute;
@@ -141,7 +380,7 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       transform: translateX(-50%);
       width: clamp(60px, 15%, 120px);
       height: 4px;
-      background: linear-gradient(90deg, $cart-primary, $cart-secondary);
+      background: linear-gradient(90deg, var(--cart-primary), var(--cart-secondary));
       border-radius: $radius-full;
       opacity: 0.8;
     }
@@ -170,14 +409,15 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   grid-template-columns: 100px 1fr auto;
   gap: $cart-spacing-md;
   align-items: center;
-  background: $white;
+  background: var(--cart-background-card);
   padding: $cart-spacing-md;
   border-radius: $radius-lg;
-  box-shadow: $cart-shadow;
+  box-shadow: var(--cart-shadow);
   @include card-hover;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--cart-border);
   animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0;
+  transition: var(--cart-theme-transition);
 
   @for $i from 1 through 10 {
     &:nth-child(#{$i}) {
@@ -190,7 +430,7 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     height: 100px;
     object-fit: contain;
     border-radius: $radius-md;
-    background: $cart-light-bg;
+    background: var(--cart-background-alt);
     padding: $cart-spacing-sm;
   }
 
@@ -199,39 +439,70 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: $font-lg;
       font-weight: 600;
       margin: 0 0 $cart-spacing-sm;
-      color: $cart-text;
+      color: var(--cart-text-primary);
     }
 
     .item-price {
       font-size: $font-base;
       font-weight: 600;
-      color: $cart-primary;
+      color: var(--cart-primary);
     }
 
-    .quantity-controls {
+    .item-subtotal {
+      font-size: 14px;
+      color: var(--cart-text-secondary);
+      margin-top: 5px;
+      font-weight: 600;
+    }
+
+    .quantity-control {
       display: flex;
       align-items: center;
-      gap: $cart-spacing-sm;
-      margin-top: $cart-spacing-md;
+      gap: 8px;
+      margin: 10px 0;
 
-      button {
-        width: 32px;
-        height: 32px;
-        border: 1px solid $cart-border;
-        background: white;
-        border-radius: $radius-full;
-        @include flex-center;
+      .quantity-btn {
+        background: var(--cart-background-alt);
+        border: 1px solid var(--cart-border);
+        border-radius: 4px;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        transition: $transition-fast;
+        transition: all 0.2s;
+        color: var(--cart-text-primary);
 
-        &:hover {
-          background: $cart-light-bg;
+        &:hover:not(:disabled) {
+          background: var(--cart-background);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        svg {
+          font-size: 12px;
         }
       }
 
-      .quantity {
-        min-width: 30px;
+      .quantity-input {
+        width: 50px;
+        height: 30px;
         text-align: center;
+        border: 1px solid var(--cart-border);
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        background: var(--cart-background-card);
+        color: var(--cart-text-primary);
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+          opacity: 1;
+        }
       }
     }
   }
@@ -239,7 +510,7 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   .remove-item-btn {
     background: none;
     border: none;
-    color: $cart-danger;
+    color: var(--cart-danger);
     font-size: 1.3rem;
     cursor: pointer;
     padding: $cart-spacing-sm;
@@ -247,28 +518,36 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: $radius-full;
 
     &:hover {
-      background: rgba($cart-danger, 0.1);
-      color: darken($cart-danger, 10%);
+      background: var(--cart-error);
+      color: $white;
     }
   }
 }
 
+.cart-item-count {
+  text-align: center;
+  color: var(--cart-text-secondary);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
 .cart-summary {
-  background: $white;
+  background: var(--cart-background-card);
   padding: $cart-spacing-xl;
   border-radius: $radius-xl;
-  box-shadow: $cart-shadow;
+  box-shadow: var(--cart-shadow);
   position: sticky;
   top: $cart-spacing-xl;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--cart-border);
+  transition: var(--cart-theme-transition);
 
   h2 {
     font-size: $font-xl;
     margin-bottom: $cart-spacing-lg;
     text-align: center;
-    color: $cart-text;
+    color: var(--cart-text-primary);
     position: relative;
-    
+
     &::after {
       content: '';
       position: absolute;
@@ -277,7 +556,7 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       transform: translateX(-50%);
       width: 80px;
       height: 3px;
-      background: linear-gradient(90deg, $cart-primary, $cart-secondary);
+      background: linear-gradient(90deg, var(--cart-primary), var(--cart-secondary));
       border-radius: $radius-full;
     }
   }
@@ -286,15 +565,15 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     @include flex-between;
     margin-bottom: $cart-spacing-md;
     font-size: $font-base;
-    color: lighten($cart-text, 30%);
+    color: var(--cart-text-secondary);
 
     &.summary-total {
       font-size: $font-lg;
       font-weight: 600;
       margin-top: $cart-spacing-lg;
       padding-top: $cart-spacing-md;
-      border-top: 1px solid $cart-border;
-      color: $cart-text;
+      border-top: 1px solid var(--cart-border);
+      color: var(--cart-text-primary);
     }
   }
 
@@ -313,23 +592,24 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .checkout-btn {
-    background-color: $cart-success;
+    background-color: var(--cart-success);
     color: white;
-    box-shadow: $cart-shadow;
+    box-shadow: var(--cart-shadow);
 
     &:hover {
-      background-color: darken($cart-success, 8%);
+      filter: brightness(0.9);
     }
   }
 
   .clear-cart-btn {
-    background-color: white;
-    color: $cart-danger;
-    border: 1px solid $cart-danger;
-    box-shadow: $cart-shadow;
+    background-color: var(--cart-background-card);
+    color: var(--cart-danger);
+    border: 1px solid var(--cart-danger);
+    box-shadow: var(--cart-shadow);
 
     &:hover {
-      background-color: rgba($cart-danger, 0.05);
+      background-color: var(--cart-danger);
+      color: white;
     }
   }
 }
@@ -337,26 +617,28 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 .empty-cart {
   text-align: center;
   padding: $cart-spacing-2xl;
-  background: $white;
+  background: var(--cart-background-card);
   border-radius: $radius-xl;
-  box-shadow: $cart-shadow;
+  box-shadow: var(--cart-shadow);
   grid-column: 1 / -1;
+  transition: var(--cart-theme-transition);
 
   .empty-icon {
     font-size: 4rem;
-    color: rgba($cart-text, 0.2);
+    color: var(--cart-text-muted);
     margin-bottom: $cart-spacing-lg;
+    opacity: 0.3;
   }
 
   h2 {
     font-size: $font-2xl;
     margin-bottom: $cart-spacing-md;
-    color: $cart-text;
+    color: var(--cart-text-primary);
   }
 
   p {
     font-size: $font-lg;
-    color: lighten($cart-text, 30%);
+    color: var(--cart-text-secondary);
     margin-bottom: $cart-spacing-xl;
     max-width: 500px;
     margin-left: auto;
@@ -366,17 +648,17 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   .browse-products-btn {
     display: inline-block;
     padding: $cart-spacing-md $cart-spacing-xl;
-    background-color: $cart-primary;
+    background-color: var(--cart-primary);
     color: white;
     text-decoration: none;
     border-radius: $radius-md;
     font-weight: 600;
     transition: $transition-normal;
-    box-shadow: $cart-shadow;
+    box-shadow: var(--cart-shadow);
     @include card-hover;
 
     &:hover {
-      background-color: darken($cart-primary, 8%);
+      filter: brightness(0.9);
     }
   }
 }
@@ -385,7 +667,7 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 @media (max-width: $cart-breakpoint-md) {
   .cart-page-container {
     padding: $cart-spacing-md;
-    
+
     h1 {
       font-size: $font-2xl;
     }
@@ -393,7 +675,7 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
   .cart-item {
     grid-template-columns: 80px 1fr auto;
-    
+
     .item-image {
       width: 80px;
       height: 80px;
@@ -401,38 +683,8 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-  .cart-page-container {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: #e2e8f0;
-
-    &::before {
-      background-image: 
-        radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-    }
-  }
-
-  .cart-item,
-  .cart-summary,
-  .empty-cart {
-    background: rgba(30, 41, 59, 0.7);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-  }
-
-  .item-details .item-name,
-  .summary-line.summary-total,
-  .empty-cart h2 {
-    color: #f1f5f9;
-  }
-
-  .summary-line,
-  .empty-cart p {
-    color: #94a3b8;
-  }
-}
+// Note: Dark mode is now handled by theme classes (.dark-theme and .light-theme)
+// No need for @media (prefers-color-scheme: dark) as themes are controlled by JavaScript
 
 // Reduce motion for accessibility
 @media (prefers-reduced-motion: reduce) {
@@ -440,70 +692,4 @@ $transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     animation: none;
     opacity: 1;
   }
-}
-.cart-item-count {
-    text-align: center;
-    color: #666;
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-.cart-item {
-    .item-details {
-      
-        .quantity-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 10px 0;
-
-            .quantity-btn {
-                background: #f0f0f0;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: all 0.2s;
-
-                &:hover:not(:disabled) {
-                    background: #e0e0e0;
-                }
-
-                &:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-
-                svg {
-                    font-size: 12px;
-                }
-            }
-
-            .quantity-input {
-                width: 50px;
-                height: 30px;
-                text-align: center;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: 600;
-
-                &::-webkit-inner-spin-button,
-                &::-webkit-outer-spin-button {
-                    opacity: 1;
-                }
-            }
-        }
-
-        .item-subtotal {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-            font-weight: 600;
-        }
-    }
 }

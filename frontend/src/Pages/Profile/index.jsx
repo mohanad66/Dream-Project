@@ -5,6 +5,8 @@ import { PasswordChangeSection } from '../../Components/PasswordChange/PasswordC
 import { AddItemModal } from '../../Components/AddItemModal/index';
 import Card from '../../Components/Card';
 import { useNavigate } from 'react-router-dom';
+import SimpleThemeToggle from '../../Components/ThemeToggle/SimpleThemeToggle';
+import ThemeToggle from '../../Components/ThemeToggle/SimpleThemeToggle';
 
 // Constants for better maintainability
 const USER_ROLES = {
@@ -16,7 +18,8 @@ const USER_ROLES = {
 const MODAL_TYPES = {
   PRODUCT: 'Product',
   CATEGORY: 'Category',
-  CONTACT: 'Contact'
+  CONTACT: 'Contact',
+  TAG: 'Tag'
 };
 
 const ProductCard = ({ product, categories, onToggleStatus }) => (
@@ -43,8 +46,10 @@ export default function Profile({ categories: initialCategories = [] }) {
     productsLoading: false,
     allCategories: initialCategories,
     categoriesLoading: false,
-    allContacts: [], // Added contacts state
-    contactsLoading: false, // Added contacts loading state
+    allContacts: [],
+    contactsLoading: false,
+    allTags: [],
+    tagsLoading: false,
     pagination: {
       count: 0,
       next: null,
@@ -62,6 +67,8 @@ export default function Profile({ categories: initialCategories = [] }) {
     activeTab,
     editMode,
     formData,
+    allTags,
+    tagsLoading,
     isModalOpen,
     modalConfig,
     allUsers,
@@ -103,41 +110,12 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, []);
 
-  // User role management
-  const handleUserRoleChange = async (userId, newRole) => {
-    if (!window.confirm(`Change this user's role to ${newRole}?`)) return;
-
-    try {
-      const updateData = {
-        is_staff: newRole !== USER_ROLES.USER,
-        is_superuser: newRole === USER_ROLES.SUPER_ADMIN
-      };
-
-      await updateData(`/api/user/${userId}/`, updateData);
-
-      setState(prev => ({
-        ...prev,
-        allUsers: prev.allUsers.map(u => 
-          u.id === userId ? { ...u, ...updateData } : u
-        ),
-        error: `Successfully updated role to ${newRole}`
-      }));
-
-      setTimeout(() => setState(prev => ({ ...prev, error: null })), 3000);
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        error: "Failed to update user role: " + (err.response?.data?.detail || "Unknown error")
-      }));
-    }
-  };
-
-  // Data fetching functions
+  // Fetch functions
   const fetchAllUsers = useCallback(async (page = 1) => {
     if (!isSuperuser) return;
-    
+
     setState(prev => ({ ...prev, adminLoading: true }));
-    
+
     try {
       const response = await fetchData(`/api/user/all/?page=${page}`);
       setState(prev => ({
@@ -162,12 +140,12 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const fetchMyProducts = useCallback(async () => {
     if (!isAdmin) return;
-    
+
     setState(prev => ({ ...prev, productsLoading: true }));
-    
+
     try {
       const response = await fetchData('/api/admins/products/');
-      const userProducts = response.data.filter(product => product.owner?.id === user.id);
+      const userProducts = response.data.filter(product => product.owner?.id === user?.id);
       setState(prev => ({
         ...prev,
         myProducts: userProducts,
@@ -184,9 +162,9 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const fetchAllCategories = useCallback(async () => {
     if (!isAdmin) return;
-    
+
     setState(prev => ({ ...prev, categoriesLoading: true }));
-    
+
     try {
       const response = await fetchData('/api/admins/categories/');
       setState(prev => ({
@@ -203,12 +181,11 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [isAdmin, fetchData]);
 
-  // Added fetchAllContacts function
   const fetchAllContacts = useCallback(async () => {
     if (!isAdmin) return;
-    
+
     setState(prev => ({ ...prev, contactsLoading: true }));
-    
+
     try {
       const response = await fetchData('/api/admins/contacts/');
       setState(prev => ({
@@ -221,6 +198,27 @@ export default function Profile({ categories: initialCategories = [] }) {
         ...prev,
         error: "Failed to load contacts.",
         contactsLoading: false
+      }));
+    }
+  }, [isAdmin, fetchData]);
+
+  const fetchAllTags = useCallback(async () => {
+    if (!isAdmin) return;
+
+    setState(prev => ({ ...prev, tagsLoading: true }));
+
+    try {
+      const response = await fetchData('/api/admins/tags/');
+      setState(prev => ({
+        ...prev,
+        allTags: response.data,
+        tagsLoading: false
+      }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: "Failed to load tags.",
+        tagsLoading: false
       }));
     }
   }, [isAdmin, fetchData]);
@@ -256,17 +254,18 @@ export default function Profile({ categories: initialCategories = [] }) {
     if (isAdmin && activeTab === 'admin') {
       fetchMyProducts();
       fetchAllCategories();
-      fetchAllContacts(); // Added contact fetching
+      fetchAllContacts();
+      fetchAllTags();
       if (isSuperuser) {
         fetchAllUsers();
       }
     }
-  }, [activeTab, isAdmin, isSuperuser, fetchMyProducts, fetchAllCategories, fetchAllContacts, fetchAllUsers]);
+  }, [activeTab, isAdmin, isSuperuser, fetchMyProducts, fetchAllCategories, fetchAllContacts, fetchAllTags, fetchAllUsers]);
 
   // Modal handling
   const handleOpenModal = (type, item = null) => {
     let config = {};
-    
+
     const commonFields = {
       [MODAL_TYPES.PRODUCT]: [
         { name: 'name', label: 'Product Name', type: 'text', required: true, value: item?.name },
@@ -279,8 +278,9 @@ export default function Profile({ categories: initialCategories = [] }) {
           type: 'select',
           required: false,
           value: item?.category?.id,
-          options: allCategories.map(cat => ({ value: cat.id, label: cat.name }))
+          options: allCategories.map(cat => ({ id: cat.id, name: cat.name }))
         },
+        { name: 'tags', label: 'Tags', type: 'tags', value: item?.tags },
         { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
       ],
       [MODAL_TYPES.CATEGORY]: [
@@ -303,12 +303,20 @@ export default function Profile({ categories: initialCategories = [] }) {
         },
         { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item?.display_order },
         { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
+      ],
+      [MODAL_TYPES.TAG]: [
+        { name: 'name', label: 'Tag Name', type: 'text', required: true, value: item?.name },
+        { name: 'slug', label: 'Slug (URL-friendly name)', type: 'text', required: false, value: item?.slug },
       ]
     };
 
+    // Determine the correct endpoint based on type
+    let endpoint;
+    endpoint = item ? `/api/admins/${type.toLowerCase()}s/${item.id}/` : `/api/admins/${type.toLowerCase()}s/`;
+
     config = {
       title: item ? `Edit ${type}` : `Add New ${type}`,
-      endpoint: item ? `/api/admins/${type.toLowerCase()}s/${item.id}/` : `/api/admins/${type.toLowerCase()}s/`,
+      endpoint: endpoint,
       method: item ? 'PATCH' : 'POST',
       fields: commonFields[type]
     };
@@ -354,18 +362,21 @@ export default function Profile({ categories: initialCategories = [] }) {
   // Status toggle handlers
   const createToggleHandler = (entityType) => async (id, currentStatus) => {
     try {
-      await updateData(`/api/admins/${entityType}s/${id}/`, { is_active: !currentStatus });
-      
+      const endpoint = `/api/admins/${entityType}s/${id}/`;
+
+      await updateData(endpoint, { is_active: !currentStatus });
+
       setState(prev => {
         let stateKey;
         if (entityType === 'product') stateKey = 'myProducts';
         else if (entityType === 'category') stateKey = 'allCategories';
         else if (entityType === 'contact') stateKey = 'allContacts';
-        
-        const newItems = prev[stateKey].map(item => 
+        else if (entityType === 'tag') stateKey = 'allTags';
+
+        const newItems = prev[stateKey].map(item =>
           item.id === id ? { ...item, is_active: !currentStatus } : item
         );
-        
+
         return {
           ...prev,
           [stateKey]: newItems
@@ -381,14 +392,14 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const handleProductStatusToggle = createToggleHandler('product');
   const handleCategoryStatusToggle = createToggleHandler('category');
-  const handleContactStatusToggle = createToggleHandler('contact'); // Added contact toggle handler
+  const handleContactStatusToggle = createToggleHandler('contact');
 
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
       await updateData(`/api/user/${userId}/`, { is_active: !currentStatus });
       setState(prev => ({
         ...prev,
-        allUsers: prev.allUsers.map(u => 
+        allUsers: prev.allUsers.map(u =>
           u.id === userId ? { ...u, is_active: !currentStatus } : u
         )
       }));
@@ -403,18 +414,21 @@ export default function Profile({ categories: initialCategories = [] }) {
   // Delete handlers
   const createDeleteHandler = (entityType) => async (id) => {
     if (!window.confirm(`Are you sure you want to delete this ${entityType}?`)) return;
-    
+
     try {
-      await updateData(`/api/admins/${entityType}s/${id}/`, {}, 'delete');
-      
+      const endpoint = `/api/admins/${entityType}s/${id}/`;
+
+      await updateData(endpoint, {}, 'delete');
+
       setState(prev => {
         let stateKey;
         if (entityType === 'product') stateKey = 'myProducts';
         else if (entityType === 'category') stateKey = 'allCategories';
         else if (entityType === 'contact') stateKey = 'allContacts';
-        
+        else if (entityType === 'tag') stateKey = 'allTags';
+
         const newItems = prev[stateKey].filter(item => item.id !== id);
-        
+
         return {
           ...prev,
           [stateKey]: newItems
@@ -430,7 +444,8 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const handleDeleteProduct = createDeleteHandler('product');
   const handleDeleteCategory = createDeleteHandler('category');
-  const handleDeleteContact = createDeleteHandler('contact'); // Added contact delete handler
+  const handleDeleteContact = createDeleteHandler('contact');
+  const handleDeleteTag = createDeleteHandler('tag');
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure? This action is irreversible.")) return;
@@ -444,6 +459,35 @@ export default function Profile({ categories: initialCategories = [] }) {
       setState(prev => ({
         ...prev,
         error: "Failed to delete user."
+      }));
+    }
+  };
+
+  // User role management
+  const handleUserRoleChange = async (userId, newRole) => {
+    if (!window.confirm(`Change this user's role to ${newRole}?`)) return;
+
+    try {
+      const roleUpdateData = {
+        is_staff: newRole !== USER_ROLES.USER,
+        is_superuser: newRole === USER_ROLES.SUPER_ADMIN
+      };
+
+      await updateData(`/api/user/${userId}/`, roleUpdateData);
+
+      setState(prev => ({
+        ...prev,
+        allUsers: prev.allUsers.map(u =>
+          u.id === userId ? { ...u, ...roleUpdateData } : u
+        ),
+        error: `Successfully updated role to ${newRole}`
+      }));
+
+      setTimeout(() => setState(prev => ({ ...prev, error: null })), 3000);
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: "Failed to update user role: " + (err.response?.data?.detail || "Unknown error")
       }));
     }
   };
@@ -469,8 +513,7 @@ export default function Profile({ categories: initialCategories = [] }) {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">
-        </div>
+        <div className="loading-spinner" />
       </div>
     );
   }
@@ -490,8 +533,8 @@ export default function Profile({ categories: initialCategories = [] }) {
       {/* Profile Header */}
       <header className="profile-header">
         <div className="profile-header__avatar">
-          {user.first_name && user.last_name 
-            ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}` 
+          {user.first_name && user.last_name
+            ? `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`
             : user.username.charAt(0).toUpperCase()}
         </div>
         <h1 className="profile-header__name">
@@ -515,21 +558,21 @@ export default function Profile({ categories: initialCategories = [] }) {
 
       {/* Navigation Tabs */}
       <nav className="profile-tabs">
-        <button 
-          className={`profile-tabs__button ${activeTab === 'profile' ? 'active' : ''}`} 
+        <button
+          className={`profile-tabs__button ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setState(prev => ({ ...prev, activeTab: 'profile' }))}
         >
           Profile
         </button>
-        <button 
-          className={`profile-tabs__button ${activeTab === 'settings' ? 'active' : ''}`} 
+        <button
+          className={`profile-tabs__button ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setState(prev => ({ ...prev, activeTab: 'settings' }))}
         >
           Settings
         </button>
         {isAdmin && (
-          <button 
-            className={`profile-tabs__button ${activeTab === 'admin' ? 'active' : ''}`} 
+          <button
+            className={`profile-tabs__button ${activeTab === 'admin' ? 'active' : ''}`}
             onClick={() => setState(prev => ({ ...prev, activeTab: 'admin' }))}
           >
             Admin Panel
@@ -540,10 +583,10 @@ export default function Profile({ categories: initialCategories = [] }) {
       {/* Main Content */}
       <main className="profile-content">
         {activeTab === 'profile' && (
-          <ProfileTab 
-            user={user} 
-            editMode={editMode} 
-            formData={formData} 
+          <ProfileTab
+            user={user}
+            editMode={editMode}
+            formData={formData}
             onInputChange={handleInputChange}
             onSave={handleSave}
             onEditToggle={() => setState(prev => ({ ...prev, editMode: !prev.editMode }))}
@@ -564,12 +607,15 @@ export default function Profile({ categories: initialCategories = [] }) {
             categoriesLoading={categoriesLoading}
             allContacts={allContacts}
             contactsLoading={contactsLoading}
+            allTags={allTags}
+            tagsLoading={tagsLoading}
             allUsers={allUsers}
             adminLoading={adminLoading}
             pagination={pagination}
             onRefreshProducts={fetchMyProducts}
             onRefreshCategories={fetchAllCategories}
             onRefreshContacts={fetchAllContacts}
+            onRefreshTags={fetchAllTags}
             onRefreshUsers={fetchAllUsers}
             onProductStatusToggle={handleProductStatusToggle}
             onCategoryStatusToggle={handleCategoryStatusToggle}
@@ -578,6 +624,7 @@ export default function Profile({ categories: initialCategories = [] }) {
             onDeleteProduct={handleDeleteProduct}
             onDeleteCategory={handleDeleteCategory}
             onDeleteContact={handleDeleteContact}
+            onDeleteTag={handleDeleteTag}
             onDeleteUser={handleDeleteUser}
             onOpenModal={handleOpenModal}
           />
@@ -596,7 +643,7 @@ export default function Profile({ categories: initialCategories = [] }) {
   );
 }
 
-// Sub-components for better organization
+// Sub-components
 const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditToggle }) => (
   <section className="profile-content__section">
     <div className="profile-content__header">
@@ -607,28 +654,28 @@ const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditTog
         </button>
       )}
     </div>
-    
+
     {editMode ? (
-      <form onSubmit={onSave}>
+      <div>
         <div className="info-grid">
           <div className="info-grid__item">
             <label>First Name</label>
-            <input 
-              type="text" 
-              name="first_name" 
-              value={formData.first_name} 
-              onChange={onInputChange} 
-              className="form-input" 
+            <input
+              type="text"
+              name="first_name"
+              value={formData.first_name}
+              onChange={onInputChange}
+              className="form-input"
             />
           </div>
           <div className="info-grid__item">
             <label>Last Name</label>
-            <input 
-              type="text" 
-              name="last_name" 
-              value={formData.last_name} 
-              onChange={onInputChange} 
-              className="form-input" 
+            <input
+              type="text"
+              name="last_name"
+              value={formData.last_name}
+              onChange={onInputChange}
+              className="form-input"
             />
           </div>
         </div>
@@ -636,11 +683,11 @@ const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditTog
           <button type="button" className="button button--text" onClick={onEditToggle}>
             Cancel
           </button>
-          <button type="submit" className="button button--primary">
+          <button type="button" className="button button--primary" onClick={onSave}>
             Save Changes
           </button>
         </div>
-      </form>
+      </div>
     ) : (
       <div className="info-grid">
         <div className="info-grid__item">
@@ -668,15 +715,29 @@ const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditTog
   </section>
 );
 
+// In your Profile component (index.jsx), update the SettingsTab component
 const SettingsTab = () => (
   <section className="profile-content__section">
     <div className="profile-content__header">
       <h3>Account Settings</h3>
     </div>
-    <PasswordChangeSection />
+
+    {/* Theme Toggle Section */}
+    <div className="settings-section">
+      <h4 className="settings-section__title">Appearance</h4>
+      <ThemeToggle />
+    </div>
+
+    {/* Password Change Section */}
+    <div className="settings-section">
+      <h4 className="settings-section__title">Security</h4>
+      <p className="settings-section__description">
+        Manage your account security settings
+      </p>
+      <PasswordChangeSection />
+    </div>
   </section>
 );
-
 const AdminTab = ({
   isSuperuser,
   user,
@@ -686,12 +747,15 @@ const AdminTab = ({
   categoriesLoading,
   allContacts,
   contactsLoading,
+  allTags,
+  tagsLoading,
   allUsers,
   adminLoading,
   pagination,
   onRefreshProducts,
   onRefreshCategories,
   onRefreshContacts,
+  onRefreshTags,
   onRefreshUsers,
   onProductStatusToggle,
   onCategoryStatusToggle,
@@ -700,6 +764,7 @@ const AdminTab = ({
   onDeleteProduct,
   onDeleteCategory,
   onDeleteContact,
+  onDeleteTag,
   onDeleteUser,
   onOpenModal
 }) => (
@@ -712,19 +777,19 @@ const AdminTab = ({
     <div className="my-products-section">
       <div className="profile-content__header">
         <h4>My Products ({myProducts.length})</h4>
-        <button 
-          onClick={onRefreshProducts} 
-          className="button button--secondary" 
+        <button
+          onClick={onRefreshProducts}
+          className="button button--secondary"
           disabled={productsLoading}
         >
           {productsLoading ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
-      
+
       {productsLoading ? (
         <div className="loading-spinner" />
       ) : myProducts.length > 0 ? (
-        <ProductTable 
+        <ProductTable
           products={myProducts}
           onStatusToggle={onProductStatusToggle}
           onEdit={onOpenModal}
@@ -739,19 +804,19 @@ const AdminTab = ({
     <div className="category-management-section management-section">
       <div className="profile-content__header">
         <h4>Category Management</h4>
-        <button 
-          onClick={onRefreshCategories} 
-          className="button button--secondary" 
+        <button
+          onClick={onRefreshCategories}
+          className="button button--secondary"
           disabled={categoriesLoading}
         >
           {categoriesLoading ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
-      
+
       {categoriesLoading ? (
         <div className="loading-spinner" />
       ) : allCategories.length > 0 ? (
-        <CategoryTable 
+        <CategoryTable
           categories={allCategories}
           onStatusToggle={onCategoryStatusToggle}
           onEdit={onOpenModal}
@@ -762,23 +827,23 @@ const AdminTab = ({
       )}
     </div>
 
-    {/* Contacts Section - Added this section */}
+    {/* Contacts Section */}
     <div className="contact-management-section management-section">
       <div className="profile-content__header">
         <h4>Contact Management</h4>
-        <button 
-          onClick={onRefreshContacts} 
-          className="button button--secondary" 
+        <button
+          onClick={onRefreshContacts}
+          className="button button--secondary"
           disabled={contactsLoading}
         >
           {contactsLoading ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
-      
+
       {contactsLoading ? (
         <div className="loading-spinner" />
       ) : allContacts.length > 0 ? (
-        <ContactTable 
+        <ContactTable
           contacts={allContacts}
           onStatusToggle={onContactStatusToggle}
           onEdit={onOpenModal}
@@ -789,36 +854,62 @@ const AdminTab = ({
       )}
     </div>
 
+    {/* Tags Section */}
+    <div className="tag-management-section management-section">
+      <div className="profile-content__header">
+        <h4>Tag Management</h4>
+        <button
+          onClick={onRefreshTags}
+          className="button button--secondary"
+          disabled={tagsLoading}
+        >
+          {tagsLoading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
+
+      {tagsLoading ? (
+        <div className="loading-spinner" />
+      ) : allTags.length > 0 ? (
+        <TagTable
+          tags={allTags}
+          onEdit={onOpenModal}
+          onDelete={onDeleteTag}
+        />
+      ) : (
+        <p>No tags found.</p>
+      )}
+    </div>
+
     {/* User Management (Super Admin only) */}
     {isSuperuser && (
       <div className="user-management-section management-section">
         <div className="profile-content__header">
           <h4>User Management</h4>
         </div>
-        
+
         {adminLoading ? (
           <div className="loading-spinner" />
         ) : (
           <>
-            <UserTable 
+            <UserTable
               users={allUsers}
               currentUserId={user.id}
               onStatusToggle={onUserStatusToggle}
               onDelete={onDeleteUser}
             />
-            
+
             <div className="pagination-controls">
-              <button 
-                onClick={() => onRefreshUsers(pagination.currentPage - 1)} 
-                disabled={!pagination.previous} 
+              <button
+                onClick={() => onRefreshUsers(pagination.currentPage - 1)}
+                disabled={!pagination.previous}
                 className="button"
               >
                 Previous
               </button>
               <span>Page {pagination.currentPage} of {Math.ceil(pagination.count / 10)}</span>
-              <button 
-                onClick={() => onRefreshUsers(pagination.currentPage + 1)} 
-                disabled={!pagination.next} 
+              <button
+                onClick={() => onRefreshUsers(pagination.currentPage + 1)}
+                disabled={!pagination.next}
                 className="button"
               >
                 Next
@@ -835,26 +926,26 @@ const AdminTab = ({
         <h4>Content Management</h4>
       </div>
       <div className="management-actions">
-        <button 
-          className="button button--primary" 
+        <button
+          className="button button--primary"
           onClick={() => onOpenModal('Product')}
         >
           Add New Product
         </button>
-        <button 
-          className="button button--primary" 
+        <button
+          className="button button--primary"
           onClick={() => onOpenModal('Category')}
         >
           Add New Category
         </button>
-        <button 
-          className="button button--primary" 
+        <button
+          className="button button--primary"
           onClick={() => onOpenModal('Contact')}
         >
           Add New Contact
         </button>
-        <button 
-          className="button button--primary" 
+        <button
+          className="button button--primary"
           onClick={() => onOpenModal('Tag')}
         >
           Add New Tag
@@ -865,6 +956,37 @@ const AdminTab = ({
 );
 
 // Table Components
+const TagTable = ({ tags, onEdit, onDelete }) => (
+  <div className="tags-table table">
+    <div className="tags-table__header table__header">
+      <span>Tag Name</span>
+      <span>Slug</span>
+      <span>Actions</span>
+    </div>
+
+    {tags.map(tag => (
+      <div key={tag.id} className="tags-table__row table__row">
+        <span>{tag.name}</span>
+        <span className="tag-slug">{tag.slug || 'N/A'}</span>
+        <div className="actions">
+          <button
+            className="button button--small button--primary"
+            onClick={() => onEdit('Tag', tag)}
+          >
+            Edit
+          </button>
+          <button
+            className="button button--small button--danger"
+            onClick={() => onDelete(tag.id)}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const ProductTable = ({ products, onStatusToggle, onEdit, onDelete }) => (
   <div className="products-table table">
     <div className="products-table__header table__header">
@@ -872,7 +994,7 @@ const ProductTable = ({ products, onStatusToggle, onEdit, onDelete }) => (
       <span>Status</span>
       <span>Actions</span>
     </div>
-    
+
     {products.map(product => (
       <div key={product.id} className="products-table__row table__row">
         <span>{product.name}</span>
@@ -911,7 +1033,7 @@ const CategoryTable = ({ categories, onStatusToggle, onEdit, onDelete }) => (
       <span>Status</span>
       <span>Actions</span>
     </div>
-    
+
     {categories.map(category => (
       <div key={category.id} className="categories-table__row table__row">
         <span>{category.name}</span>
@@ -943,7 +1065,6 @@ const CategoryTable = ({ categories, onStatusToggle, onEdit, onDelete }) => (
   </div>
 );
 
-// Added ContactTable component
 const ContactTable = ({ contacts, onStatusToggle, onEdit, onDelete }) => (
   <div className="contacts-table table">
     <div className="contacts-table__header table__header">
@@ -953,7 +1074,7 @@ const ContactTable = ({ contacts, onStatusToggle, onEdit, onDelete }) => (
       <span>Status</span>
       <span>Actions</span>
     </div>
-    
+
     {contacts.map(contact => (
       <div key={contact.id} className="contacts-table__row table__row">
         <span>{contact.name}</span>
@@ -998,7 +1119,7 @@ const UserTable = ({ users, currentUserId, onStatusToggle, onDelete }) => (
       <span>Role</span>
       <span>Actions</span>
     </div>
-    
+
     {users.map(userItem => (
       <div key={userItem.id} className="users-table__row table__row">
         <div className="users-table__user-info table__user-info">
