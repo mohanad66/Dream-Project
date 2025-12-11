@@ -32,6 +32,7 @@ DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS" , "").split(",")
 
+PORT = int(os.environ.get('PORT', 8000))
 
 # Application definition
 
