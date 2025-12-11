@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: backend
+    runtime: docker
+    repo: https://github.com/mohanad66/Dream-Project.git # Replace with your repo URL
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /
+    startCommand: gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PRODUCTION
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com # Allows any subdomain of onrender.com for easy setup
+      - key: CORS_ALLOWED_ORIGINS
+        fromService:
+          type: web
+          name: frontend
+          property: url # This provides the public URL of the frontend service
+      - key: STRIPE_SECRET_KEY
+        sync: false # Set these in the Render dashboard secrets
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false # Set these in the Render dashboard secrets
+    autoDeploy: true
+
+  - type: web
+    name: frontend
+    runtime: docker
+    repo: https://github.com/mohanad66/Dream-Project.git # Replace with your repo URL
+    dockerfilePath: ./frontend/Dockerfile.prod
+    dockerContext: ./frontend
+    plan: free
+    autoDeploy: true
+
+databases:
+  - name: db
+    plan: free # Render will manage the database name and user for you on the free plan
