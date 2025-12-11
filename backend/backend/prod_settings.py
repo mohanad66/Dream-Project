@@ -4,14 +4,20 @@ DEBUG = True
 
 # Use a more robust database for production if available
 # For example, PostgreSQL:
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get("PGDATABASE"),
+#         'USER': os.environ.get("PGUSER"),
+#         'PASSWORD': os.environ.get("PGPASSWORD"),
+#         'HOST': os.environ.get("PGHOST"),
+#         'PORT': os.environ.get("PGPORT", "5432"),
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("PGDATABASE"),
-        'USER': os.environ.get("PGUSER"),
-        'PASSWORD': os.environ.get("PGPASSWORD"),
-        'HOST': os.environ.get("PGHOST"),
-        'PORT': os.environ.get("PGPORT", "5432"),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
