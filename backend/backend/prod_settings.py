@@ -2,8 +2,8 @@ from .settings import *
 
 DEBUG = True
 
-Use a more robust database for production if available
-For example, PostgreSQL:
+# Use a more robust database for production if available
+# For example, PostgreSQL:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
