@@ -35,7 +35,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS" , "").split(",")
 PORT = int(os.environ.get('PORT', 8000))
 
 # Application definition
-
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 INSTALLED_APPS = [
     # 'jazzmin', 
     "unfold",  # before django.contrib.admin
