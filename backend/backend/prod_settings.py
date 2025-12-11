@@ -27,3 +27,6 @@ DATABASES = {
 
 # Add any other production-specific settings here
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS" , "").split(',')
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
+]

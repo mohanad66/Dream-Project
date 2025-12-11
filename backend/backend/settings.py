@@ -341,7 +341,9 @@ PARSE_CONFIG = {
     'REST_API_KEY': os.environ.get('PARSE_REST_API_KEY'),
 }
 
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
+]
 
 
 
