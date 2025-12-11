@@ -2,18 +2,18 @@ from .settings import *
 
 DEBUG = True
 
-# Use a more robust database for production if available
-# For example, PostgreSQL:
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'your_db_name',
-#         'USER': 'your_db_user',
-#         'PASSWORD': 'your_db_password',
-#         'HOST': 'your_db_host',
-#         'PORT': 'your_db_port',
-#     }
-# }
+Use a more robust database for production if available
+For example, PostgreSQL:
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get("DB_NAME", ""),
+        'USER': os.environ.get("DB_USER", ""),
+        'PASSWORD': os.environ.get("DB_PASS", ""),
+        'HOST': os.environ.get("DB_HOST", ""),
+        'PORT': os.environ.get("DB_PORT", ""),
+    }
+}
 
 # It's recommended to set ALLOWED_HOSTS from an environment variable
 # in your production environment.

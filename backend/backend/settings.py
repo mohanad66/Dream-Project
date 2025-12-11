@@ -122,13 +122,23 @@ ASGI_APPLICATION = 'backend.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get("PGDATABASE"),
+        'USER': os.environ.get("PGUSER"),
+        'PASSWORD': os.environ.get("PGPASSWORD"),
+        'HOST': os.environ.get("PGHOST"),
+        'PORT': os.environ.get("PGPORT", "5432"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -312,3 +322,17 @@ AUTHENTICATION_BACKENDS = [
 # LOGIN_RIDERECT_URL = "/callback/"
 SOCIALACCOUNT_STORE_TOKENS = True
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+PARSE_CONFIG = {
+    'APPLICATION_ID': os.environ.get('PARSE_APP_ID'),
+    'MASTER_KEY': os.environ.get('PARSE_MASTER_KEY'),
+    'SERVER_URL': os.environ.get('PARSE_SERVER_URL'),  # Update this
+    'REST_API_KEY': os.environ.get('PARSE_REST_API_KEY'),
+}
+
+
+
+
+
+PARSE_SERVER_URL = PARSE_CONFIG['SERVER_URL']
+
