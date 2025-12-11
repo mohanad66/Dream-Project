@@ -1,6 +1,6 @@
 from .settings import *
 
-DEBUG = False
+DEBUG = True
 
 # Use a more robust database for production if available
 # For example, PostgreSQL:
