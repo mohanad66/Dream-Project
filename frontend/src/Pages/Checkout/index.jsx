@@ -69,7 +69,7 @@ export default function CheckoutPage() {
                             {cartItems.map(item => (
                                 <div key={item.id} className="order-item">
                                     <img
-                                        src={`http://127.0.0.1:8000${item.image}`}
+                                        src={`${import.meta.env.VITE_API_URL}${item.image}`}
                                         alt={item.name}
                                         className="order-item-image"
                                     />

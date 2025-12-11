@@ -72,9 +72,9 @@ const Carousel = ({ images = [], contacts }) => {
               className={`slide ${currentImage === index ? 'active' : ''} ${index < currentImage ? 'left' : 'right'}`}
             >
               <div className="image-container">
-                <a data-fancybox={`gallery${index}`} href={`http://127.0.0.1:8000${imageItem.image}`}>
+                <a data-fancybox={`gallery${index}`} href={`${import.meta.env.VITE_API_URL}${imageItem.image}`}>
                   <img
-                    src={`http://127.0.0.1:8000${imageItem.image}`}
+                    src={`${import.meta.env.VITE_API_URL}${imageItem.image}`}
                     alt={imageItem.altText || `Showcase ${index + 1}`}
                     loading="lazy"
                     onError={(e) => {
@@ -155,7 +155,7 @@ function ContactItem({ contact }) {
       default:
         return contact.icon ? (
           <img
-            src={`http://127.0.0.1:8000${contact.icon}`}
+            src={`${import.meta.env.VITE_API_URL}${contact.icon}`}
             alt={contact.name}
             className="contact-icon-img"
           />
