@@ -28,7 +28,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS" , "").split(",")
 
@@ -115,6 +115,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 
 # Database
@@ -175,9 +176,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS" , "").split(',')
 CORS_ALLOW_CREDENTIALS = True
-AUTHENTICATION_BACKEN ={
-    "django.contrib.auth.backend.ModelBackend",
-}
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
 # JAZZMIN_SETTINGS = {
 #     # Site branding
 #     "site_title": "ProAdmin",
@@ -310,5 +311,3 @@ AUTHENTICATION_BACKEN ={
 # }
 # LOGIN_RIDERECT_URL = "/callback/"
 SOCIALACCOUNT_STORE_TOKENS = True
-
-
