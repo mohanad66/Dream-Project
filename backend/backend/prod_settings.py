@@ -15,6 +15,7 @@ DEBUG = True
 #         'PORT': os.environ.get("PGPORT", "5432"),
 #     }
 # }
+
 DATABASES = {
   "default": dj_database_url.config(
     default=os.environ.get("DATABASE_URL"),
