@@ -7,11 +7,11 @@ SQLITE_DB = './db.sqlite3'
 
 # Railway PostgreSQL - YOUR ACTUAL PUBLIC CONNECTION
 POSTGRES_CONFIG = {
-    'host': 'db-production-19a8.up.railway.app',
+    'host': 'maglev.proxy.rlwy.net',
     'database': 'railway',
     'user': 'postgres',
     'password': 'JJJLywFnjydCcURQYshaTkvJFSAZnbRr',
-    'port': 5432
+    'port': 27690  # ← This is the key difference - random proxy port, NOT 5432
 }
 
 
