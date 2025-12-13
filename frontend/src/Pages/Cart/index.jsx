@@ -49,7 +49,7 @@ export default function Cart() {
     const handleQuantityInput = (productId, value) => {
         const numValue = parseInt(value) || 1;
         if (numValue >= 1 && numValue <= 99) {
-            const updatedCart = cartItems.map(item => 
+            const updatedCart = cartItems.map(item =>
                 item.id === productId ? { ...item, quantity: numValue } : item
             );
             setCartItems(updatedCart);
@@ -113,14 +113,14 @@ export default function Cart() {
                         {cartItems.map(item => (
                             <div key={item.id} className="cart-item">
                                 <img
-                                    src={`http://127.0.0.1:8000${item.image}`}
+                                    src={`${import.meta.env.VITE_API_URL}0${item.image}`}
                                     alt={item.name}
                                     className="item-image"
                                 />
                                 <div className="item-details">
                                     <h3 className="item-name">{item.name}</h3>
                                     <p className="item-price">{parseFloat(item.price).toFixed(2)} L.E</p>
-                                    
+
                                     <div className="quantity-control">
                                         <button
                                             className="quantity-btn"
@@ -145,7 +145,7 @@ export default function Cart() {
                                             <FaPlus />
                                         </button>
                                     </div>
-                                    
+
                                     <p className="item-subtotal">
                                         Subtotal: {((parseFloat(item.price) || 0) * (item.quantity || 1)).toFixed(2)} L.E
                                     </p>
