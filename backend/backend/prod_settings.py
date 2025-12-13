@@ -30,3 +30,4 @@ DATABASES = {
 
 # Add any other production-specific settings here
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = ['https://*']
