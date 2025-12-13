@@ -131,25 +131,37 @@ CSRF_TRUSTED_ORIGINS = ['https://*']
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get("PGDATABASE"),
-#         'USER': os.environ.get("PGUSER"),
-#         'PASSWORD': os.environ.get("PGPASSWORD"),
-#         'HOST': os.environ.get("PGHOST"),
-#         'PORT': os.environ.get("PGPORT", "5432"),
-#     }
-# }
-
-
 DATABASES = {
-  "default": dj_database_url.config(
-    default=os.environ.get("DATABASE_URL"),
-    conn_max_age=600,
-    ssl_require=True,
-  )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get("PGDATABASE"),
+        'USER': os.environ.get("PGUSER"),
+        'PASSWORD': os.environ.get("PGPASSWORD"),
+        'HOST': os.environ.get("PGHOST"),
+        'PORT': os.environ.get("PGPORT", "5432"),
+    }
 }
+
+
+# IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT') is not None
+
+# if IS_RAILWAY:
+#     # Production: Use Railway's PostgreSQL
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             default="postgresql://postgres:kzXKIBXKuJzFowdfxDQdQlTKVExgsbBb@crossover.proxy.rlwy.net:49225/railway",
+#             conn_max_age=600,
+#             conn_health_checks=True,
+#         )
+#     }
+# else:
+#     # Local Development: Use SQLite
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
 
 
 # Password validation
@@ -195,8 +207,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 CORS_ALLOW_ALL_ORIGINS = True
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_CREDENTIALS = True
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]

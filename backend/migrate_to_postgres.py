@@ -2,7 +2,6 @@ import sqlite3
 import psycopg2
 from psycopg2.extras import execute_values
 import sys
-
 # Configuration
 SQLITE_DB = './db.sqlite3'  # UPDATE THIS PATH
 
@@ -11,12 +10,12 @@ POSTGRES_CONFIG = {
     'host': 'maglev.proxy.rlwy.net',
     'database': 'railway',
     'user': 'postgres',
-    'password': 'LUsBvyyqMpLGRsxVmjafROvHaucrHCXw',
+    'password': 'kzXKIBXKuJzFowdfxDQdQlTKVExgsbBb',
     'port': 18551
 }
 
 # Or use DATABASE_PUBLIC_URL directly:
-DATABASE_PUBLIC_URL = 'postgresql://postgres:LUsBvyyqMpLGRsxVmjafROvHaucrHCXw@maglev.proxy.rlwy.net:18551/railway'
+DATABASE_PUBLIC_URL = 'postgresql://postgres:kzXKIBXKuJzFowdfxDQdQlTKVExgsbBb@crossover.proxy.rlwy.net:49225/railway'
 
 
 def map_sqlite_type_to_postgres(sqlite_type):
