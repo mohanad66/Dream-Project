@@ -5,4 +5,4 @@ from waitress import serve
 from backend.backend.wsgi import application 
 
 port = int(os.environ.get('PORT', 8000))
-serve(application, host='0.0.0.0', port=port)
+serve(application, host='127.0.0.1', port=port)
