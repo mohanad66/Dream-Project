@@ -15,7 +15,7 @@ POSTGRES_CONFIG = {
 }
 
 # Or use DATABASE_PUBLIC_URL directly:
-DATABASE_PUBLIC_URL = 'postgresql://postgres:kzXKIBXKuJzFowdfxDQdQlTKVExgsbBb@crossover.proxy.rlwy.net:49225/railway'
+DATABASE_PUBLIC_URL = 'postgresql://postgres:JJJLywFnjydCcURQYshaTkvJFSAZnbRr@maglev.proxy.rlwy.net:27690/railway'
 
 
 def map_sqlite_type_to_postgres(sqlite_type):
