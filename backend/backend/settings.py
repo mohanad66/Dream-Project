@@ -118,7 +118,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION = 'backend.asgi.application'
-
+CSRF_TRUSTED_ORIGINS = ['https://*']
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
