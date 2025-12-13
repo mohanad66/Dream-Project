@@ -1,26 +1,23 @@
 import sqlite3
 import psycopg2
-from psycopg2.extras import execute_values
 import sys
-# Configuration
-SQLITE_DB = './db.sqlite3'  # UPDATE THIS PATH
 
-# Railway PostgreSQL connection - Using PUBLIC connection details
+# Configuration
+SQLITE_DB = './db.sqlite3'
+
+# Railway PostgreSQL - YOUR ACTUAL PUBLIC CONNECTION
 POSTGRES_CONFIG = {
-    'host': 'maglev.proxy.rlwy.net',
+    'host': 'db-production-19a8.up.railway.app',
     'database': 'railway',
     'user': 'postgres',
-    'password': 'kzXKIBXKuJzFowdfxDQdQlTKVExgsbBb',
-    'port': 18551
+    'password': 'JJJLywFnjydCcURQYshaTkvJFSAZnbRr',
+    'port': 5432
 }
-
-# Or use DATABASE_PUBLIC_URL directly:
-DATABASE_PUBLIC_URL = 'postgresql://postgres:JJJLywFnjydCcURQYshaTkvJFSAZnbRr@maglev.proxy.rlwy.net:27690/railway'
 
 
 def map_sqlite_type_to_postgres(sqlite_type):
     """Map SQLite data types to PostgreSQL data types"""
-    sqlite_type = sqlite_type.upper()
+    sqlite_type = sqlite_type.upper() if sqlite_type else 'TEXT'
     
     if 'INT' in sqlite_type:
         return 'INTEGER'
@@ -84,7 +81,6 @@ def migrate_database():
             primary_keys = []
             
             for col in columns:
-                col_id = col[0]
                 col_name = col[1]
                 col_type = col[2]
                 not_null = col[3]
@@ -93,7 +89,6 @@ def migrate_database():
                 
                 pg_type = map_sqlite_type_to_postgres(col_type)
                 
-                # Build column definition
                 col_def = f'"{col_name}" {pg_type}'
                 
                 if not_null and not is_pk:
@@ -107,12 +102,10 @@ def migrate_database():
                 if is_pk:
                     primary_keys.append(col_name)
             
-            # Add primary key constraint
             if primary_keys:
                 pk_constraint = f"PRIMARY KEY ({', '.join([f'\"{pk}\"' for pk in primary_keys])})"
                 column_defs.append(pk_constraint)
             
-            # Drop table if exists and create new one
             drop_table = f'DROP TABLE IF EXISTS "{table_name}" CASCADE'
             pg_cursor.execute(drop_table)
             
@@ -125,15 +118,11 @@ def migrate_database():
             rows = sqlite_cursor.fetchall()
             
             if rows:
-                # Get column names
                 column_names = [col[1] for col in columns]
-                
-                # Prepare insert query
                 placeholders = ', '.join(['%s'] * len(column_names))
                 column_list = ', '.join([f'"{col}"' for col in column_names])
                 insert_query = f'INSERT INTO "{table_name}" ({column_list}) VALUES ({placeholders})'
                 
-                # Insert data in batches
                 batch_size = 1000
                 for i in range(0, len(rows), batch_size):
                     batch = rows[i:i + batch_size]
@@ -149,7 +138,6 @@ def migrate_database():
             pg_conn.rollback()
             continue
     
-    # Close connections
     sqlite_cursor.close()
     sqlite_conn.close()
     pg_cursor.close()
@@ -161,13 +149,11 @@ def migrate_database():
 
 
 if __name__ == "__main__":
-    # Verify configuration before running
     print("="*50)
     print("SQLite to PostgreSQL Migration")
     print("="*50)
     print(f"\nSQLite Database: {SQLITE_DB}")
     print(f"PostgreSQL Host: {POSTGRES_CONFIG['host']}")
-    print(f"PostgreSQL Database: {POSTGRES_CONFIG['database']}")
     
     response = input("\nProceed with migration? (yes/no): ")
     if response.lower() in ['yes', 'y']:
