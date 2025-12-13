@@ -113,7 +113,7 @@ export default function Cart() {
                         {cartItems.map(item => (
                             <div key={item.id} className="cart-item">
                                 <img
-                                    src={`${import.meta.env.VITE_API_URL}0${item.image}`}
+                                    src={`${import.meta.env.VITE_API_URL}${item.image}`}
                                     alt={item.name}
                                     className="item-image"
                                 />
