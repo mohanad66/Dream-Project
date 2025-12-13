@@ -124,23 +124,23 @@ CSRF_TRUSTED_ORIGINS = ['https://*']
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get("PGDATABASE"),
-#         'USER': os.environ.get("PGUSER"),
-#         'PASSWORD': os.environ.get("PGPASSWORD"),
-#         'HOST': os.environ.get("PGHOST"),
-#         'PORT': os.environ.get("PGPORT", "5432"),
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get("PGDATABASE"),
+        'USER': os.environ.get("PGUSER"),
+        'PASSWORD': os.environ.get("PGPASSWORD"),
+        'HOST': os.environ.get("PGHOST"),
+        'PORT': os.environ.get("PGPORT", "5432"),
+    }
+}
 
 
 # IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT') is not None
@@ -199,9 +199,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")] 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
