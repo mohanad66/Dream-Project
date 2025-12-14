@@ -145,13 +145,22 @@ export default function Profile({ categories: initialCategories = [] }) {
 
     try {
       const response = await fetchData('/api/admins/products/');
-      const userProducts = response.data.filter(product => product.owner?.id === user?.id);
+
+      // Fix: owner is just a number (ID), not an object
+      // Compare directly: product.owner === user.id
+      const userProducts = response.data.filter(product => product.owner === user?.id);
+
+      console.log('All products:', response.data);
+      console.log('Current user ID:', user?.id);
+      console.log('Filtered user products:', userProducts);
+
       setState(prev => ({
         ...prev,
         myProducts: userProducts,
         productsLoading: false
       }));
     } catch (err) {
+      console.error('Error fetching products:', err);
       setState(prev => ({
         ...prev,
         error: "Failed to load your products.",

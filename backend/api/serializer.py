@@ -21,20 +21,44 @@ class UserDisplaySerializer(serializers.ModelSerializer):
         fields = ['id', 'username']
         
 class ProductSerializer(serializers.ModelSerializer):
-    owner = UserDisplaySerializer(read_only=True)
-
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=Tag.objects.all(),
+        required=False
+    )
+    
     class Meta:
         model = Product
-        fields = "__all__"
-
+        fields = ['id', 'name', 'description', 'price', 'image', 'category', 'tags', 'is_active', 'owner']
+        read_only_fields = ['owner']
+    
     def create(self, validated_data):
-        # Get the owner (which is a User instance) from the context.
-        owner = self.context['request'].user
-        validated_data['owner'] = owner
+        # Extract tags from validated data
+        tags = validated_data.pop('tags', [])
         
+        # Create the product
         product = Product.objects.create(**validated_data)
+        
+        # Set tags using .set() method
+        if tags:
+            product.tags.set(tags)
+        
         return product
-
+    
+    def update(self, instance, validated_data):
+        # Extract tags from validated data
+        tags = validated_data.pop('tags', None)
+        
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Update tags using .set() method
+        if tags is not None:
+            instance.tags.set(tags)
+        
+        return instance
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -43,7 +67,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TagsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
+        model = Tag
         fields = "__all__"
 
 

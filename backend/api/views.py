@@ -63,7 +63,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         if isinstance(request.data, dict):
             safe_data = {k: '***' if 'password' in k.lower() else v 
                          for k, v in request.data.items()}
-            logger.info(f"Auth attempt: {safe_data}")
+
         
         required = {'username', 'password'}
         missing = required - set(request.data.keys())

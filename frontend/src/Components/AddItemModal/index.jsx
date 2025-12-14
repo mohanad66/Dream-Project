@@ -11,13 +11,27 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [newTag, setNewTag] = useState('');
 
-    // Initialize form data with default or existing values
+    const generateSlug = (name) => {
+        return name
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-') 
+            .replace(/^-+|-+$/g, '');      
+    };
+
+
+    // 2. Replace the initialization useEffect
     useEffect(() => {
         const initialData = {};
         config.fields.forEach(field => {
             // Use existing value if available, otherwise use default
-            if (field.value !== undefined) {
-                initialData[field.name] = field.value;
+            if (field.value !== undefined && field.value !== null) {
+                // Special handling for file fields - don't include the URL in formData
+                if (field.type === 'file' && typeof field.value === 'string') {
+                    initialData[field.name] = ''; // Empty string for existing files
+                } else {
+                    initialData[field.name] = field.value;
+                }
             } else if (field.type === 'checkbox' && field.default !== undefined) {
                 initialData[field.name] = field.default;
             } else {
@@ -27,10 +41,28 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         setFormData(initialData);
 
         // Initialize selected tags if editing
+        // FIX: Handle both array of IDs and array of objects
         if (initialData.tags) {
-            setSelectedTags(Array.isArray(initialData.tags) ? initialData.tags : []);
+            let tagIds = [];
+
+            if (Array.isArray(initialData.tags)) {
+                // Check if tags are objects or IDs
+                if (initialData.tags.length > 0 && typeof initialData.tags[0] === 'object') {
+                    // Tags are objects like [{id: 1, name: 'tag1'}, ...]
+                    tagIds = initialData.tags.map(tag => tag.id);
+                } else {
+                    // Tags are already IDs like [1, 2, 3]
+                    tagIds = initialData.tags;
+                }
+            }
+
+            console.log('Initializing tags:', tagIds);
+            setSelectedTags(tagIds);
+        } else {
+            setSelectedTags([]);
         }
     }, [config]);
+
 
     // Fetch categories if needed
     useEffect(() => {
@@ -82,25 +114,60 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         if (!newTag.trim()) return;
 
         try {
-            const response = await api.post('/api/admins/tags/', { name: newTag.trim() });
+            const tagData = {
+                name: newTag.trim(),
+                slug: generateSlug(newTag.trim())  // Auto-generate slug
+            };
+
+            const response = await api.post('/api/admins/tags/',
+                tagData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
             const createdTag = response.data;
-            
+
+            console.log('Tag created successfully:', createdTag);
+
             // Add to available tags
-            setAvailableTags([...availableTags, createdTag]);
-            
+            setAvailableTags(prev => [...prev, createdTag]);
+
             // Auto-select the new tag
-            setSelectedTags([...selectedTags, createdTag.id]);
-            
+            setSelectedTags(prev => [...prev, createdTag.id]);
+
             // Clear input
             setNewTag('');
+
+            // Show success message briefly
+            setError('');
         } catch (err) {
             console.error("Failed to create tag", err);
-            const errorMsg = err.response?.data?.name?.[0] || err.response?.data?.detail || 'Failed to create tag. It may already exist.';
+            console.error("Error response:", err.response?.data);
+
+            let errorMsg = 'Failed to create tag.';
+
+            if (err.response?.data?.name) {
+                errorMsg = Array.isArray(err.response.data.name)
+                    ? err.response.data.name[0]
+                    : err.response.data.name;
+            } else if (err.response?.data?.slug) {
+                errorMsg = Array.isArray(err.response.data.slug)
+                    ? err.response.data.slug[0]
+                    : err.response.data.slug;
+            } else if (err.response?.data?.detail) {
+                errorMsg = err.response.data.detail;
+            } else if (err.response?.status === 400) {
+                errorMsg = 'Tag name already exists or is invalid.';
+            }
+
             setError(errorMsg);
-            // Clear error after 3 seconds
-            setTimeout(() => setError(''), 3000);
+            // Clear error after 5 seconds
+            setTimeout(() => setError(''), 5000);
         }
     };
+
 
     const handleRemoveTag = (tagId) => {
         setSelectedTags(selectedTags.filter(id => id !== tagId));
@@ -111,69 +178,138 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         setLoading(true);
         setError('');
 
-        const submissionData = new FormData();
-
-        // Prepare form data
-        Object.entries(formData).forEach(([key, value]) => {
-            // Skip tags field as we'll handle it separately
-            if (key === 'tags') return;
-
-            if (value !== null && value !== undefined) {
-                // Handle file deletion - if editing and file field is empty
-                if (key === 'image' && value === '' && config.method === 'PATCH') {
-                    // Send null to clear existing image
-                    submissionData.append(key, null);
-                } else {
-                    submissionData.append(key, value);
-                }
-            }
-        });
-
-        // Add selected tags
-        selectedTags.forEach(tagId => {
-            submissionData.append('tags', tagId);
-        });
-
         try {
             let response;
-            const headers = { 'Content-Type': 'multipart/form-data' };
 
-            if (config.method === 'PATCH') {
-                // For updates
-                response = await api.patch(config.endpoint, submissionData, { headers });
+            // Check if any field is a file type
+            const hasFileField = config.fields.some(field => field.type === 'file');
+
+            if (hasFileField) {
+                // === PRODUCTS (with file uploads) - Use FormData ===
+                const submissionData = new FormData();
+
+                // Add form fields
+                Object.entries(formData).forEach(([key, value]) => {
+                    if (key === 'tags') return; // Handle tags separately
+
+                    if (value !== null && value !== undefined) {
+                        // Special handling for image field
+                        if (key === 'image') {
+                            if (value instanceof File) {
+                                // New file selected
+                                submissionData.append(key, value);
+                            } else if (value === '' && config.method === 'PATCH') {
+                                // Editing but no new file selected - don't append anything
+                                // The backend will keep the existing image
+                                return;
+                            }
+                        } else if (value !== '') {
+                            submissionData.append(key, value);
+                        }
+                    }
+                });
+
+                // Add tags
+                if (selectedTags.length > 0) {
+                    selectedTags.forEach(tagId => {
+                        submissionData.append('tags', tagId);
+                    });
+                }
+
+                // Send with multipart headers
+                const headers = { 'Content-Type': 'multipart/form-data' };
+
+                if (config.method === 'PATCH') {
+                    response = await api.patch(config.endpoint, submissionData, { headers });
+                } else {
+                    response = await api.post(config.endpoint, submissionData, { headers });
+                }
+
             } else {
-                // For new items
-                response = await api.post(config.endpoint, submissionData, { headers });
+                // === TAGS, CATEGORIES, CONTACTS (no files) - Use JSON ===
+                const jsonData = {};
+
+                // Add form fields
+                Object.entries(formData).forEach(([key, value]) => {
+                    if (key === 'tags') return; // Handle tags separately
+
+                    if (value !== null && value !== undefined && value !== '') {
+                        jsonData[key] = value;
+                    }
+                });
+
+                // Add tags array if present
+                if (config.title.includes('Tag')) {
+                    if (jsonData.name && !jsonData.slug) {
+                        jsonData.slug = generateSlug(jsonData.name);
+                    }
+                }
+
+                // Add tags array if present
+                if (selectedTags.length > 0) {
+                    jsonData.tags = selectedTags;
+                }
+
+                console.log('Sending JSON data:', jsonData);
+                console.log('Endpoint:', config.endpoint);
+                console.log('Method:', config.method);
+
+                // Send as JSON (default for axios)
+                if (config.method === 'PATCH') {
+                    response = await api.patch(config.endpoint, jsonData);
+                } else {
+                    response = await api.post(config.endpoint, jsonData);
+                }
             }
 
-            console.log("Save successful, calling onSuccess and reloading page");
-            
+            console.log("Save successful");
+
+            // Show success message briefly
+            setError('✓ Successfully saved! Reloading...');
+
             // Call the parent's onSuccess callback first
             if (onSuccess) {
                 onSuccess(response.data);
             }
-            
+
             // Then reload the page after a short delay
             setTimeout(() => {
                 console.log("Reloading page now...");
                 window.location.reload(true);
-            }, 100);
+            }, 500);
 
         } catch (err) {
             const errorData = err.response?.data;
             let errorMsg = 'An unexpected error occurred.';
 
             if (typeof errorData === 'object' && errorData !== null) {
-                // Handle validation errors
-                errorMsg = Object.entries(errorData)
-                    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
-                    .join(' | ');
+                // Handle validation errors - format them nicely
+                const errorMessages = [];
+
+                Object.entries(errorData).forEach(([key, value]) => {
+                    const fieldLabel = key === 'name' ? 'Name' :
+                        key === 'email' ? 'Email' :
+                            key === 'value' ? 'Value' :
+                                key === 'contact_type' ? 'Contact Type' :
+                                    key.charAt(0).toUpperCase() + key.slice(1);
+
+                    const errorText = Array.isArray(value) ? value.join(', ') : value;
+                    errorMessages.push(`${fieldLabel}: ${errorText}`);
+                });
+
+                errorMsg = errorMessages.join(' | ');
             } else if (err.response?.status === 400) {
-                errorMsg = 'Invalid data. Please check your inputs.';
+                errorMsg = 'Invalid data. Please check your inputs and try again.';
+            } else if (err.response?.status === 500) {
+                errorMsg = 'Server error. Please try again later.';
             }
 
             setError(errorMsg);
             console.error("Operation failed:", err.response || err);
+            console.error("Error data:", errorData);
+
+            // Scroll to top of modal to show error
+            document.querySelector('.modal-content')?.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setLoading(false);
         }
@@ -185,7 +321,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         const isFileField = field.type === 'file';
         const isEditMode = config.method === 'PATCH';
         let filePlaceholder = '';
-        
+
         if (isFileField && isEditMode && value) {
             if (typeof value === 'string') {
                 // Extract filename from URL
@@ -270,49 +406,62 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                             })}
                         </div>
 
-                        {/* Available Tags */}
-                        <div className="available-tags">
-                            <label className="tags-label">Select tags:</label>
-                            <div className="tags-grid">
-                                {availableTags.map(tag => (
-                                    <button
-                                        key={tag.id}
-                                        type="button"
-                                        onClick={() => handleTagSelect(tag.id)}
-                                        className={`tag-option ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
-                                    >
-                                        {tag.name}
-                                    </button>
-                                ))}
+                        {/* Add New Tag Section - MOVED TO TOP */}
+                        <div className="add-tag-section">
+                            <label className="tags-label">Create and add new tag:</label>
+                            <div>
+                                <input
+                                    type="text"
+                                    value={newTag}
+                                    onChange={(e) => setNewTag(e.target.value)}
+                                    placeholder="Enter tag name..."
+                                    className="new-tag-input"
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddNewTag();
+                                        }
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleAddNewTag}
+                                    className="add-tag-btn"
+                                    disabled={!newTag.trim()}
+                                >
+                                    + Create & Add
+                                </button>
                             </div>
+                            <small style={{ color: '#666', display: 'block', marginTop: '4px' }}>
+                                This will create the tag and automatically select it
+                            </small>
                         </div>
 
-                        {/* Add New Tag */}
-                        <div className="add-tag-section">
-                            <input
-                                type="text"
-                                value={newTag}
-                                onChange={(e) => setNewTag(e.target.value)}
-                                placeholder="Create new tag..."
-                                className="new-tag-input"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleAddNewTag();
-                                    }
-                                }}
-                            />
-                            <button
-                                type="button"
-                                onClick={handleAddNewTag}
-                                className="add-tag-btn"
-                                disabled={!newTag.trim()}
-                            >
-                                + Add Tag
-                            </button>
+                        {/* Available Tags */}
+                        <div className="available-tags">
+                            <label className="tags-label">Or select existing tags:</label>
+                            <div className="tags-grid">
+                                {availableTags.length > 0 ? (
+                                    availableTags.map(tag => (
+                                        <button
+                                            key={tag.id}
+                                            type="button"
+                                            onClick={() => handleTagSelect(tag.id)}
+                                            className={`tag-option ${selectedTags.includes(tag.id) ? 'selected' : ''}`}
+                                        >
+                                            {tag.name}
+                                        </button>
+                                    ))
+                                ) : (
+                                    <p style={{ color: '#666', fontSize: '14px' }}>
+                                        No tags available. Create one above!
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 );
+
 
             default:
                 return (
