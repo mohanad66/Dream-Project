@@ -27,6 +27,6 @@ def health_check(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check),  # Explicit health endpoint
-    path('', health_check),  # Also respond on root path
+    path('', include('otp_system.urls')),  # Include OTP URLs
     path('api/', include("api.urls")), 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

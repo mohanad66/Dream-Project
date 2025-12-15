@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     "rest_framework",
     "corsheaders",
-    # "channels",
+    'otp_system',
     "api",
 ]
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
@@ -131,6 +131,8 @@ CSRF_TRUSTED_ORIGINS = ['https://*']
 #     }
 # }
 
+
+
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
@@ -147,6 +149,8 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+
 
 # IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT') is not None
 
@@ -375,3 +379,13 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+
+# Email Configuration (Gmail example)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')

@@ -35,7 +35,9 @@ class ContactAdmin(ModelAdmin):
 @admin.register(Tag)
 class ContactAdmin(ModelAdmin):
     pass
-
+@admin.register(Payment)
+class ContactAdmin(ModelAdmin):
+    pass
 # @admin.register(Product)
 # class CustomAdminClass(Product):
 #     pass

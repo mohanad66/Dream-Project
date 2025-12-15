@@ -12,10 +12,8 @@ import Register from './Pages/Register/Register.jsx';
 import { useAuth } from './services/auth';
 import ProfilePage from './Pages/Profile/index.jsx';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './services/constants.js';
-import api from './services/api.js';
 import CheckoutPage from "./Pages/Checkout/index.jsx"
 import { useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
 
 export default function App() {
   const {
