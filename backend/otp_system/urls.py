@@ -3,6 +3,6 @@ from . import views
 
 urlpatterns = [    
     # OTP
-    path('api/otp/send/', views.SendOTPView.as_view(), name='send_otp'),
-    path('api/otp/verify/', views.VerifyOTPView.as_view(), name='verify_otp'),
+    path('api/otp/send/', views.send_otp, name='send_otp'),
+    path('api/otp/verify/', views.verify_otp, name='verify_otp'),
 ]

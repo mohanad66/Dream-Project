@@ -14,6 +14,7 @@ import ProfilePage from './Pages/Profile/index.jsx';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './services/constants.js';
 import CheckoutPage from "./Pages/Checkout/index.jsx"
 import { useLocation } from 'react-router-dom';
+import VerifyOtp from './Pages/OTP/OTPVerify.jsx';
 
 export default function App() {
   const {
@@ -92,6 +93,7 @@ export default function App() {
           </ProtectedRoute>
         } />
 
+        {/* <Route path="/verify-otp" element={<VerifyOtp />} /> */}
         <Route path="/checkout" element={
           <ProtectedRoute>
             <CheckoutPage />

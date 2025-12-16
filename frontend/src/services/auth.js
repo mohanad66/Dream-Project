@@ -114,6 +114,28 @@ export const useAuth = () => {
       }
     });
   }, [setAuthData]);
+  // otp
+
+  const sendOTP = async () => {
+  try {
+    const response = await api.post("/api/otp/send/");
+    return response.data;
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    throw error;
+  }
+};
+
+const verifyOTP = async (otp_code) => {
+  try {
+    const response = await api.post("/api/otp/verify/", { otp_code });
+    return response.data;
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    throw error;
+  }
+};
+
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -147,6 +169,8 @@ export const useAuth = () => {
     setAuthData,
     login,
     logout,
-    fetchAllData
+    fetchAllData,
+    // sendOTP,
+    // verifyOTP,
   };
 };

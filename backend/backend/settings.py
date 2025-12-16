@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     "rest_framework",
     "corsheaders",
-    'otp_system',
+    # 'otp_system',
     "api",
 ]
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
