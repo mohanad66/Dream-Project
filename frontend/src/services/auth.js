@@ -1,5 +1,5 @@
 // src/services/auth.js
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import api from './api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 
@@ -19,7 +19,10 @@ export const useAuth = () => {
     error: null
   });
 
-  // Unified state updater
+  // Use ref to track if initialization has run
+  const hasInitialized = useRef(false);
+
+  // Unified state updater - stable reference
   const setAuthData = useCallback((updates) => {
     setAuthState(prev => ({
       ...prev,
@@ -31,35 +34,47 @@ export const useAuth = () => {
     }));
   }, []);
 
-  const fetchAllData = useCallback(async () => {
-    setAuthData({ isLoading: true, error: null });
-
+  // Fetch data function - accepts isAuthenticated parameter
+  const fetchAllData = useCallback(async (isAuth = false) => {
     try {
+      // Fetch public data that doesn't require auth
+      const publicDataPromises = [
+        api.get('/api/contact/'),
+        api.get('/api/carousels/'),
+        api.get('/api/categories/'),
+        api.get('/api/products/'),
+        api.get('/api/services/'),
+        api.get('/api/tags/')
+      ];
+
+      // Only fetch user data if authenticated
+      let userData = null;
+      if (isAuth) {
+        try {
+          const { data: user } = await api.get('/api/user/myuser/');
+          userData = user;
+        } catch (err) {
+          console.error('Failed to fetch user data:', err);
+        }
+      }
+
       const [
         { data: contacts },
         { data: imgs },
         { data: categories },
         { data: products },
         { data: services },
-        { data: tags },
-        { data: user }
-      ] = await Promise.all([
-        api.get('/api/contact/'),
-        api.get('/api/carousels/'),
-        api.get('/api/categories/'),
-        api.get('/api/products/'),
-        api.get('/api/services/'),
-        api.get('/api/tags/'),
-        api.get('/api/user/myuser/').catch(() => ({ data: null }))
-      ]);
+        { data: tags }
+      ] = await Promise.all(publicDataPromises);
 
       setAuthData({
-        data: { contacts, imgs, categories, products, services, tags, user },
+        data: { contacts, imgs, categories, products, services, tags, user: userData },
         isLoading: false,
-        isSuperuser: user?.is_superuser || false
+        isSuperuser: userData?.is_superuser || false
       });
       return true;
     } catch (err) {
+      console.error('Failed to fetch data:', err);
       setAuthData({
         error: err.message || 'Failed to fetch data',
         isLoading: false,
@@ -69,7 +84,29 @@ export const useAuth = () => {
     }
   }, [setAuthData]);
 
-  const login = async (credentials) => {
+  // Logout function - stable reference
+  const logout = useCallback(() => {
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
+    delete api.defaults.headers.common['Authorization'];
+
+    setAuthData({
+      isAuthenticated: false,
+      isLoading: false,
+      data: {
+        contacts: [],
+        imgs: [],
+        categories: [],
+        products: [],
+        services: [],
+        tags: [],
+        user: null
+      }
+    });
+  }, [setAuthData]);
+
+  // Login function - stable reference
+  const login = useCallback(async (credentials) => {
     setAuthData({ isLoading: true, error: null });
 
     try {
@@ -79,7 +116,8 @@ export const useAuth = () => {
       localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
 
-      await fetchAllData();
+      // Fetch data WITH authentication
+      await fetchAllData(true);
 
       setAuthData({
         isAuthenticated: true,
@@ -94,72 +132,66 @@ export const useAuth = () => {
       });
       return false;
     }
-  };
+  }, [setAuthData, fetchAllData]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(ACCESS_TOKEN);
-    localStorage.removeItem(REFRESH_TOKEN);
-    delete api.defaults.headers.common['Authorization'];
+  // OTP functions
+  const sendOTP = useCallback(async () => {
+    try {
+      const response = await api.post("/api/otp/send/");
+      return response.data;
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      throw error;
+    }
+  }, []);
 
-    setAuthData({
-      isAuthenticated: false,
-      data: {
-        contacts: [],
-        imgs: [],
-        categories: [],
-        products: [],
-        services: [],
-        tags: [],
-        user: null
-      }
-    });
-  }, [setAuthData]);
-  // otp
+  const verifyOTP = useCallback(async (otp_code) => {
+    try {
+      const response = await api.post("/api/otp/verify/", { otp_code });
+      return response.data;
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      throw error;
+    }
+  }, []);
 
-  const sendOTP = async () => {
-  try {
-    const response = await api.post("/api/otp/send/");
-    return response.data;
-  } catch (error) {
-    console.error("Error sending OTP:", error);
-    throw error;
-  }
-};
-
-const verifyOTP = async (otp_code) => {
-  try {
-    const response = await api.post("/api/otp/verify/", { otp_code });
-    return response.data;
-  } catch (error) {
-    console.error("Error verifying OTP:", error);
-    throw error;
-  }
-};
-
-
+  // Initialize auth - runs ONCE on mount
   useEffect(() => {
+    // Prevent running twice in StrictMode or multiple renders
+    if (hasInitialized.current) {
+      return;
+    }
+    hasInitialized.current = true;
+
     const initializeAuth = async () => {
       const token = localStorage.getItem(ACCESS_TOKEN);
 
       if (!token) {
+        console.log('No token found, fetching public data...');
+        // Fetch public data WITHOUT authentication
+        try {
+          await fetchAllData(false);
+        } catch (err) {
+          console.error('Failed to fetch public data:', err);
+        }
         setAuthData({ isLoading: false });
         return;
       }
 
+      console.log('Token found, authenticating...');
       try {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        await fetchAllData();
+        // Fetch data WITH authentication
+        await fetchAllData(true);
         setAuthData({ isAuthenticated: true });
       } catch (err) {
         console.error('Auth initialization failed:', err);
         logout();
-      } finally {
-        setAuthData({ isLoading: false });
       }
     };
 
     initializeAuth();
-  }, [fetchAllData, logout, setAuthData]);
+  }, []);
 
   return {
     data: authState.data,
@@ -170,7 +202,7 @@ const verifyOTP = async (otp_code) => {
     login,
     logout,
     fetchAllData,
-    // sendOTP,
-    // verifyOTP,
+    sendOTP,
+    verifyOTP,
   };
 };

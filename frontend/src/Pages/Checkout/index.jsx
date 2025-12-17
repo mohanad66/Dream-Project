@@ -6,6 +6,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from '../../Components/CheckoutForm';
 import './css/style.scss';
 import { useNavigate } from 'react-router-dom';
+import { ACCESS_TOKEN } from '../../services/constants';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -14,19 +15,17 @@ export default function CheckoutPage() {
     const [cartItems, setCartItems] = useState([]);
     const navigate = useNavigate();
 
+
     useEffect(() => {
-        // Load cart items from localStorage
         const items = JSON.parse(localStorage.getItem('cart')) || [];
-        
-        // Ensure all items have quantity
+
         const itemsWithQuantity = items.map(item => ({
             ...item,
             quantity: item.quantity || 1
         }));
-        
+
         setCartItems(itemsWithQuantity);
 
-        // If cart is empty, redirect to cart page
         if (items.length === 0) {
             navigate('/cart');
             return;
@@ -60,7 +59,7 @@ export default function CheckoutPage() {
         <div className="checkout-page-container">
             <div className="checkout-wrapper">
                 <h1>Complete Your Purchase</h1>
-                
+
                 <div className="checkout-content">
                     {/* Order Summary Section */}
                     <div className="order-summary-section">
@@ -106,7 +105,7 @@ export default function CheckoutPage() {
                     <div className="payment-section">
                         <h2>Payment Details</h2>
                         <Elements stripe={stripePromise}>
-                            <CheckoutForm 
+                            <CheckoutForm
                                 cartItems={cartItems}
                                 totalAmount={subtotal}
                                 totalItems={totalItems}

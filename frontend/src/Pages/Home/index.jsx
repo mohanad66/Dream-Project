@@ -13,22 +13,18 @@ export default function Home({ contacts = [], img = [], categories = [], product
     .slice(0, 8);
 
   useEffect(() => {
-    // Simulate loading time or wait for data to be ready
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500); // Adjust timing as needed
+    }, 1500);
 
-    // Cleanup timer on component unmount
     return () => clearTimeout(timer);
   }, [contacts, img, categories, products, services]);
 
-  // Alternative: Check if essential data is loaded
   useEffect(() => {
-    // If you want to base loading on actual data availability
     if (categories.length > 0 || products.length > 0) {
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 500); // Short delay to show loading state
+      }, 500);
       
       return () => clearTimeout(timer);
     }

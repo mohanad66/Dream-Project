@@ -1,194 +1,287 @@
-// UFO Navbar Variables
-$ufo-primary: #6bd1ff;
-$ufo-secondary: #9c64ff;
-$ufo-glow: 0 0 15px rgba(107, 209, 255, 0.7);
-$ufo-beam: linear-gradient(to bottom,
-    rgba(155, 255, 255, 0.2) 0%,
-    rgba(155, 255, 255, 0.1) 50%,
-    transparent 100%);
-$transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+// Performance-optimized styles
+// Using minimal animations and optimized properties
 
-.ufo-navbar-container {
+// Variables
+$primary-color: #4361ee;
+$secondary-color: #7209b7;
+$accent-color: #f72585;
+$background-color: rgba(255, 255, 255, 0.95);
+$text-color: #333;
+$text-light: #666;
+
+// Minimal transitions
+$transition-fast: transform 0.2s ease, opacity 0.2s ease;
+
+// Navbar Container
+.performant-navbar {
   position: fixed;
   bottom: 20px;
   left: 0;
   right: 0;
   display: flex;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
+  padding: 0 20px;
   pointer-events: none;
 }
 
-.ufo-light-beam {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120%;
-  height: 100vh;
-  background: $ufo-beam;
-  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.ufo-navbar {
+// Navbar Disc - Using simple box-shadow instead of complex gradients
+.navbar-disc {
   position: relative;
-  width: 90%;
-  max-width: 400px;
-  height: 80px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  background: $background-color;
+  border-radius: 25px;
+  padding: 12px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(67, 97, 238, 0.1);
   pointer-events: auto;
+  max-width: 550px;
+  width: 100%;
+  border: 1px solid rgba(67, 97, 238, 0.1);
+  backdrop-filter: blur(8px); // Minimal blur for glass effect
+  
+  // Will-change for better performance
+  will-change: transform, box-shadow;
+}
 
-  .ufo-light-beam {
-    opacity: 0.5;
-  }
+// Navigation Items
+.nav-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
 
-  .ufo-navbar__disc {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 30px rgba(107, 209, 255, 0.4);
-  }
-
-  &__disc {
-    width: 100%;
-    height: 70px;
-    background: radial-gradient(ellipse at center,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(230, 230, 255, 0.95) 100%);
-    border-radius: 50px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2),
-      inset 0 0 15px rgba(255, 255, 255, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: $transition;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-  }
-
-  &__links {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    padding: 0 20px;
-    position: relative;
-  }
-
-  &__center {
-    position: absolute;
-    top: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 50px;
-    background: radial-gradient(circle at center,
-        $ufo-primary 0%,
-        $ufo-secondary 100%);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: $ufo-glow;
-    z-index: 2;
-  }
-
-  &__abduction-beam {
-    width: 10px;
-    height: 10px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 0 0 10px white;
-    animation: pulse 2s infinite;
-  }
-
-  &__link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: #666;
-    padding: 0.5rem;
-    border-radius: 12px;
-    transition: $transition;
-    position: relative;
-    z-index: 1;
-    background: transparent;
-
-    &:hover {
-      color: $ufo-primary;
-      transform: translateY(-5px);
-
-      .ufo-navbar__icon {
-        transform: scale(1.2);
-        filter: drop-shadow(0 0 5px rgba(107, 209, 255, 0.7));
-      }
-    }
-
-    &--active {
-      color: $ufo-primary;
-
-      .ufo-navbar__icon {
-        transform: scale(1.15);
-        filter: drop-shadow(0 0 5px rgba(107, 209, 255, 0.7));
-      }
-
-      .ufo-navbar__label {
-        font-weight: 600;
-      }
+// Navigation Links
+.nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: $text-light;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: $transition-fast;
+  min-width: 60px;
+  
+  // Optimize for animation
+  will-change: transform, background-color;
+  
+  &:hover {
+    color: $primary-color;
+    background: rgba(67, 97, 238, 0.08);
+    transform: translateY(-2px);
+    
+    .nav-icon {
+      color: $primary-color;
+      transform: scale(1.1);
     }
   }
-
-  &__icon {
-    font-size: 1.4rem;
-    transition: $transition;
-  }
-
-  &__label {
-    font-size: 0.7rem;
-    margin-top: 0.25rem;
-    transition: $transition;
+  
+  &.active {
+    color: $primary-color;
+    background: rgba(67, 97, 238, 0.12);
+    
+    .nav-icon {
+      color: $primary-color;
+      transform: scale(1.1);
+    }
+    
+    .nav-label {
+      font-weight: 600;
+    }
   }
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
+// Navigation Icon - Using transform for performance
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+  transition: $transition-fast;
+  color: $text-light;
+  will-change: transform, color;
+}
 
-  50% {
-    transform: scale(1.2);
-    opacity: 1;
-  }
+// Navigation Label
+.nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
 
-  100% {
-    transform: scale(0.8);
-    opacity: 0.8;
+// Active Indicator - Simple element
+.active-indicator {
+  position: absolute;
+  bottom: 8px;
+  height: 2px;
+  background: $primary-color;
+  border-radius: 1px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  
+  // Optimize transform animation
+  will-change: transform;
+}
+
+// Logout Button
+.nav-logout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  color: $text-light;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: $transition-fast;
+  cursor: pointer;
+  min-width: 60px;
+  will-change: transform, background-color;
+  
+  &:hover {
+    color: $accent-color;
+    background: rgba(247, 37, 133, 0.08);
+    transform: translateY(-2px);
+    
+    .logout-icon {
+      color: $accent-color;
+      transform: scale(1.1);
+    }
+  }
+  
+  .logout-icon {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+    transition: $transition-fast;
+    will-change: transform, color;
+  }
+}
+
+// Auth Buttons
+.nav-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: $transition-fast;
+  min-width: 65px;
+  will-change: transform, background-color;
+  
+  &.nav-login {
+    color: $primary-color;
+    background: rgba(67, 97, 238, 0.08);
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    
+    &:hover {
+      background: rgba(67, 97, 238, 0.15);
+      transform: translateY(-2px);
+    }
+  }
+  
+  &.nav-register {
+    color: $secondary-color;
+    background: rgba(114, 9, 183, 0.08);
+    border: 1px solid rgba(114, 9, 183, 0.2);
+    
+    &:hover {
+      background: rgba(114, 9, 183, 0.15);
+      transform: translateY(-2px);
+    }
+  }
+  
+  .auth-icon {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+    transition: $transition-fast;
+    will-change: transform;
+  }
+}
+
+// Responsive Design - Media queries last
+@media (max-width: 768px) {
+  .performant-navbar {
+    padding: 0 15px;
+  }
+  
+  .navbar-disc {
+    padding: 10px;
+    border-radius: 20px;
+  }
+  
+  .nav-link,
+  .nav-logout,
+  .nav-auth {
+    padding: 6px 10px;
+    min-width: 55px;
+  }
+  
+  .nav-icon,
+  .logout-icon,
+  .auth-icon {
+    font-size: 1.1rem;
+  }
+  
+  .nav-label {
+    font-size: 0.7rem;
   }
 }
 
 @media (max-width: 480px) {
-  .ufo-navbar {
-    width: 95%;
-
-    &__link {
-      padding: 0.5rem 0.25rem;
-    }
-
-    &__label {
-      font-size: 0.6rem;
-    }
+  .performant-navbar {
+    padding: 0 10px;
+  }
+  
+  .navbar-disc {
+    padding: 8px;
+  }
+  
+  .nav-items {
+    gap: 2px;
+  }
+  
+  .nav-link,
+  .nav-logout,
+  .nav-auth {
+    padding: 6px 8px;
+    min-width: 50px;
+  }
+  
+  .nav-label {
+    font-size: 0.65rem;
   }
 }
 
-.ufo-navbar__link.btn {
-  border: none;
-  font-size: 30px;
+// Accessibility
+.nav-link:focus,
+.nav-logout:focus,
+.nav-auth:focus {
+  outline: 2px solid $primary-color;
+  outline-offset: 2px;
+}
 
-  &:hover {
-    color: #e60606;
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .nav-link,
+  .nav-logout,
+  .nav-auth,
+  .nav-icon,
+  .logout-icon,
+  .auth-icon,
+  .active-indicator {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .navbar-disc {
+    backdrop-filter: none;
   }
 }

@@ -1,5 +1,5 @@
 // src/App.js
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Home from './Pages/Home/index.jsx';
 import Products from './Pages/Products/index.jsx';
 import About from './Pages/About us/index.jsx';
@@ -26,9 +26,13 @@ export default function App() {
     logout
   } = useAuth();
 
+  const navigate = useNavigate();
+
   async function handleLogin(userData) {
-    await login(userData);
-    window.location.href = '/';
+    const success = await login(userData);
+    if (success) {
+      navigate('/');  // Use React Router navigation instead
+    }
   }
 
   const handleLogout = () => {
@@ -50,40 +54,35 @@ export default function App() {
     <>
       <Routes>
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        
         <Route path="/register" element={<Register />} />
 
         <Route path="/" element={
-          <ProtectedRoute>
-            <Home
-              contacts={data.contacts || []}
-              img={data.imgs || []}
-              services={data.services || []}
-              categories={data.categories || []}
-              products={data.products || []}
-              tags={data.tags || []}
-            />
-          </ProtectedRoute>
+          <Home
+            contacts={data.contacts || []}
+            img={data.imgs || []}
+            services={data.services || []}
+            categories={data.categories || []}
+            products={data.products || []}
+            tags={data.tags || []}
+          />
         } />
 
         <Route path="/products" element={
-          <ProtectedRoute>
-            <Products
-              products={data.products || []}
-              categories={data.categories || []}
-              tags={data.tags || []}
-            />
-          </ProtectedRoute>
+          <Products
+            products={data.products || []}
+            categories={data.categories || []}
+            tags={data.tags || []}
+          />
         } />
 
         <Route path="/cart" element={
-          <ProtectedRoute>
-            <Cart categories={data.categories || []} />
-          </ProtectedRoute>
+          <Cart categories={data.categories || []} />
         } />
 
-        <Route path="/about" element={
+        <Route path="/checkout" element={
           <ProtectedRoute>
-            <About />
+            <CheckoutPage />
           </ProtectedRoute>
         } />
 
@@ -92,17 +91,17 @@ export default function App() {
             <ProfilePage categories={data.categories} tags={data.tags} />
           </ProtectedRoute>
         } />
+        {/* <Route path="/about" element={
+          <ProtectedRoute>
+            <About />
+          </ProtectedRoute>
+        } /> */}
 
         {/* <Route path="/verify-otp" element={<VerifyOtp />} /> */}
-        <Route path="/checkout" element={
-          <ProtectedRoute>
-            <CheckoutPage />
-          </ProtectedRoute>
-        } />
 
         <Route path='*' element={<Navigate to="/" replace />} />
       </Routes>
-      {(localStorage.getItem(ACCESS_TOKEN) !== null && location.pathname !== "/checkout") ? <Navbar onLogout={handleLogout} /> : null}
+      {(location.pathname !== "/checkout" && location.pathname !== "/login" && location.pathname !== "/register") ? <Navbar onLogout={handleLogout} /> : null}
     </>
   );
 }
