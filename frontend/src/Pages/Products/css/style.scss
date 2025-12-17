@@ -2,6 +2,7 @@
 // Dream Project Products SCSS
 // =========================
 /* Light theme (default) */
+
 .light-theme {
   --product-primary: #4f46e5;
   --product-primary-dark: #4338ca; // darker shade for interactions
@@ -95,6 +96,11 @@ $product-breakpoint-sm: 576px;
 $product-breakpoint-md: 768px;
 $product-breakpoint-lg: 992px;
 $product-breakpoint-xl: 1200px;
+
+
+:root {
+  --bottom-navbar-height: 130px; // visually perfect for floating navbars
+}
 
 // --- Mixins ---
 @mixin container {
@@ -554,7 +560,7 @@ $product-breakpoint-xl: 1200px;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: $product-spacing-xl;
   margin-top: $product-spacing-lg;
-  margin: 0 2.5%;
+  margin: 5% 2.5%;
   width: 95%;
 
   @media (min-width: $product-breakpoint-md) {

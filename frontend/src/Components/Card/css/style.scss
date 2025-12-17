@@ -136,17 +136,32 @@ $breakpoints: (
 // Main Card Component
 // ==========================================
 .card {
-
-  background: color(white);
+  background: linear-gradient(180deg, color(white), color(neutral-50));
   border-radius: radius(xl);
+  border: 1px solid color(neutral-200);
   box-shadow: shadow(md);
   padding: spacing(2xl);
   max-width: 380px;
-  margin: 0 auto spacing(2xl);
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: all transition(normal);
+  overflow: hidden;
+  transition: transform transition(normal), box-shadow transition(normal);
+
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(39, 174, 96, .08), transparent 60%);
+    pointer-events: none;
+  }
+
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: shadow(xl);
+  }
 
   &:hover {
     box-shadow: shadow(lg);
@@ -172,28 +187,18 @@ $breakpoints: (
 
   // Card Title (h2)
   h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.35rem;
+    font-weight: 800;
     color: color(neutral-900);
-    margin: 0 0 spacing(sm) 0;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-
-    // Handle long titles
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  // Price
+
   .price {
-    color: color(primary);
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: spacing(md);
-    letter-spacing: 0.01em;
+    font-size: 1.2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, color(primary), color(primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .price {
@@ -439,6 +444,7 @@ $breakpoints: (
       display: flex;
       justify-content: center;
       align-self: center;
+
       .popup-img {
         width: 380px;
         height: 100%; // Take all the height of .popup-right

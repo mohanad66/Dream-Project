@@ -226,10 +226,6 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                                 Don't have an account?{' '}
                                 <span onClick={() => navigate('/register')}>Register</span>
                             </p>
-                            <p className="form-link">
-                                Forgot password?{' '}
-                                <span onClick={() => navigate('/reset-password')}>Reset it</span>
-                            </p>
                         </>
                     ) : (
                         <>

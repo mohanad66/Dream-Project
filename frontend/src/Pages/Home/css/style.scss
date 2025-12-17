@@ -1,4 +1,9 @@
 @import "../../../css/style.scss";
+$spacing-xl: 2rem;
+
+:root {
+  --bottom-navbar-height: 110px; // visually perfect for floating navbars
+}
 // Enhanced Home Container
 .home {
   color: var(--text-color);
@@ -11,6 +16,7 @@
   padding: $spacing-md 0;
   position: relative;
   @include theme-transition;
+  padding-bottom: 10% !important;
 
   // Subtle animated background pattern
   &::before {
@@ -20,14 +26,17 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: 
+    background-image:
       radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
       radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
     @include theme-transition;
   }
+  &::after{
+      padding-bottom: calc(var(--bottom-navbar-height) + $spacing-xl + env(safe-area-inset-bottom)) !important;
 
+  }
   @media (min-width: $breakpoint-md) {
     padding: $spacing-lg 0;
   }
@@ -48,25 +57,9 @@
   line-height: 1.2;
   letter-spacing: -0.025em;
   @include theme-transition;
-
-  // Modern gradient underline
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -$spacing-sm;
-    left: 50%;
-    transform: translateX(-50%);
-    width: clamp(60px, 15%, 120px);
-    height: 4px;
-    background: var(--gradient-primary);
-    border-radius: $radius-full;
-    opacity: 0.8;
-    @include theme-transition;
-  }
-
   @media (min-width: $breakpoint-md) {
     margin: $spacing-xl 0;
-    
+
     &::after {
       height: 5px;
     }
@@ -81,7 +74,7 @@
 
   &-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill , minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: $spacing-md;
     width: 100%;
 
