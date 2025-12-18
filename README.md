@@ -4,7 +4,7 @@ A full-stack e-commerce platform built with React and Django, featuring a modern
 
 ## 🌐 Live Demo
 
-**Website:** [https://dream-project-umber.vercel.app]([https://dream-project-umber.vercel.app](https://frontend-production-d50a.up.railway.app/))
+**Website:** [https://frontend-production-d50a.up.railway.app](https://frontend-production-d50a.up.railway.app)
 
 ---
 
@@ -193,4 +193,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Support
 
-For support, email your.email@example.com or open an issue in the repository.
+For support, open an issue in the repository.
