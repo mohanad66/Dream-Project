@@ -12,8 +12,8 @@ export default function Products({ categories = [], products = [], tags = [] }) 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [visibleProductsCount, setVisibleProductsCount] = useState(20);
-  const productsPerPage = 20;
+  const [visibleProductsCount, setVisibleProductsCount] = useState(10);
+  const productsPerPage = 10;
 
   useEffect(() => {
     const timer = setTimeout(() => {
