@@ -2,11 +2,15 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import "./css/style.scss";
 import Card from '../../Components/Card';
+import { fetchAllCategories, fetchAllTags } from '../../services/auth';
 
-export default function Products({ categories = [], products = [], tags = [] }) {
+export default function Products({ products = []}) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+  const [tags, setTags] = useState([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -18,6 +22,21 @@ export default function Products({ categories = [], products = [], tags = [] }) 
   const productsPerPage = 9; // Changed to 8 as per your image
 
   const productsContainerRef = useRef(null);
+  useEffect(() => {
+    const loadTags = async () => {
+      setIsLoadingTags(true);
+      const allTags = await fetchAllTags('http://127.0.0.1:8000/api/tags/');
+      setTags(allTags);
+      setIsLoadingTags(false);
+    };
+     const loadCategories = async () => {
+      const allCategories = await fetchAllCategories('http://127.0.0.1:8000/api/categories/');
+      setCategories(allCategories);
+    };
+    
+    loadTags();
+    loadCategories();
+  }, []);
   const processedProducts = useMemo(() => {
     return products
       .filter(product => product.is_active !== false)
@@ -27,6 +46,7 @@ export default function Products({ categories = [], products = [], tags = [] }) 
         category: product.category || null
       }));
   }, [products]);
+  
   const actualPriceRange = useMemo(() => {
     if (processedProducts.length === 0) return { min: 0, max: 1000 };
     const prices = processedProducts.map(p => p.price).filter(p => p > 0);
@@ -54,9 +74,6 @@ export default function Products({ categories = [], products = [], tags = [] }) 
     min: 0,
     max: queryParams.get('maxPrice') ? parseInt(queryParams.get('maxPrice')) : 1000
   });
-
-  // Process products
-
 
   // Filter products based on criteria
   const filteredProducts = useMemo(() => {

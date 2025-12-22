@@ -91,10 +91,10 @@ export const useAuth = () => {
       const services = extractData(servicesResponse);
       const tags = extractData(tagsResponse);
 
-      console.log('Extracted data:', { 
-        contacts: contacts.length, 
-        imgs: imgs.length, 
-        categories: categories.length, 
+      console.log('Extracted data:', {
+        contacts: contacts.length,
+        imgs: imgs.length,
+        categories: categories.length,
         products: products.length,
         services: services.length,
         tags: tags.length
@@ -238,4 +238,65 @@ export const useAuth = () => {
     sendOTP,
     verifyOTP,
   };
+};
+
+export const fetchAllTags = async (url = 'http://127.0.0.1:8000/api/tags/') => {
+  let allTags = [];
+  let nextUrl = url;
+
+  try {
+    while (nextUrl) {
+      const response = await fetch(nextUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Add current page results to our collection
+      allTags = [...allTags, ...data.results];
+
+      // Get next page URL (will be null on last page)
+      nextUrl = data.next;
+
+      console.log(`Fetched ${data.results.length} tags, total so far: ${allTags.length}`);
+    }
+
+    console.log(`✅ Fetched all ${allTags.length} tags successfully`);
+    return allTags;
+
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    return [];
+  }
+};
+export const fetchAllCategories = async (url = 'http://127.0.0.1:8000/api/categories/') => {
+  let allCategories = [];
+  let nextUrl = url;
+
+  try {
+    while (nextUrl) {
+      const response = await fetch(nextUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Add current page results to our collection
+      allCategories = [...allCategories, ...data.results];
+
+      // Get next page URL (will be null on last page)
+      nextUrl = data.next;
+
+      console.log(`Fetched ${data.results.length} tags, total so far: ${allCategories.length}`);
+    }
+
+    console.log(`✅ Fetched all ${allCategories.length} tags successfully`);
+    return allCategories;
+
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    return [];
+  }
 };
