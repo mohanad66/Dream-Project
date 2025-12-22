@@ -1,1 +1,50 @@
+# Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.env
+.env.local
+.env.*.local
+env.bak/
+venv.bak/
+
+# Database
+*.db
+*.sqlite3
 db.sqlite3
+
+# Static files
+staticfiles/
+static/
+
+# Media files
+media/
+
+# Django secret
+secrets.py
+secret_key.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
