@@ -15,7 +15,7 @@ export default function Products({ categories = [], products = [], tags = [] }) 
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 8; // Changed to 8 as per your image
+  const productsPerPage = 9; // Changed to 8 as per your image
 
   const productsContainerRef = useRef(null);
   const processedProducts = useMemo(() => {
