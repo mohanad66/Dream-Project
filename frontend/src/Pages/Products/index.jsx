@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import "./css/style.scss";
 import Card from '../../Components/Card';
@@ -8,27 +8,19 @@ export default function Products({ categories = [], products = [], tags = [] }) 
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTags, setSelectedTags] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [visibleProductsCount, setVisibleProductsCount] = useState(20);
+  const productsPerPage = 20;
 
-  useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        const response = await api.get('/api/tags/');
-        setAvailableTags(response.data);
-      } catch (err) {
-        console.error("Failed to fetch tags", err);
-      }
-    };
-    fetchTags();
-  }, []);
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [categories, products,]);
+  }, [categories, products]);
 
   const [selectedCategory, setSelectedCategory] = useState(
     queryParams.get('category') || 'all'
@@ -43,7 +35,7 @@ export default function Products({ categories = [], products = [], tags = [] }) 
     max: queryParams.get('maxPrice') ? parseInt(queryParams.get('maxPrice')) : 1000
   });
 
-
+  // Process products
   const processedProducts = useMemo(() => {
     return products
       .filter(product => product.is_active !== false)
@@ -54,6 +46,7 @@ export default function Products({ categories = [], products = [], tags = [] }) 
       }));
   }, [products]);
 
+  // Get actual price range
   const actualPriceRange = useMemo(() => {
     if (processedProducts.length === 0) return { min: 0, max: 1000 };
     const prices = processedProducts.map(p => p.price).filter(p => p > 0);
@@ -63,6 +56,7 @@ export default function Products({ categories = [], products = [], tags = [] }) 
     };
   }, [processedProducts]);
 
+  // Reset price range if no query params
   useEffect(() => {
     if (!queryParams.get('minPrice') && !queryParams.get('maxPrice')) {
       setPriceRange({
@@ -72,6 +66,7 @@ export default function Products({ categories = [], products = [], tags = [] }) 
     }
   }, [actualPriceRange]);
 
+  // Update URL params
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
@@ -84,6 +79,8 @@ export default function Products({ categories = [], products = [], tags = [] }) 
       navigate(`?${newSearch}`, { replace: true });
     }
   }, [selectedCategory, searchTerm, priceRange, actualPriceRange, navigate, location.search]);
+
+  // Handle price change
   const handlePriceChange = (e, type) => {
     const value = parseInt(e.target.value) || 0;
     setPriceRange(prev => ({
@@ -93,6 +90,8 @@ export default function Products({ categories = [], products = [], tags = [] }) 
         : Math.max(Math.min(value, actualPriceRange.max), prev.min + 1)
     }));
   };
+
+  // Filter products based on criteria
   const filteredProducts = useMemo(() => {
     return processedProducts.filter(product => {
       // Search filter
@@ -118,7 +117,42 @@ export default function Products({ categories = [], products = [], tags = [] }) 
     });
   }, [processedProducts, searchTerm, selectedCategory, priceRange, selectedTags]);
 
-  // Add tag toggle handler
+  // Get visible products based on pagination
+  const visibleProducts = useMemo(() => {
+    return filteredProducts.slice(0, visibleProductsCount);
+  }, [filteredProducts, visibleProductsCount]);
+
+  // Reset visible products count when filters change
+  useEffect(() => {
+    setVisibleProductsCount(productsPerPage);
+  }, [searchTerm, selectedCategory, priceRange, selectedTags]);
+
+  // Infinite scroll handler
+  const handleScroll = useCallback(() => {
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    
+    // If we're near the bottom (within 100px) and there are more products to load
+    if (scrollTop + clientHeight >= scrollHeight - 100 && 
+        visibleProducts.length < filteredProducts.length && 
+        !isLoadingMore) {
+      
+      setIsLoadingMore(true);
+      
+      // Simulate loading delay for better UX
+      setTimeout(() => {
+        setVisibleProductsCount(prev => Math.min(prev + productsPerPage, filteredProducts.length));
+        setIsLoadingMore(false);
+      }, 500);
+    }
+  }, [visibleProducts.length, filteredProducts.length, isLoadingMore]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  // Handle tag toggle
   const handleTagToggle = (tagId) => {
     setSelectedTags(prev =>
       prev.includes(tagId)
@@ -127,28 +161,32 @@ export default function Products({ categories = [], products = [], tags = [] }) 
     );
   };
 
-  // Update reset filters function
+  // Reset all filters
   const resetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('all');
     setPriceRange(actualPriceRange);
-    setSelectedTags([]); // Add this
+    setSelectedTags([]);
+    setVisibleProductsCount(productsPerPage);
   };
 
+  // Get available categories
   const availableCategories = useMemo(() => {
     return categories.filter(cat => cat.is_active !== false);
   }, [categories]);
 
+  // Check for uncategorized products
   const hasUncategorizedProducts = processedProducts.some(p => p.category === null);
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner">
-        </div>
+        <div className="loading-spinner"></div>
       </div>
     );
   }
+
   return (
     <div className="products-container">
       <h1>Our Products</h1>
@@ -192,8 +230,8 @@ export default function Products({ categories = [], products = [], tags = [] }) 
         <div className="tags-filter">
           <label>Filter by Tags</label>
           <div className="tags-list">
-            {availableTags.length > 0 ? (
-              availableTags.map(tag => (
+            {tags.length > 0 ? (
+              tags.map(tag => (
                 <button
                   key={tag.id}
                   type="button"
@@ -268,20 +306,52 @@ export default function Products({ categories = [], products = [], tags = [] }) 
 
       {/* Product Grid */}
       <div className="products-grid">
-        {filteredProducts.length > 0 && products.length > 0 ? (
-          filteredProducts.map(product => (
+        {visibleProducts.length > 0 ? (
+          visibleProducts.map(product => (
             <Card key={product.id} card={product} categories={categories} tags={tags} />
           ))
-        ) : filteredProducts.length != products.length ? (
+        ) : filteredProducts.length !== processedProducts.length ? (
           <div className="no-products">
             <h3>No products found</h3>
             <p>Try adjusting your filters or search terms.</p>
             <button onClick={resetFilters}>Reset All Filters</button>
           </div>
-        ) : (<div className='empty'>
-          <h2>There isn't any Products</h2>
-        </div>)}
+        ) : (
+          <div className='empty'>
+            <h2>There aren't any Products</h2>
+          </div>
+        )}
       </div>
+
+      {/* Loading More Indicator */}
+      {isLoadingMore && (
+        <div className="loading-more">
+          <div className="loading-spinner"></div>
+          <p>Loading more products...</p>
+        </div>
+      )}
+
+      {/* Show "Load More" button as alternative to infinite scroll */}
+      {visibleProducts.length < filteredProducts.length && !isLoadingMore && (
+        <div className="load-more-container">
+          <button 
+            className="load-more-btn" 
+            onClick={() => setVisibleProductsCount(prev => Math.min(prev + productsPerPage, filteredProducts.length))}
+          >
+            Load More ({filteredProducts.length - visibleProducts.length} remaining)
+          </button>
+          <p className="showing-count">
+            Showing {visibleProducts.length} of {filteredProducts.length} products
+          </p>
+        </div>
+      )}
+
+      {/* End of products message */}
+      {visibleProducts.length === filteredProducts.length && filteredProducts.length > 0 && (
+        <div className="end-of-products">
+          <p>You've reached the end! Showing all {filteredProducts.length} products.</p>
+        </div>
+      )}
     </div>
   );
 }

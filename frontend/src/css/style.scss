@@ -248,15 +248,14 @@ html {
   overflow-x: hidden;
 }
 
-// Base Body Styles - Mobile First
 body {
   
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-secondary) 100%) !important;
+  min-height: 100%;
   #root {
     background: transparent !important;
     @media(max-width:$breakpoint-lg){
       padding-bottom: 15%;
-
     }
     // background: linear-gradient(90deg, $product-primary, $product-secondary);
   }

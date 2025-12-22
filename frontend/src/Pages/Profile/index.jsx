@@ -22,6 +22,31 @@ const MODAL_TYPES = {
   TAG: 'Tag'
 };
 
+const PaginationControls = ({ pagination, onPageChange, loading }) => {
+  const totalPages = Math.ceil(pagination.count / 10);
+
+  return (
+    <div className="pagination-controls">
+      <button
+        onClick={() => onPageChange(pagination.currentPage - 1)}
+        disabled={!pagination.previous || loading}
+        className="button"
+      >
+        Previous
+      </button>
+      <span>
+        Page {pagination.currentPage} of {totalPages || 1} ({pagination.count} total items)
+      </span>
+      <button
+        onClick={() => onPageChange(pagination.currentPage + 1)}
+        disabled={!pagination.next || loading}
+        className="button"
+      >
+        Next
+      </button>
+    </div>
+  );
+};
 const ProductCard = ({ product, categories, onToggleStatus }) => (
   <Card card={product} categories={categories} onToggleStatus={onToggleStatus} />
 );
@@ -44,13 +69,37 @@ export default function Profile({ categories: initialCategories = [] }) {
     adminLoading: false,
     myProducts: [],
     productsLoading: false,
+    productsPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
     allCategories: initialCategories,
     categoriesLoading: false,
+    categoriesPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
     allContacts: [],
     contactsLoading: false,
+    contactsPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
     allTags: [],
     tagsLoading: false,
-    pagination: {
+    tagsPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
+    usersPagination: {
       count: 0,
       next: null,
       previous: null,
@@ -69,17 +118,21 @@ export default function Profile({ categories: initialCategories = [] }) {
     formData,
     allTags,
     tagsLoading,
+    tagsPagination,
     isModalOpen,
     modalConfig,
     allUsers,
     adminLoading,
+    usersPagination,
     myProducts,
     productsLoading,
+    productsPagination,
     allCategories,
     categoriesLoading,
+    categoriesPagination,
     allContacts,
     contactsLoading,
-    pagination,
+    contactsPagination,
     editingItem
   } = state;
 
@@ -95,6 +148,7 @@ export default function Profile({ categories: initialCategories = [] }) {
       throw error;
     }
   }, []);
+
 
   const updateData = useCallback(async (url, data, method = 'patch') => {
     try {
@@ -121,7 +175,7 @@ export default function Profile({ categories: initialCategories = [] }) {
       setState(prev => ({
         ...prev,
         allUsers: response.data.results,
-        pagination: {
+        usersPagination: {
           count: response.data.count,
           next: response.data.next,
           previous: response.data.previous,
@@ -138,25 +192,33 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [isSuperuser, fetchData]);
 
-  const fetchMyProducts = useCallback(async () => {
+  const fetchMyProducts = useCallback(async (page = 1) => {
     if (!isAdmin) return;
 
     setState(prev => ({ ...prev, productsLoading: true }));
 
     try {
-      const response = await fetchData('/api/admins/products/');
+      const response = await fetchData(`/api/admins/products/?page=${page}`);
 
-      // Fix: owner is just a number (ID), not an object
-      // Compare directly: product.owner === user.id
-      const userProducts = response.data.filter(product => product.owner === user?.id);
+      // ✅ Safely extract results from paginated response
+      const allProducts = response.data?.results ?? response.data ?? [];
 
-      console.log('All products:', response.data);
+      // Filter products by current user
+      const userProducts = allProducts.filter(product => product.owner === user?.id);
+
+      console.log('All products:', allProducts);
       console.log('Current user ID:', user?.id);
       console.log('Filtered user products:', userProducts);
 
       setState(prev => ({
         ...prev,
         myProducts: userProducts,
+        productsPagination: {
+          count: response.data?.count ?? 0,
+          next: response.data?.next ?? null,
+          previous: response.data?.previous ?? null,
+          currentPage: page,
+        },
         productsLoading: false
       }));
     } catch (err) {
@@ -169,16 +231,22 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [isAdmin, user?.id, fetchData]);
 
-  const fetchAllCategories = useCallback(async () => {
+  const fetchAllCategories = useCallback(async (page = 1) => {
     if (!isAdmin) return;
 
     setState(prev => ({ ...prev, categoriesLoading: true }));
 
     try {
-      const response = await fetchData('/api/admins/categories/');
+      const response = await fetchData(`/api/admins/categories/?page=${page}`);
       setState(prev => ({
         ...prev,
-        allCategories: response.data,
+        allCategories: response.data.results,
+        categoriesPagination: {
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
+          currentPage: page,
+        },
         categoriesLoading: false
       }));
     } catch (err) {
@@ -190,16 +258,22 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [isAdmin, fetchData]);
 
-  const fetchAllContacts = useCallback(async () => {
+  const fetchAllContacts = useCallback(async (page = 1) => {
     if (!isAdmin) return;
 
     setState(prev => ({ ...prev, contactsLoading: true }));
 
     try {
-      const response = await fetchData('/api/admins/contacts/');
+      const response = await fetchData(`/api/admins/contacts/?page=${page}`);
       setState(prev => ({
         ...prev,
-        allContacts: response.data,
+        allContacts: response.data.results,
+        contactsPagination: {
+          count: response.data.count,
+          next: response.data.next,
+          previous: response.data.previous,
+          currentPage: page,
+        },
         contactsLoading: false
       }));
     } catch (err) {
@@ -211,19 +285,31 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [isAdmin, fetchData]);
 
-  const fetchAllTags = useCallback(async () => {
+  const fetchAllTags = useCallback(async (page = 1) => {
     if (!isAdmin) return;
 
     setState(prev => ({ ...prev, tagsLoading: true }));
 
     try {
-      const response = await fetchData('/api/admins/tags/');
+      const response = await fetchData(`/api/admins/tags/?page=${page}`);
+      console.log('Tags API response:', response.data); // Debug log
+
+      // Check if response.data has results property (pagination) or is the array itself
+      const tagsData = response.data?.results || response.data;
+
       setState(prev => ({
         ...prev,
-        allTags: response.data,
+        allTags: Array.isArray(tagsData) ? tagsData : [],
+        tagsPagination: {
+          count: response.data?.count || 0,
+          next: response.data?.next || null,
+          previous: response.data?.previous || null,
+          currentPage: page,
+        },
         tagsLoading: false
       }));
     } catch (err) {
+      console.error('Error fetching tags:', err);
       setState(prev => ({
         ...prev,
         error: "Failed to load tags.",
@@ -231,7 +317,7 @@ export default function Profile({ categories: initialCategories = [] }) {
       }));
     }
   }, [isAdmin, fetchData]);
-
+  
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetchData("/api/user/myuser/");
@@ -287,7 +373,8 @@ export default function Profile({ categories: initialCategories = [] }) {
           type: 'select',
           required: false,
           value: item?.category?.id,
-          options: allCategories.map(cat => ({ id: cat.id, name: cat.name }))
+          // Add safe access with optional chaining and default array
+          options: (allCategories || []).map(cat => ({ id: cat.id, name: cat.name }))
         },
         { name: 'tags', label: 'Tags', type: 'tags', value: item?.tags },
         { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
@@ -330,12 +417,23 @@ export default function Profile({ categories: initialCategories = [] }) {
       fields: commonFields[type]
     };
 
-    setState(prev => ({
-      ...prev,
-      modalConfig: config,
-      isModalOpen: true,
-      editingItem: item
-    }));
+    setState(prev => {
+      // Ensure prev is always an object
+      if (!prev || typeof prev !== 'object') {
+        return {
+          ...state, // Use current state as fallback
+          modalConfig: config,
+          isModalOpen: true,
+          editingItem: item
+        };
+      }
+      return {
+        ...prev,
+        modalConfig: config,
+        isModalOpen: true,
+        editingItem: item
+      };
+    });
   };
 
   // Form handling
@@ -612,15 +710,19 @@ export default function Profile({ categories: initialCategories = [] }) {
             user={user}
             myProducts={myProducts}
             productsLoading={productsLoading}
+            productsPagination={productsPagination}
             allCategories={allCategories}
             categoriesLoading={categoriesLoading}
+            categoriesPagination={categoriesPagination}
             allContacts={allContacts}
             contactsLoading={contactsLoading}
+            contactsPagination={contactsPagination}
             allTags={allTags}
             tagsLoading={tagsLoading}
+            tagsPagination={tagsPagination}
             allUsers={allUsers}
             adminLoading={adminLoading}
-            pagination={pagination}
+            usersPagination={usersPagination}
             onRefreshProducts={fetchMyProducts}
             onRefreshCategories={fetchAllCategories}
             onRefreshContacts={fetchAllContacts}
@@ -750,17 +852,21 @@ const SettingsTab = () => (
 const AdminTab = ({
   isSuperuser,
   user,
-  myProducts,
+  myProducts = [],              // ✅ Add default
   productsLoading,
-  allCategories,
+  productsPagination,
+  allCategories = [],           // ✅ Add default
   categoriesLoading,
-  allContacts,
+  categoriesPagination,
+  allContacts = [],             // ✅ Add default
   contactsLoading,
-  allTags,
+  contactsPagination,
+  allTags = [],                 // ✅ Add default
   tagsLoading,
-  allUsers,
+  tagsPagination,
+  allUsers = [],                // ✅ Add default
   adminLoading,
-  pagination,
+  usersPagination,
   onRefreshProducts,
   onRefreshCategories,
   onRefreshContacts,
@@ -785,9 +891,9 @@ const AdminTab = ({
     {/* Products Section */}
     <div className="my-products-section">
       <div className="profile-content__header">
-        <h4>My Products ({myProducts.length})</h4>
+        <h4>My Products ({productsPagination.count})</h4>
         <button
-          onClick={onRefreshProducts}
+          onClick={() => onRefreshProducts(1)}
           className="button button--secondary"
           disabled={productsLoading}
         >
@@ -798,12 +904,19 @@ const AdminTab = ({
       {productsLoading ? (
         <div className="loading-spinner" />
       ) : myProducts.length > 0 ? (
-        <ProductTable
-          products={myProducts}
-          onStatusToggle={onProductStatusToggle}
-          onEdit={onOpenModal}
-          onDelete={onDeleteProduct}
-        />
+        <>
+          <ProductTable
+            products={myProducts}
+            onStatusToggle={onProductStatusToggle}
+            onEdit={onOpenModal}
+            onDelete={onDeleteProduct}
+          />
+          <PaginationControls
+            pagination={productsPagination}
+            onPageChange={onRefreshProducts}
+            loading={productsLoading}
+          />
+        </>
       ) : (
         <p>You have not created any products yet.</p>
       )}
@@ -812,9 +925,9 @@ const AdminTab = ({
     {/* Categories Section */}
     <div className="category-management-section management-section">
       <div className="profile-content__header">
-        <h4>Category Management</h4>
+        <h4>Category Management ({categoriesPagination.count})</h4>
         <button
-          onClick={onRefreshCategories}
+          onClick={() => onRefreshCategories(1)}
           className="button button--secondary"
           disabled={categoriesLoading}
         >
@@ -825,12 +938,19 @@ const AdminTab = ({
       {categoriesLoading ? (
         <div className="loading-spinner" />
       ) : allCategories.length > 0 ? (
-        <CategoryTable
-          categories={allCategories}
-          onStatusToggle={onCategoryStatusToggle}
-          onEdit={onOpenModal}
-          onDelete={onDeleteCategory}
-        />
+        <>
+          <CategoryTable
+            categories={allCategories}
+            onStatusToggle={onCategoryStatusToggle}
+            onEdit={onOpenModal}
+            onDelete={onDeleteCategory}
+          />
+          <PaginationControls
+            pagination={categoriesPagination}
+            onPageChange={onRefreshCategories}
+            loading={categoriesLoading}
+          />
+        </>
       ) : (
         <p>No categories found.</p>
       )}
@@ -839,9 +959,9 @@ const AdminTab = ({
     {/* Contacts Section */}
     <div className="contact-management-section management-section">
       <div className="profile-content__header">
-        <h4>Contact Management</h4>
+        <h4>Contact Management ({contactsPagination.count})</h4>
         <button
-          onClick={onRefreshContacts}
+          onClick={() => onRefreshContacts(1)}
           className="button button--secondary"
           disabled={contactsLoading}
         >
@@ -852,12 +972,19 @@ const AdminTab = ({
       {contactsLoading ? (
         <div className="loading-spinner" />
       ) : allContacts.length > 0 ? (
-        <ContactTable
-          contacts={allContacts}
-          onStatusToggle={onContactStatusToggle}
-          onEdit={onOpenModal}
-          onDelete={onDeleteContact}
-        />
+        <>
+          <ContactTable
+            contacts={allContacts}
+            onStatusToggle={onContactStatusToggle}
+            onEdit={onOpenModal}
+            onDelete={onDeleteContact}
+          />
+          <PaginationControls
+            pagination={contactsPagination}
+            onPageChange={onRefreshContacts}
+            loading={contactsLoading}
+          />
+        </>
       ) : (
         <p>No contacts found.</p>
       )}
@@ -866,9 +993,9 @@ const AdminTab = ({
     {/* Tags Section */}
     <div className="tag-management-section management-section">
       <div className="profile-content__header">
-        <h4>Tag Management</h4>
+        <h4>Tag Management ({tagsPagination?.count ?? 0})</h4>
         <button
-          onClick={onRefreshTags}
+          onClick={() => onRefreshTags(1)}
           className="button button--secondary"
           disabled={tagsLoading}
         >
@@ -878,12 +1005,21 @@ const AdminTab = ({
 
       {tagsLoading ? (
         <div className="loading-spinner" />
-      ) : allTags.length > 0 ? (
-        <TagTable
-          tags={allTags}
-          onEdit={onOpenModal}
-          onDelete={onDeleteTag}
-        />
+      ) : (allTags?.length ?? 0) > 0 ? (
+        <>
+          <TagTable
+            tags={allTags}
+            onEdit={onOpenModal}
+            onDelete={onDeleteTag}
+          />
+          {tagsPagination && (
+            <PaginationControls
+              pagination={tagsPagination}
+              onPageChange={onRefreshTags}
+              loading={tagsLoading}
+            />
+          )}
+        </>
       ) : (
         <p>No tags found.</p>
       )}
@@ -893,12 +1029,12 @@ const AdminTab = ({
     {isSuperuser && (
       <div className="user-management-section management-section">
         <div className="profile-content__header">
-          <h4>User Management</h4>
+          <h4>User Management ({usersPagination?.count || 0})</h4>
         </div>
 
         {adminLoading ? (
           <div className="loading-spinner" />
-        ) : (
+        ) : allUsers.length > 0 ? (
           <>
             <UserTable
               users={allUsers}
@@ -906,25 +1042,16 @@ const AdminTab = ({
               onStatusToggle={onUserStatusToggle}
               onDelete={onDeleteUser}
             />
-
-            <div className="pagination-controls">
-              <button
-                onClick={() => onRefreshUsers(pagination.currentPage - 1)}
-                disabled={!pagination.previous}
-                className="button"
-              >
-                Previous
-              </button>
-              <span>Page {pagination.currentPage} of {Math.ceil(pagination.count / 10)}</span>
-              <button
-                onClick={() => onRefreshUsers(pagination.currentPage + 1)}
-                disabled={!pagination.next}
-                className="button"
-              >
-                Next
-              </button>
-            </div>
+            {usersPagination && (
+              <PaginationControls
+                pagination={usersPagination}
+                onPageChange={onRefreshUsers}
+                loading={adminLoading}
+              />
+            )}
           </>
+        ) : (
+          <p>No users found.</p>
         )}
       </div>
     )}

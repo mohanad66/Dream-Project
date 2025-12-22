@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from 'react-icons/bs';
 import './css/style.scss';
 import useFancybox from '../Fancy Box';
-import { FiMail ,  FiPhone , FiInfo, FiLink , } from "react-icons/fi";
-import { FaFacebook, FaWhatsapp ,FaGithub , FaLinkedin ,FaInstagram ,FaTwitter} from "react-icons/fa";
+import { FiMail, FiPhone, FiInfo, FiLink, } from "react-icons/fi";
+import { FaFacebook, FaWhatsapp, FaGithub, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
 
-const Carousel = ({ images = [], contacts }) => {
+const Carousel = ({ images = [], contacts = [] }) => {
+  // ✅ Add safety checks at the top
+  const safeImages = Array.isArray(images) ? images : [];
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  
   const [currentImage, setCurrentImage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [fancyboxRef] = useFancybox({
@@ -14,29 +18,33 @@ const Carousel = ({ images = [], contacts }) => {
 
   // Auto-advance carousel every 5 seconds
   useEffect(() => {
+    // ✅ Check if we have images before setting interval
+    if (safeImages.length === 0) return;
+    
     const interval = setInterval(() => {
       if (!isAnimating) {
         handleNext();
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [currentImage, isAnimating]);
+  }, [currentImage, isAnimating, safeImages.length]); // ✅ Add safeImages.length to dependencies
 
   const handlePrevious = () => {
-    if (isAnimating) return;
+    if (isAnimating || safeImages.length === 0) return; // ✅ Add length check
     setIsAnimating(true);
-    setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setCurrentImage((prev) => (prev === 0 ? safeImages.length - 1 : prev - 1));
     setTimeout(() => setIsAnimating(false), 500);
   };
 
   const handleNext = () => {
-    if (isAnimating) return;
+    if (isAnimating || safeImages.length === 0) return; // ✅ Add length check
     setIsAnimating(true);
-    setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setCurrentImage((prev) => (prev === safeImages.length - 1 ? 0 : prev + 1));
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  if (!images || images.length === 0) {
+  // ✅ Show empty state with contacts if no images
+  if (safeImages.length === 0) {
     return (
       <div className="carousel">
         <div className="main-carousel no-images">
@@ -45,9 +53,18 @@ const Carousel = ({ images = [], contacts }) => {
 
         <div className="contact-panel">
           <div className="panel-content">
-            <h3>Contact us</h3>
-            <p>If you want to order special products or repair your device</p>
-            <a href="#contact" className="cta-button">Contact us</a>
+            <h3>Contact Us</h3>
+            <p>Get in touch for special orders or device repairs</p>
+
+            {safeContacts.length > 0 ? (
+              <div className="contact-columns">
+                {safeContacts.map(contact => (
+                  contact.is_active && <ContactItem key={contact.id} contact={contact} />
+                ))}
+              </div>
+            ) : (
+              <a href="#contact" className="cta-button">Contact us</a>
+            )}
           </div>
         </div>
       </div>
@@ -66,7 +83,7 @@ const Carousel = ({ images = [], contacts }) => {
         />
 
         <div ref={fancyboxRef} className="slider-container">
-          {images.map((imageItem, index) => (
+          {safeImages.map((imageItem, index) => (
             <div
               key={imageItem.id || `image-${index}`}
               className={`slide ${currentImage === index ? 'active' : ''} ${index < currentImage ? 'left' : 'right'}`}
@@ -97,7 +114,7 @@ const Carousel = ({ images = [], contacts }) => {
         />
 
         <div className='circle-indicator'>
-          {images.map((_, index) => (
+          {safeImages.map((_, index) => (
             <button
               key={`indicator-${index}`}
               className={`indicator-dot ${currentImage === index ? 'active' : ''}`}
@@ -119,24 +136,25 @@ const Carousel = ({ images = [], contacts }) => {
           <h3>Contact Us</h3>
           <p>Get in touch for special orders or device repairs</p>
 
-          <div className="contact-columns">
-            {/* Left Column */}
-              {/* Static phone number */}
-
-
-              {/* Dynamic contact methods - first half */}
-              {contacts.slice(0, Math.ceil(contacts.length / 2)).map(contact => (
+          {safeContacts.length > 0 ? (
+            <div className="contact-columns">
+              {/* Split contacts into two columns */}
+              {safeContacts.slice(0, Math.ceil(safeContacts.length / 2)).map(contact => (
                 contact.is_active && <ContactItem key={contact.id} contact={contact} />
               ))}
-              {contacts.slice(Math.ceil(contacts.length / 2)).map(contact => (
+              {safeContacts.slice(Math.ceil(safeContacts.length / 2)).map(contact => (
                 contact.is_active && <ContactItem key={contact.id} contact={contact} />
               ))}
-          </div>
+            </div>
+          ) : (
+            <p>No contact information available</p>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
 function ContactItem({ contact }) {
   const getIconComponent = () => {
     switch (contact.contact_type) {
@@ -169,7 +187,7 @@ function ContactItem({ contact }) {
         {getIconComponent()}
       </div>
       <div className="contact-details">
-        <span className="contact-name">{contact.name}</span><br/>
+        <span className="contact-name">{contact.name}</span><br />
         {contact.contact_type === 'email' ? (
           <a href={`mailto:${contact.value}`} className="contact-value">
             {contact.value}
@@ -206,4 +224,5 @@ function getSocialDisplayName(url) {
   const cleanUrl = url.replace(/^https?:\/\/(www\.)?/, '');
   return cleanUrl.split('/')[0];
 }
+
 export default Carousel;

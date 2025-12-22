@@ -34,9 +34,25 @@ export const useAuth = () => {
     }));
   }, []);
 
+  // ✅ Helper function to extract data from paginated response
+  const extractData = (response) => {
+    // If response has results property (paginated), return results
+    if (response && typeof response === 'object' && Array.isArray(response.results)) {
+      return response.results;
+    }
+    // If response is already an array, return it
+    if (Array.isArray(response)) {
+      return response;
+    }
+    // Otherwise return empty array
+    return [];
+  };
+
   // Fetch data function - accepts isAuthenticated parameter
   const fetchAllData = useCallback(async (isAuth = false) => {
     try {
+      console.log('Fetching all data...'); // Debug log
+
       // Fetch public data that doesn't require auth
       const publicDataPromises = [
         api.get('/api/contact/'),
@@ -59,13 +75,30 @@ export const useAuth = () => {
       }
 
       const [
-        { data: contacts },
-        { data: imgs },
-        { data: categories },
-        { data: products },
-        { data: services },
-        { data: tags }
+        { data: contactsResponse },
+        { data: imgsResponse },
+        { data: categoriesResponse },
+        { data: productsResponse },
+        { data: servicesResponse },
+        { data: tagsResponse }
       ] = await Promise.all(publicDataPromises);
+
+      // ✅ Extract arrays from paginated responses
+      const contacts = extractData(contactsResponse);
+      const imgs = extractData(imgsResponse);
+      const categories = extractData(categoriesResponse);
+      const products = extractData(productsResponse);
+      const services = extractData(servicesResponse);
+      const tags = extractData(tagsResponse);
+
+      console.log('Extracted data:', { 
+        contacts: contacts.length, 
+        imgs: imgs.length, 
+        categories: categories.length, 
+        products: products.length,
+        services: services.length,
+        tags: tags.length
+      }); // Debug log
 
       setAuthData({
         data: { contacts, imgs, categories, products, services, tags, user: userData },

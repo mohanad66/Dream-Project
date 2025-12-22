@@ -20,31 +20,41 @@ logger = logging.getLogger(__name__ )
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10  # Match the expected page size, or make it configurable
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
 class ProductAdminViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related('owner')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
+    pagination_class = StandardResultsSetPagination  # ✅ Add this line
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
 class CategoryAdminViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
+    pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
 
 class ServiceAdminViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
+    pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = ServiceSerializer
     permission_classes = [IsAdminUser]
 
 class ContactAdminViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
+    pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
 
 class TagsAdminViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
+    pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = TagsSerializer
     permission_classes = [IsAdminUser]
 
@@ -93,10 +103,6 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10  # Match the expected page size, or make it configurable
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -221,7 +227,7 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
         return UserSerializer
 
 # Public Content Views
-def create_public_list_view(model, serializer, order_by=None, filter_active=False):
+def create_public_list_view(model, serializer_class, order_by=None, filter_active=False):
     @api_view(["GET"])
     @permission_classes([AllowAny])
     def view_func(request):
@@ -231,20 +237,34 @@ def create_public_list_view(model, serializer, order_by=None, filter_active=Fals
                 queryset = queryset.filter(is_active=True)
             if order_by:
                 queryset = queryset.order_by(order_by)
-            return Response(serializer(queryset, many=True).data)
+            
+            # Pagination
+            paginator = StandardResultsSetPagination()
+            paginated_queryset = paginator.paginate_queryset(queryset, request)
+            
+            # Serialize paginated data
+            serializer = serializer_class(
+                paginated_queryset,
+                many=True,
+                context={'is_admin': request.user.is_staff}
+            )
+            
+            return paginator.get_paginated_response(serializer.data)
+            
         except Exception as e:
             logger.error(f"Error fetching {model.__name__}: {str(e)}")
             return Response(
                 {"error": f"Failed to retrieve {model.__name__.lower()}s"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
     return view_func
-
 class PasswordChangeView(generics.GenericAPIView):
     serializer_class = PasswordChangeSerializer
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
+        pagination_class = StandardResultsSetPagination  # ✅ Add this line
         serializer = self.get_serializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         

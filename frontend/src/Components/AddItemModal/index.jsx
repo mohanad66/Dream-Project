@@ -15,8 +15,8 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         return name
             .trim()
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-') 
-            .replace(/^-+|-+$/g, '');      
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
     };
 
 
@@ -65,6 +65,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
 
 
     // Fetch categories if needed
+    // Fetch categories if needed
     useEffect(() => {
         const needsCategories = config.fields.some(field =>
             field.name === 'category' && field.type === 'select'
@@ -72,21 +73,68 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
 
         if (needsCategories) {
             api.get('/api/categories/')
-                .then(response => setCategories(response.data))
+                .then(response => {
+                    // ✅ Extract results from paginated response
+                    const categoriesData = response.data?.results ?? response.data ?? [];
+                    setCategories(categoriesData);
+                })
                 .catch(err => console.error("Failed to fetch categories", err));
         }
     }, [config.fields]);
 
     // Fetch tags if needed
+    // Fetch tags if needed - UPDATED VERSION
     useEffect(() => {
         const needsTags = config.fields.some(field =>
             field.name === 'tags' && field.type === 'tags'
         );
 
         if (needsTags) {
-            api.get('/api/admins/tags/')
-                .then(response => setAvailableTags(response.data))
-                .catch(err => console.error("Failed to fetch tags", err));
+            console.log('Fetching tags for modal...');
+
+            // Function to fetch all pages recursively
+            const fetchAllTags = async (url, allTags = []) => {
+                try {
+                    const response = await api.get(url);
+                    const data = response.data;
+
+                    // Extract tags from current page
+                    const currentTags = data?.results || data || [];
+
+                    // Combine with previous tags
+                    const combinedTags = [...allTags, ...currentTags];
+
+                    // Check if there's a next page
+                    if (data?.next) {
+                        // Recursively fetch next page
+                        return fetchAllTags(data.next, combinedTags);
+                    }
+
+                    // No more pages, return all tags
+                    return combinedTags;
+
+                } catch (err) {
+                    console.error("Failed to fetch tags", err);
+                    return allTags; // Return whatever we have so far
+                }
+            };
+
+            // Start fetching from the first page
+            fetchAllTags('/api/admins/tags/')
+                .then(allTags => {
+                    console.log('All tags fetched:', allTags);
+                    if (Array.isArray(allTags)) {
+                        setAvailableTags(allTags);
+                        console.log(`Total available tags: ${allTags.length}`);
+                    } else {
+                        console.error('Tags data is not an array:', allTags);
+                        setAvailableTags([]);
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to fetch tags", err);
+                    setAvailableTags([]);
+                });
         }
     }, [config.fields]);
 
@@ -102,13 +150,65 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         }
     };
 
+    // Replace the problematic handleTagSelect function with this:
     const handleTagSelect = (tagId) => {
-        if (selectedTags.includes(tagId)) {
-            setSelectedTags(selectedTags.filter(id => id !== tagId));
-        } else {
-            setSelectedTags([...selectedTags, tagId]);
-        }
+        setSelectedTags(prev => {
+            // Ensure prev is always an array
+            if (!Array.isArray(prev)) {
+                return [tagId];
+            }
+            if (prev.includes(tagId)) {
+                return prev.filter(id => id !== tagId);
+            } else {
+                return [...prev, tagId];
+            }
+        });
     };
+
+    // Also update the initialization useEffect to be more defensive:
+    useEffect(() => {
+        const initialData = {};
+        config.fields.forEach(field => {
+            // Use existing value if available, otherwise use default
+            if (field.value !== undefined && field.value !== null) {
+                // Special handling for file fields - don't include the URL in formData
+                if (field.type === 'file' && typeof field.value === 'string') {
+                    initialData[field.name] = ''; // Empty string for existing files
+                } else {
+                    initialData[field.name] = field.value;
+                }
+            } else if (field.type === 'checkbox' && field.default !== undefined) {
+                initialData[field.name] = field.default;
+            } else {
+                initialData[field.name] = '';
+            }
+        });
+        setFormData(initialData);
+
+        // Initialize selected tags if editing
+        // FIX: Handle both array of IDs and array of objects
+        let tagIds = [];
+
+        if (initialData.tags) {
+            if (Array.isArray(initialData.tags)) {
+                // Check if tags are objects or IDs
+                if (initialData.tags.length > 0 && typeof initialData.tags[0] === 'object') {
+                    // Tags are objects like [{id: 1, name: 'tag1'}, ...]
+                    tagIds = initialData.tags.map(tag => tag.id);
+                } else {
+                    // Tags are already IDs like [1, 2, 3]
+                    tagIds = initialData.tags;
+                }
+            } else {
+                // If tags is not an array, set to empty array
+                console.warn('Tags data is not an array:', initialData.tags);
+            }
+        }
+
+        console.log('Initializing tags:', tagIds);
+        setSelectedTags(tagIds);
+    }, [config]);
+
 
     const handleAddNewTag = async () => {
         if (!newTag.trim()) return;
@@ -132,10 +232,22 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
             console.log('Tag created successfully:', createdTag);
 
             // Add to available tags
-            setAvailableTags(prev => [...prev, createdTag]);
+            setAvailableTags(prev => {
+                // Ensure prev is always an array
+                if (!prev || !Array.isArray(prev)) {
+                    return [createdTag];
+                }
+                return [...prev, createdTag];
+            });
 
             // Auto-select the new tag
-            setSelectedTags(prev => [...prev, createdTag.id]);
+            setSelectedTags(prev => {
+                // Ensure prev is always an array
+                if (!prev || !Array.isArray(prev)) {
+                    return [createdTag.id];
+                }
+                return [...prev, createdTag.id];
+            });
 
             // Clear input
             setNewTag('');
@@ -389,27 +501,32 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                     <div className="tags-field">
                         {/* Selected Tags */}
                         <div className="selected-tags">
-                            {selectedTags.map(tagId => {
-                                const tag = availableTags.find(t => t.id === tagId);
-                                return tag ? (
-                                    <span key={tagId} className="tag-badge">
-                                        {tag.name}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTag(tagId)}
-                                            className="tag-remove"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                ) : null;
-                            })}
+                            <label className="tags-label">Selected Tags:</label>
+                            {selectedTags.length > 0 ? (
+                                selectedTags.map(tagId => {
+                                    const tag = availableTags.find(t => t.id === tagId);
+                                    return tag ? (
+                                        <span key={tagId} className="tag-badge">
+                                            {tag.name}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveTag(tagId)}
+                                                className="tag-remove"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    ) : null;
+                                })
+                            ) : (
+                                <p className="no-tags-message">No tags selected</p>
+                            )}
                         </div>
 
-                        {/* Add New Tag Section - MOVED TO TOP */}
+                        {/* Add New Tag Section */}
                         <div className="add-tag-section">
                             <label className="tags-label">Create and add new tag:</label>
-                            <div>
+                            <div className="new-tag-input-group">
                                 <input
                                     type="text"
                                     value={newTag}
@@ -432,7 +549,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                                     + Create & Add
                                 </button>
                             </div>
-                            <small style={{ color: '#666', display: 'block', marginTop: '4px' }}>
+                            <small className="tag-help-text">
                                 This will create the tag and automatically select it
                             </small>
                         </div>
@@ -453,9 +570,9 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
                                         </button>
                                     ))
                                 ) : (
-                                    <p style={{ color: '#666', fontSize: '14px' }}>
-                                        No tags available. Create one above!
-                                    </p>
+                                    <div className="no-tags-available">
+                                        <p>No tags available. Create one above!</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
