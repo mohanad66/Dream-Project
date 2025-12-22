@@ -18,13 +18,6 @@ venv.bak/
 *.sqlite3
 db.sqlite3
 
-# Static files
-staticfiles/
-static/
-
-# Media files
-media/
-
 # Django secret
 secrets.py
 secret_key.txt

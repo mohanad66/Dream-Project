@@ -1,0 +1,3 @@
+# In your project root
+touch static/.gitkeep
+touch media/.gitkeep
