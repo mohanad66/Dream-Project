@@ -240,7 +240,7 @@ export const useAuth = () => {
   };
 };
 
-export const fetchAllTags = async (url = 'http://127.0.0.1:8000/api/tags/') => {
+export const fetchAllTags = async (url) => {
   let allTags = [];
   let nextUrl = url;
 
@@ -270,7 +270,7 @@ export const fetchAllTags = async (url = 'http://127.0.0.1:8000/api/tags/') => {
     return [];
   }
 };
-export const fetchAllCategories = async (url = 'http://127.0.0.1:8000/api/categories/') => {
+export const fetchAllCategories = async (url) => {
   let allCategories = [];
   let nextUrl = url;
 

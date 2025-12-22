@@ -25,12 +25,12 @@ export default function Products({ products = []}) {
   useEffect(() => {
     const loadTags = async () => {
       setIsLoadingTags(true);
-      const allTags = await fetchAllTags('http://127.0.0.1:8000/api/tags/');
+      const allTags = await fetchAllTags(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/tags/`);
       setTags(allTags);
       setIsLoadingTags(false);
     };
      const loadCategories = async () => {
-      const allCategories = await fetchAllCategories('http://127.0.0.1:8000/api/categories/');
+      const allCategories = await fetchAllCategories(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/categories/`);
       setCategories(allCategories);
     };
     
