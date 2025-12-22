@@ -29,8 +29,6 @@ urlpatterns = [
     path('health/', health_check),  # Explicit health endpoint
     path('', include('otp_system.urls')),  # Include OTP URLs
     path('api/', include("api.urls")), 
-]
-# This serves media files during development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
