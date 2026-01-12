@@ -1,4 +1,4 @@
-# Use an official Python runtime as a parent image
+# Use Python 3.12 slim image
 FROM python:3.12-slim
 
 # Set environment variables
@@ -15,26 +15,22 @@ RUN apt-get update && apt-get install -y \
     netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first (for better caching)
+# Copy and install Python dependencies
 COPY requirements.txt /app/
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
 COPY . /app/
 
-# Create media directory
+# Create media directory with proper permissions
 RUN mkdir -p /app/media && chmod 755 /app/media
 
-# Collect static files (this might fail without DB, so make it optional)
-RUN python manage.py collectstatic --noinput || echo "Collectstatic skipped"
-
-# Copy and set permissions for entrypoint
+# Copy entrypoint script and make it executable
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
+# Expose port
 EXPOSE 8000
 
-# Use entrypoint
+# Set entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
