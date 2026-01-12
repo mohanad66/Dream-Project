@@ -19,15 +19,14 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copy project files (this includes docker-entrypoint.sh)
 COPY . /app/
+
+# Make entrypoint executable
+RUN chmod +x /app/docker-entrypoint.sh
 
 # Create media directory with proper permissions
 RUN mkdir -p /app/media && chmod 755 /app/media
-
-# Copy entrypoint script and make it executable
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
 
 # Expose port
 EXPOSE 8000
