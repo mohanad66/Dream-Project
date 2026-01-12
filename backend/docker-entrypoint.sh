@@ -3,7 +3,7 @@ echo "Starting Django application..."
 # Wait for PostgreSQL
 echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
 # Added -w 1 for a 1-second timeout to prevent the usage error
-while ! nc -z -w 1 "${DB_HOST}" "${DB_PORT}"; do
+while ! nc -z -w 1 "${PGHOST}" "${PGPORT}"; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 1
 done
