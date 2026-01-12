@@ -121,8 +121,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 ASGI_APPLICATION = 'backend.asgi.application'
 CORS_ALLOW_ALL_ORIGINS = True 
-CSRF_COOKIE_SECURE = False
-# Database
+
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True# Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # DATABASES = {
