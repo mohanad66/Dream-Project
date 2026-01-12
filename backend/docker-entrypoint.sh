@@ -13,19 +13,23 @@ done
 
 echo "Database is ready!"
 
-# Fix database sequences for ALL tables, especially django_migrations
-echo "Fixing database sequences..."
+# FORCE FIX for django_migrations ID column
+echo "Force fixing django_migrations auto-increment..."
 python manage.py shell <<EOF
 from django.db import connection
-tables = ['django_migrations', 'django_content_type', 'auth_permission', 'auth_group', 'auth_user']
 with connection.cursor() as cursor:
-    for table in tables:
-        try:
-            # This command resets the ID counter to the current maximum ID in the table
-            cursor.execute(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM {table};")
-            print(f"Fixed sequence for {table}")
-        except Exception as e:
-            print(f"Could not fix {table}: {e}")
+    try:
+        # 1. Create the sequence if it doesn't exist
+        cursor.execute("CREATE SEQUENCE IF NOT EXISTS django_migrations_id_seq;")
+        # 2. Set the sequence to the current max ID
+        cursor.execute("SELECT setval('django_migrations_id_seq', COALESCE((SELECT MAX(id) FROM django_migrations), 1));")
+        # 3. Force the column to use the sequence as its default value
+        cursor.execute("ALTER TABLE django_migrations ALTER COLUMN id SET DEFAULT nextval('django_migrations_id_seq');")
+        # 4. Ensure the column is linked to the sequence
+        cursor.execute("ALTER SEQUENCE django_migrations_id_seq OWNED BY django_migrations.id;")
+        print("Successfully force-fixed django_migrations auto-increment!")
+    except Exception as e:
+        print(f"Force fix failed: {e}")
 EOF
 
 # Run migrations
