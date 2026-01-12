@@ -15,12 +15,12 @@ RUN apt-get update && apt-get install -y \
     netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
-COPY requirements.txt /app/
+# Copy and install Python dependencies from backend folder
+COPY backend/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files (this includes docker-entrypoint.sh)
-COPY . /app/
+# Copy all backend files
+COPY backend/ /app/
 
 # Make entrypoint executable
 RUN chmod +x /app/docker-entrypoint.sh
