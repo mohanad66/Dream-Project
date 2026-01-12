@@ -1,34 +1,32 @@
 #!/bin/bash
 set -e
 
-echo "Starting entrypoint script..."
+echo "Starting Django application..."
 
-# Wait for database
+# Wait for database to be ready
 if [ -n "$PGHOST" ]; then
-    echo "Waiting for postgres at $PGHOST:$PGPORT..."
+    echo "Waiting for PostgreSQL at $PGHOST:$PGPORT..."
     
-    counter=0
-    until nc -z $PGHOST $PGPORT 2>/dev/null; do
-        counter=$((counter+1))
-        if [ $counter -gt 30 ]; then
-            echo "Could not connect to database after 30 attempts"
+    timeout=60
+    while ! nc -z $PGHOST $PGPORT 2>/dev/null; do
+        timeout=$((timeout - 1))
+        if [ $timeout -le 0 ]; then
+            echo "Failed to connect to database"
             exit 1
         fi
-        echo "Attempt $counter: Database not ready, waiting..."
-        sleep 2
+        echo "Waiting for database... ($timeout seconds remaining)"
+        sleep 1
     done
     
-    echo "PostgreSQL is ready!"
+    echo "Database is ready!"
 fi
 
-# Run migrations
-echo "Running makemigrations..."
-python manage.py makemigrations --noinput || echo "No migrations to make"
-
-echo "Running migrate..."
+# Run database migrations
+echo "Running migrations..."
+python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
-# Create superuser
+# Create superuser if it doesn't exist
 echo "Creating superuser..."
 python manage.py shell << END
 from django.contrib.auth import get_user_model
@@ -41,16 +39,14 @@ password = os.getenv('DJANGO_SUPERUSER_PASSWORD', 'admin123')
 
 if not User.objects.filter(username=username).exists():
     User.objects.create_superuser(username, email, password)
-    print(f'Superuser {username} created successfully')
+    print(f'Superuser created: {username}')
 else:
-    print(f'Superuser {username} already exists')
+    print(f'Superuser already exists: {username}')
 END
 
 # Collect static files
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-echo "Starting Gunicorn..."
-exec gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
-
-
+echo "Starting Gunicorn server..."
+exec gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --access-logfile - --error-logfile -
