@@ -36,6 +36,10 @@ python manage.py shell <<EOF
 from django.db import connection
 with connection.cursor() as cursor:
     try:
+        # Create sequences if they don't exist
+        cursor.execute("CREATE SEQUENCE IF NOT EXISTS django_content_type_id_seq;")
+        cursor.execute("CREATE SEQUENCE IF NOT EXISTS auth_permission_id_seq;")
+
         cursor.execute("SELECT setval(\'django_content_type_id_seq\', COALESCE((SELECT MAX(id) FROM django_content_type), 1), false);")
         cursor.execute("ALTER TABLE django_content_type ALTER COLUMN id SET DEFAULT nextval(\'django_content_type_id_seq\');")
         cursor.execute("ALTER SEQUENCE django_content_type_id_seq OWNED BY django_content_type.id;")
