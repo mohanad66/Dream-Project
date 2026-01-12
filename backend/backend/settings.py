@@ -120,8 +120,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 ASGI_APPLICATION = 'backend.asgi.application'
-CSRF_TRUSTED_ORIGINS = ['https://*']
-
+CSRF_TRUSTED_ORIGINS = ['*']
+CORS_ALLOW_ALL_ORIGINS = True 
+CSRF_COOKIE_SECURE = False
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
