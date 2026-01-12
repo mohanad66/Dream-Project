@@ -6,7 +6,6 @@ echo "Starting Django application..."
 
 # Wait for PostgreSQL
 echo "Waiting for PostgreSQL at ${PGHOST}:${PGPORT}..."
-
 until nc -z -w 1 "$PGHOST" "$PGPORT"; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 1
@@ -14,16 +13,19 @@ done
 
 echo "Database is ready!"
 
-# Fix django_migrations sequence
+# Fix database sequences for ALL tables, especially django_migrations
 echo "Fixing database sequences..."
 python manage.py shell <<EOF
 from django.db import connection
-try:
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT setval('django_migrations_id_seq', COALESCE((SELECT MAX(id) FROM django_migrations), 1), false);")
-    print("Sequence fixed successfully!")
-except Exception as e:
-    print(f"Note: {e}")
+tables = ['django_migrations', 'django_content_type', 'auth_permission', 'auth_group', 'auth_user']
+with connection.cursor() as cursor:
+    for table in tables:
+        try:
+            # This command resets the ID counter to the current maximum ID in the table
+            cursor.execute(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM {table};")
+            print(f"Fixed sequence for {table}")
+        except Exception as e:
+            print(f"Could not fix {table}: {e}")
 EOF
 
 # Run migrations
