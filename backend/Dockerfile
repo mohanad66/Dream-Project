@@ -1,25 +1,35 @@
-# Use an official Python runtime as a parent image
+# Use Python 3.12 slim image
 FROM python:3.12-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Set work directory
 WORKDIR /app
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /app/
+# Copy and install Python dependencies from backend folder
+COPY backend/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
- 
-COPY . /app/
 
-RUN python manage.py collectstatic --noinput
+# Copy all backend files
+COPY backend/ /app/
 
+# Make entrypoint executable
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Create media directory with proper permissions
+RUN mkdir -p /app/media && chmod 755 /app/media
+
+# Expose port
 EXPOSE 8000
 
-CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Set entrypoint
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
