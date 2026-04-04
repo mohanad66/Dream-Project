@@ -6,7 +6,6 @@ import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from '../../Components/CheckoutForm';
 import './css/style.scss';
 import { useNavigate } from 'react-router-dom';
-import { ACCESS_TOKEN } from '../../services/constants';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
@@ -38,7 +37,6 @@ export default function CheckoutPage() {
         return () => clearTimeout(timer);
     }, [navigate]);
 
-    // Calculate totals
     const subtotal = cartItems.reduce((total, item) => {
         const price = parseFloat(item.price) || 0;
         const quantity = item.quantity || 1;
@@ -46,7 +44,6 @@ export default function CheckoutPage() {
     }, 0);
 
     const totalItems = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
-
     if (isLoading) {
         return (
             <div className="loading-container">
@@ -54,7 +51,6 @@ export default function CheckoutPage() {
             </div>
         );
     }
-
     return (
         <div className="checkout-page-container">
             <div className="checkout-wrapper">
@@ -68,7 +64,7 @@ export default function CheckoutPage() {
                             {cartItems.map(item => (
                                 <div key={item.id} className="order-item">
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL}${item.image}`}
+                                        src={`${item.image}`}
                                         alt={item.name}
                                         className="order-item-image"
                                     />

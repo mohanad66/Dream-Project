@@ -14,6 +14,49 @@ class CarouselImgSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarouselImg
         fields = "__all__"
+        read_only_fields = ['thumbnail']
+    
+    def create(self, validated_data):
+        # Compress image before creating
+        if 'image' in validated_data:
+            image = validated_data['image']
+            validated_data['image'] = compress_image(
+                image,
+                quality=85,
+                max_width=1920,
+                max_height=1080
+            )
+            
+            # Create thumbnail
+            validated_data['thumbnail'] = compress_image(
+                image,
+                quality=80,
+                max_width=400,
+                max_height=400
+            )
+        
+        return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        # Compress image on update
+        if 'image' in validated_data:
+            image = validated_data['image']
+            validated_data['image'] = compress_image(
+                image,
+                quality=85,
+                max_width=1920,
+                max_height=1080
+            )
+            
+            # Update thumbnail
+            validated_data['thumbnail'] = compress_image(
+                image,
+                quality=80,
+                max_width=400,
+                max_height=400
+            )
+        
+        return super().update(instance, validated_data)
 
 class UserDisplaySerializer(serializers.ModelSerializer):
     class Meta:

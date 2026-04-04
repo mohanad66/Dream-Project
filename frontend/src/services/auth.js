@@ -1,7 +1,9 @@
-// src/services/auth.js
+// frontend/src/services/auth.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from './api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
+import { appCache } from '../utils/dataCache';
+import { persistentCache } from '../utils/persistentCache'; // ← Change this
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState({
@@ -19,10 +21,8 @@ export const useAuth = () => {
     error: null
   });
 
-  // Use ref to track if initialization has run
   const hasInitialized = useRef(false);
 
-  // Unified state updater - stable reference
   const setAuthData = useCallback((updates) => {
     setAuthState(prev => ({
       ...prev,
@@ -34,26 +34,36 @@ export const useAuth = () => {
     }));
   }, []);
 
-  // ✅ Helper function to extract data from paginated response
   const extractData = (response) => {
-    // If response has results property (paginated), return results
     if (response && typeof response === 'object' && Array.isArray(response.results)) {
       return response.results;
     }
-    // If response is already an array, return it
     if (Array.isArray(response)) {
       return response;
     }
-    // Otherwise return empty array
     return [];
   };
 
-  // Fetch data function - accepts isAuthenticated parameter
+  // ✅ FIXED: Check cache FIRST, before any API calls
   const fetchAllData = useCallback(async (isAuth = false) => {
     try {
-      console.log('Fetching all data...'); // Debug log
+      const cacheKey = `public-data-${isAuth ? 'auth' : 'public'}`;
 
-      // Fetch public data that doesn't require auth
+      // 🔥 CHECK CACHE FIRST (before logging or making requests)
+      const cachedData = await persistentCache.get(cacheKey, 3 * 60 * 1000);
+      if (cachedData) {
+        console.log('✅ Using cached data (from disk) - NO API calls needed');
+        setAuthData({
+          data: cachedData,
+          isLoading: false,
+          isSuperuser: cachedData.user?.is_superuser || false
+        });
+        return true;
+      }
+
+      console.log('🌐 Fetching fresh data from API...');
+
+      // Fetch public data
       const publicDataPromises = [
         api.get('/api/contact/'),
         api.get('/api/carousels/'),
@@ -63,7 +73,6 @@ export const useAuth = () => {
         api.get('/api/tags/')
       ];
 
-      // Only fetch user data if authenticated
       let userData = null;
       if (isAuth) {
         try {
@@ -83,7 +92,6 @@ export const useAuth = () => {
         { data: tagsResponse }
       ] = await Promise.all(publicDataPromises);
 
-      // ✅ Extract arrays from paginated responses
       const contacts = extractData(contactsResponse);
       const imgs = extractData(imgsResponse);
       const categories = extractData(categoriesResponse);
@@ -91,17 +99,23 @@ export const useAuth = () => {
       const services = extractData(servicesResponse);
       const tags = extractData(tagsResponse);
 
-      console.log('Extracted data:', {
-        contacts: contacts.length,
-        imgs: imgs.length,
-        categories: categories.length,
-        products: products.length,
-        services: services.length,
-        tags: tags.length
-      }); // Debug log
+      const freshData = {
+        contacts,
+        imgs,
+        categories,
+        products,
+        services,
+        tags,
+        user: userData
+      };
+
+      console.log('💾 Caching fresh data');
+
+      // Store in cache
+      await persistentCache.set(cacheKey, freshData);
 
       setAuthData({
-        data: { contacts, imgs, categories, products, services, tags, user: userData },
+        data: freshData,
         isLoading: false,
         isSuperuser: userData?.is_superuser || false
       });
@@ -117,11 +131,12 @@ export const useAuth = () => {
     }
   }, [setAuthData]);
 
-  // Logout function - stable reference
   const logout = useCallback(() => {
     localStorage.removeItem(ACCESS_TOKEN);
     localStorage.removeItem(REFRESH_TOKEN);
     delete api.defaults.headers.common['Authorization'];
+
+    persistentCache.clear();
 
     setAuthData({
       isAuthenticated: false,
@@ -138,7 +153,6 @@ export const useAuth = () => {
     });
   }, [setAuthData]);
 
-  // Login function - stable reference
   const login = useCallback(async (credentials) => {
     setAuthData({ isLoading: true, error: null });
 
@@ -149,7 +163,9 @@ export const useAuth = () => {
       localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
 
-      // Fetch data WITH authentication
+      // Clear cache before fetching authenticated data
+      appCache.clear();
+
       await fetchAllData(true);
 
       setAuthData({
@@ -167,7 +183,6 @@ export const useAuth = () => {
     }
   }, [setAuthData, fetchAllData]);
 
-  // OTP functions
   const sendOTP = useCallback(async () => {
     try {
       const response = await api.post("/api/otp/send/");
@@ -188,9 +203,7 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Initialize auth - runs ONCE on mount
   useEffect(() => {
-    // Prevent running twice in StrictMode or multiple renders
     if (hasInitialized.current) {
       return;
     }
@@ -201,7 +214,6 @@ export const useAuth = () => {
 
       if (!token) {
         console.log('No token found, fetching public data...');
-        // Fetch public data WITHOUT authentication
         try {
           await fetchAllData(false);
         } catch (err) {
@@ -214,7 +226,6 @@ export const useAuth = () => {
       console.log('Token found, authenticating...');
       try {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        // Fetch data WITH authentication
         await fetchAllData(true);
         setAuthData({ isAuthenticated: true });
       } catch (err) {
@@ -224,7 +235,7 @@ export const useAuth = () => {
     };
 
     initializeAuth();
-  }, []);
+  }, [fetchAllData, logout, setAuthData]);
 
   return {
     data: authState.data,
@@ -240,7 +251,17 @@ export const useAuth = () => {
   };
 };
 
+// ✅ Cache pagination functions too
 export const fetchAllTags = async (url) => {
+  const cacheKey = `all-tags-${url}`;
+  const cached = await persistentCache.get(cacheKey, 5 * 60 * 1000);
+
+  if (cached) {
+    console.log('✅ Using cached tags - NO API calls');
+    return cached;
+  }
+
+  console.log('🌐 Fetching all tags from API...');
   let allTags = [];
   let nextUrl = url;
 
@@ -252,25 +273,29 @@ export const fetchAllTags = async (url) => {
       }
 
       const data = await response.json();
-
-      // Add current page results to our collection
       allTags = [...allTags, ...data.results];
-
-      // Get next page URL (will be null on last page)
       nextUrl = data.next;
-
-      console.log(`Fetched ${data.results.length} tags, total so far: ${allTags.length}`);
     }
 
-    console.log(`✅ Fetched all ${allTags.length} tags successfully`);
+    console.log(`💾 Cached ${allTags.length} tags`);
+    await persistentCache.set(cacheKey, allTags);
     return allTags;
-
   } catch (error) {
     console.error('Error fetching tags:', error);
     return [];
   }
 };
+
 export const fetchAllCategories = async (url) => {
+  const cacheKey = `all-categories-${url}`;
+  const cached = await persistentCache.get(cacheKey, 5 * 60 * 1000);
+
+  if (cached) {
+    console.log('✅ Using cached categories - NO API calls');
+    return cached;
+  }
+
+  console.log('🌐 Fetching all categories from API...');
   let allCategories = [];
   let nextUrl = url;
 
@@ -282,21 +307,17 @@ export const fetchAllCategories = async (url) => {
       }
 
       const data = await response.json();
-
-      // Add current page results to our collection
       allCategories = [...allCategories, ...data.results];
-
-      // Get next page URL (will be null on last page)
       nextUrl = data.next;
-
-      console.log(`Fetched ${data.results.length} tags, total so far: ${allCategories.length}`);
     }
 
-    console.log(`✅ Fetched all ${allCategories.length} tags successfully`);
-    return allCategories;
+    console.log(`💾 Cached ${allCategories.length} categories`);
+    appCache.set(cacheKey, allCategories);
+    await persistentCache.set(cacheKey, allCategories);
 
+    return allCategories;
   } catch (error) {
-    console.error('Error fetching tags:', error);
+    console.error('Error fetching categories:', error);
     return [];
   }
 };

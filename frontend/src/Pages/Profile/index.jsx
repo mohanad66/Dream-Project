@@ -52,10 +52,8 @@ const ProductCard = ({ product, categories, onToggleStatus }) => (
 );
 
 export default function Profile({ categories: initialCategories = [] }) {
-  // Navigation
   const navigate = useNavigate();
 
-  // State management
   const [state, setState] = useState({
     user: null,
     loading: true,
@@ -108,7 +106,6 @@ export default function Profile({ categories: initialCategories = [] }) {
     editingItem: null
   });
 
-  // Destructure state for easier access
   const {
     user,
     loading,
@@ -200,10 +197,8 @@ export default function Profile({ categories: initialCategories = [] }) {
     try {
       const response = await fetchData(`/api/admins/products/?page=${page}`);
 
-      // ✅ Safely extract results from paginated response
       const allProducts = response.data?.results ?? response.data ?? [];
 
-      // Filter products by current user
       const userProducts = allProducts.filter(product => product.owner === user?.id);
 
       console.log('All products:', allProducts);
@@ -294,7 +289,6 @@ export default function Profile({ categories: initialCategories = [] }) {
       const response = await fetchData(`/api/admins/tags/?page=${page}`);
       console.log('Tags API response:', response.data); // Debug log
 
-      // Check if response.data has results property (pagination) or is the array itself
       const tagsData = response.data?.results || response.data;
 
       setState(prev => ({
@@ -339,12 +333,10 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [fetchData]);
 
-  // Initial data fetch
   useEffect(() => {
     fetchUserData();
   }, [fetchUserData]);
 
-  // Tab-specific data fetching
   useEffect(() => {
     if (isAdmin && activeTab === 'admin') {
       fetchMyProducts();
@@ -357,7 +349,6 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, [activeTab, isAdmin, isSuperuser, fetchMyProducts, fetchAllCategories, fetchAllContacts, fetchAllTags, fetchAllUsers]);
 
-  // Modal handling
   const handleOpenModal = (type, item = null) => {
     let config = {};
 
@@ -373,7 +364,6 @@ export default function Profile({ categories: initialCategories = [] }) {
           type: 'select',
           required: false,
           value: item?.category?.id,
-          // Add safe access with optional chaining and default array
           options: (allCategories || []).map(cat => ({ id: cat.id, name: cat.name }))
         },
         { name: 'tags', label: 'Tags', type: 'tags', value: item?.tags },

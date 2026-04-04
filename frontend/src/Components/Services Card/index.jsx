@@ -20,7 +20,7 @@ export default function ServiceCard({ card }) {
     return (
         <>
             <div className="card-service">
-                <img className='card-service-image' src={`http://127.0.0.1:8000${card.image}`} alt="" onClick={() => setShowPopup(true)} />
+                <img className='card-service-image' src={`${card.image}`} alt="" onClick={() => setShowPopup(true)} />
                 <h2>{card.name}</h2>
                 <span className="price">{card.price} L.E</span>
                 <p className='card-service-content'>{card.description.length >= 50 ? `${card.description.substring(0, 50)} ...` : card.description}</p>
@@ -48,8 +48,8 @@ export default function ServiceCard({ card }) {
                             </div>
                             <div className="popup-right">
                                 <div ref={fancyboxRef} className="img popup-img">
-                                     <a data-fancybox={`gallery${crypto.randomUUID()}`} href={`http://127.0.0.1:8000${card.image}`}>
-                                    <img src={`http://127.0.0.1:8000${card.image}`} alt="" />
+                                     <a data-fancybox={`gallery${crypto.randomUUID()}`} href={`${card.image}`}>
+                                    <img src={`${card.image}`} alt="" />
                                     </a>
                                 </div>
                             </div>

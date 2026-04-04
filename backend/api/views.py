@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import status, generics, viewsets
 from rest_framework.generics import ListAPIView
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -370,5 +371,48 @@ class CreatePaymentIntentView(APIView):
             return Response({"error": "Internal server error"}, status=500)
         
 
+class ProductSearchView(APIView):
+    permission_classes = [AllowAny]
 
-#  
+    def get(self, request):
+        queryset = Product.objects.filter(is_active=True).prefetch_related('tags').select_related('category')
+
+        # Text search — name & description
+        search = request.query_params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search)
+            )
+
+        # Category filter
+        category = request.query_params.get('category', '')
+        if category and category != 'all':
+            if category == 'uncategorized':
+                queryset = queryset.filter(category__isnull=True)
+            else:
+                queryset = queryset.filter(category__id=category)
+
+        # Tags filter (comma-separated IDs: ?tags=1,2,3)
+        tags = request.query_params.get('tags', '')
+        if tags:
+            tag_ids = [t for t in tags.split(',') if t.isdigit()]
+            if tag_ids:
+                queryset = queryset.filter(tags__id__in=tag_ids).distinct()
+
+        # Price filter
+        min_price = request.query_params.get('minPrice', '')
+        max_price = request.query_params.get('maxPrice', '')
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        # Pagination
+        paginator = StandardResultsSetPagination()
+        paginated = paginator.paginate_queryset(queryset, request)
+        serializer = ProductSerializer(paginated, many=True, context={'is_admin': request.user.is_staff})
+        return paginator.get_paginated_response(serializer.data)
+
+# Keep this for backward compatibility (carousel, categories, etc.)
+get_product = ProductSearchView.as_view()

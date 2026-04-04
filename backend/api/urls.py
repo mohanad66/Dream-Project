@@ -21,7 +21,8 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy'
     }), name='admin-product-detail'),
-    
+    path('products/', get_product, name='get_product'),
+
     # Categories
     path('admins/categories/', CategoryAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-category-list'),
     path('admins/categories/<int:pk>/', CategoryAdminViewSet.as_view({

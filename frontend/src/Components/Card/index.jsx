@@ -72,7 +72,7 @@ export default function Card({ card, categories, tags }) {
             <div className="card">
                 <img
                     className='card-image'
-                    src={`${import.meta.env.VITE_API_URL}${card.image}`}
+                    src={` ${card.image}`}
                     alt={card.name}
                     onClick={() => setShowPopup(true)}
                 />
@@ -111,7 +111,7 @@ export default function Card({ card, categories, tags }) {
                             <div className="popup-right">
                                 <div ref={fancyboxRef} className="popup-img">
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL}${card.image}`}
+                                        src={`${card.image}`}
                                         alt={card.name}
                                     />
                                 </div>

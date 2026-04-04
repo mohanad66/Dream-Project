@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import dj_database_url
+import cloudinary
 
 from pathlib import Path
 from datetime import timedelta
@@ -20,8 +21,6 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -59,6 +58,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     'otp_system',
+    'cloudinary',
+    'cloudinary_storage',
     "api",
 ]
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
@@ -151,7 +152,13 @@ else:
     }
 
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
 # IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT') is not None
 
 # if IS_RAILWAY:

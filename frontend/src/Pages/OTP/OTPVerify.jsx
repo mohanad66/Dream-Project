@@ -26,7 +26,7 @@ export default function VerifyOtp() {
       const response = await api.post('/api/otp/verify/', { otp });
       if (response.data.success) {
         localStorage.removeItem('pendingOtpUser');
-        navigate('/profile'); // Your dashboard route
+        navigate('/profile');
       } else {
         setError('Invalid OTP');
         setOtp('');

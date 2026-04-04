@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.db import models
 from decimal import Decimal
 from PIL import Image
+from utils.image_compression import compress_image
 
 # =============================================== #
 class ImageHandlingMixin: 
@@ -107,7 +108,17 @@ class CarouselImg(models.Model):
                         
             except Exception as e:
                 raise ValidationError(f"Could not process image: {str(e)}")
-    
+    def save(self, *args, **kwargs):
+        # Compress main image before saving
+        if self.image:
+            self.image = compress_image(
+                self.image, 
+                quality=85, 
+                max_width=1920, 
+                max_height=1080
+            )
+                    
+        super().save(*args, **kwargs)
     def optimize_image(self):
         try:
             img_path = self.image.path
@@ -136,6 +147,7 @@ class Category(models.Model):
     is_active = models.BooleanField(default=True)
     
     class Meta:
+        ordering = ['name']  # ✅ Order by name
         verbose_name_plural = "Categories"
     
     def __str__(self):
@@ -168,6 +180,9 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
     
+    class Meta:
+        ordering = ['name']  # ✅ Order by name
+        verbose_name_plural = 'Tags'
     def save(self, *args, **kwargs):
         if not self.slug:
             # Convert Arabic to transliterated text, then slugify
@@ -219,8 +234,9 @@ class Product(models.Model , ImageHandlingMixin):
     price = models.DecimalField(
             max_digits=10,
             decimal_places=2,
-            validators=[MinValueValidator(Decimal('0.01'))],
+            validators=[MinValueValidator(Decimal('0.00'))],
             help_text="Price in USD (min $0.01)"
+
     )    
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Price in USD (min $0.01)")
     is_active = models.BooleanField(default=True, verbose_name="Active", help_text="Is this product available for sale?")

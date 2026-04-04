@@ -18,10 +18,8 @@ export default function Cart() {
         return () => clearTimeout(timer);
     }, []);
 
-    // Load cart items from localStorage when the component mounts
     useEffect(() => {
         const items = JSON.parse(localStorage.getItem('cart')) || [];
-        // Ensure all items have a quantity property
         const itemsWithQuantity = items.map(item => ({
             ...item,
             quantity: item.quantity || 1
@@ -29,12 +27,10 @@ export default function Cart() {
         setCartItems(itemsWithQuantity);
     }, []);
 
-    // Function to update quantity
     const handleQuantityChange = (productId, change) => {
         const updatedCart = cartItems.map(item => {
             if (item.id === productId) {
                 const newQuantity = (item.quantity || 1) + change;
-                // Ensure quantity stays between 1 and 99
                 if (newQuantity >= 1 && newQuantity <= 99) {
                     return { ...item, quantity: newQuantity };
                 }
@@ -45,7 +41,6 @@ export default function Cart() {
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
 
-    // Function to update quantity directly from input
     const handleQuantityInput = (productId, value) => {
         const numValue = parseInt(value) || 1;
         if (numValue >= 1 && numValue <= 99) {
@@ -57,27 +52,23 @@ export default function Cart() {
         }
     };
 
-    // Function to remove an item from the cart
     const handleRemoveItem = (productId) => {
         const updatedCart = cartItems.filter(item => item.id !== productId);
         setCartItems(updatedCart);
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
 
-    // Function to clear the entire cart
     const handleClearCart = () => {
         setCartItems([]);
         localStorage.removeItem('cart');
     };
 
-    // Calculate the total price with quantities
     const subtotal = cartItems.reduce((total, item) => {
         const price = parseFloat(item.price) || 0;
         const quantity = item.quantity || 1;
         return total + (price * quantity);
     }, 0);
 
-    // Calculate total number of items
     const totalItems = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
 
     const handleCheckout = () => {
@@ -113,7 +104,7 @@ export default function Cart() {
                         {cartItems.map(item => (
                             <div key={item.id} className="cart-item">
                                 <img
-                                    src={`${import.meta.env.VITE_API_URL}${item.image}`}
+                                    src={`${item.image}`}
                                     alt={item.name}
                                     className="item-image"
                                 />

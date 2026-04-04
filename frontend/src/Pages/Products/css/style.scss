@@ -1575,7 +1575,7 @@ $product-breakpoint-xl: 1200px;
       font-weight: 600;
       
       &::before {
-        content: '📄 ';
+        content: '';
         font-size: $font-sm;
       }
     }

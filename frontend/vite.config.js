@@ -1,27 +1,35 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { createApp } from "vinxi";
+import react from "@vitejs/plugin-react";
 
-// Safely get environment variable with fallback
-const getEnv = (key, defaultValue) => {
-  // Check if import.meta.env exists
-  if (typeof import.meta !== 'undefined' && import.meta && import.meta.env) {
-    return import.meta.env[key] || defaultValue;
-  }
-  return defaultValue;
-};
+const API_TARGET = process.env.VITE_API_URL || "http://localhost:8000";
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: getEnv('VITE_API_URL', 'http://localhost:8000'),
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
-  }
-})
+export default createApp({
+  routers: [
+    {
+      name: "public",
+      type: "static",
+      dir: "./public",
+    },
+    {
+      name: "client",
+      type: "spa",
+      handler: "./index.html",
+      base: "/",
+      plugins: () => [react()],
+      // Vite dev server options go under `vite`
+      vite: {
+        server: {
+          proxy: {
+            "/api": {
+              target: API_TARGET,
+              changeOrigin: true,
+              secure: false,
+              ws: true,
+              rewrite: (path) => path.replace(/^\/api/, ""),
+            },
+          },
+        },
+      },
+    },
+  ],
+});
