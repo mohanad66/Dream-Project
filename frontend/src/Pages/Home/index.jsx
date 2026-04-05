@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../../Components/Card'
 import Carousel from '../../Components/Carousel'
-import ServiceCard from '../../Components/Services Card';
 import "./css/style.scss"
 import { Link } from "react-router-dom"
 import { Helmet } from 'react-helmet-async';

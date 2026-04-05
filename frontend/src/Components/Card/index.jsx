@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import "./css/style.scss";
-import useFancybox from '../Fancy Box';
+import useFancybox from '../FancyBox';
 import { FaShoppingCart, FaBolt, FaPlus, FaMinus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 

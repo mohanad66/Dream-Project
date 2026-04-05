@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from 'react-icons/bs';
 import './css/style.scss';
-import useFancybox from '../Fancy Box';
+import useFancybox from '../FancyBox';
 import { FiMail, FiPhone, FiInfo, FiLink, } from "react-icons/fi";
 import { FaFacebook, FaWhatsapp, FaGithub, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
 
@@ -9,7 +9,7 @@ const Carousel = ({ images = [], contacts = [] }) => {
   // ✅ Add safety checks at the top
   const safeImages = Array.isArray(images) ? images : [];
   const safeContacts = Array.isArray(contacts) ? contacts : [];
-  
+
   const [currentImage, setCurrentImage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [fancyboxRef] = useFancybox({
@@ -20,7 +20,7 @@ const Carousel = ({ images = [], contacts = [] }) => {
   useEffect(() => {
     // ✅ Check if we have images before setting interval
     if (safeImages.length === 0) return;
-    
+
     const interval = setInterval(() => {
       if (!isAnimating) {
         handleNext();
@@ -89,7 +89,7 @@ const Carousel = ({ images = [], contacts = [] }) => {
               className={`slide ${currentImage === index ? 'active' : ''} ${index < currentImage ? 'left' : 'right'}`}
             >
               <div className="image-container">
-                <a data-fancybox={`gallery${index}`} href={`${imageItem.image}`}> 
+                <a data-fancybox={`gallery${index}`} href={`${imageItem.image}`}>
                   <img
                     src={` ${imageItem.image}`}
                     alt={imageItem.altText || `Showcase ${index + 1}`}

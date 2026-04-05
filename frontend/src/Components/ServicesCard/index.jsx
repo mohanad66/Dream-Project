@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import "./css/style.scss";
 import whatsappLogo from "../../imgs/whatsapp.png";
-import useFancybox from '../Fancy Box';
+import useFancybox from '../FancyBox';
 export default function ServiceCard({ card }) {
     const [showPopup, setShowPopup] = useState(false);
 
