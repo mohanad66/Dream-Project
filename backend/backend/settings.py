@@ -67,6 +67,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'backend.middleware.CacheControlMiddleware',  # Custom cache control middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
@@ -249,6 +250,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic puts 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  # Your app's static files
 ]
+
+# WhiteNoise Configuration for better performance
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# WhiteNoise settings for caching and compression
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
 
 MEDIA_ROOT = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', os.path.join(BASE_DIR, 'media'))
 MEDIA_URL = '/media/'

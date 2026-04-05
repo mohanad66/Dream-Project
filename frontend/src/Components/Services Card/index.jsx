@@ -15,12 +15,12 @@ export default function ServiceCard({ card }) {
             document.body.style.overflow = "";
         };
     }, [showPopup]);
-     const [fancyboxRef] = useFancybox({
-  });
+    const [fancyboxRef] = useFancybox({
+    });
     return (
         <>
             <div className="card-service">
-                <img className='card-service-image' src={`${card.image}`} alt="" onClick={() => setShowPopup(true)} />
+                <img className='card-service-image' src={`${card.image}`} alt={card.name || "Service image"} onClick={() => setShowPopup(true)} />
                 <h2>{card.name}</h2>
                 <span className="price">{card.price} L.E</span>
                 <p className='card-service-content'>{card.description.length >= 50 ? `${card.description.substring(0, 50)} ...` : card.description}</p>
@@ -38,7 +38,7 @@ export default function ServiceCard({ card }) {
                             <div className="popup-left">
                                 <h2>{card.name}</h2>
                                 {card.price && <p className="card-price">Price: {card.price} L.E</p>}
-                                
+
                                 <p className='popup-content'>{card.description}</p>
 
                                 <a className='whatsapp-btn bigger' href={`https://wa.me/201011608722?text=${encodeURIComponent(" The Product Name : " + card.name + " The Product Price " + card.price)}`} target="_blank" rel="noopener noreferrer">
@@ -48,8 +48,8 @@ export default function ServiceCard({ card }) {
                             </div>
                             <div className="popup-right">
                                 <div ref={fancyboxRef} className="img popup-img">
-                                     <a data-fancybox={`gallery${crypto.randomUUID()}`} href={`${card.image}`}>
-                                    <img src={`${card.image}`} alt="" />
+                                    <a data-fancybox={`gallery${crypto.randomUUID()}`} href={`${card.image}`}>
+                                        <img src={`${card.image}`} alt={card.name || "Service image"} />
                                     </a>
                                 </div>
                             </div>

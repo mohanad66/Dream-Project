@@ -1,1 +1,0 @@
-import{j as o}from"./index-DEulsML5.js";import{F as r}from"./Form-vZe7rYmF.js";function i({onLogin:e}){return o.jsx("div",{className:"login-page",children:o.jsx(r,{route:"/api/token/",method:"login",onLogin:e,successRedirect:"/"})})}export{i as default};

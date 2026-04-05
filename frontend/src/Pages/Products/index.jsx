@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import "./css/style.scss";
 import Card from '../../Components/Card';
 import { fetchAllCategories, fetchAllTags } from '../../services/auth';
+import { Helmet } from 'react-helmet-async';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -82,7 +83,7 @@ export default function Products() {
       setIsSearching(false);
       setIsLoading(false);
     }
-  }, [debouncedSearch, selectedCategory, selectedTags, priceRange.min , priceRange.max, currentPage]);
+  }, [debouncedSearch, selectedCategory, selectedTags, priceRange.min, priceRange.max, currentPage]);
 
   useEffect(() => {
     fetchProducts();
@@ -152,123 +153,135 @@ export default function Products() {
   }
 
   return (
-    <div className="products-container">
-      <h1>Our Products</h1>
+    <>
+      <Helmet>
+        <title>Products - Dream Store | Shop Quality Items Online</title>
+        <meta name="description" content="Browse our wide range of products at Dream Store. Find electronics, fashion, home goods and more with advanced filtering and search." />
+        <meta name="keywords" content="products, shopping, electronics, fashion, home goods, online store" />
+        <link rel="canonical" href="https://dreamstore.com/products" />
+        <meta property="og:title" content="Products - Dream Store | Shop Quality Items Online" />
+        <meta property="og:description" content="Browse our wide range of products at Dream Store." />
+        <meta property="og:url" content="https://dreamstore.com/products" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      <div className="products-container">
+        <h1>Our Products</h1>
 
-      <div className="filters">
-        {/* Search — with immediate visual feedback */}
-        <div className="search-filter">
-          <label htmlFor="search-input">Search</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              id="search-input"
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {isSearching && (
-              <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#888' }}>
-                searching...
-              </span>
+        <div className="filters">
+          {/* Search — with immediate visual feedback */}
+          <div className="search-filter">
+            <label htmlFor="search-input">Search</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {isSearching && (
+                <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: '#888' }}>
+                  searching...
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="category-filter">
+            <label htmlFor="category-select">Category</label>
+            <select id="category-select" value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}>
+              <option value="all">All Categories</option>
+              {availableCategories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+              <option value="uncategorized">Uncategorized</option>
+            </select>
+          </div>
+
+          {/* Tags Filter */}
+          <div className="tags-filter">
+            <label>Filter by Tags</label>
+            <div className="tags-list">
+              {tags.length > 0 ? tags.map(tag => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  className={`tag-filter-btn ${selectedTags.includes(tag.id) ? 'active' : ''}`}
+                  onClick={() => handleTagToggle(tag.id)}
+                >
+                  {tag.name}
+                  {selectedTags.includes(tag.id) && <span className="tag-check">✓</span>}
+                </button>
+              )) : <p className="no-tags">No tags available</p>}
+            </div>
+            {selectedTags.length > 0 && (
+              <p className="selected-tags-count">{selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''} selected</p>
             )}
           </div>
-        </div>
 
-        {/* Category Filter */}
-        <div className="category-filter">
-          <label htmlFor="category-select">Category</label>
-          <select id="category-select" value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}>
-            <option value="all">All Categories</option>
-            {availableCategories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-            <option value="uncategorized">Uncategorized</option>
-          </select>
-        </div>
-
-        {/* Tags Filter */}
-        <div className="tags-filter">
-          <label>Filter by Tags</label>
-          <div className="tags-list">
-            {tags.length > 0 ? tags.map(tag => (
-              <button
-                key={tag.id}
-                type="button"
-                className={`tag-filter-btn ${selectedTags.includes(tag.id) ? 'active' : ''}`}
-                onClick={() => handleTagToggle(tag.id)}
-              >
-                {tag.name}
-                {selectedTags.includes(tag.id) && <span className="tag-check">✓</span>}
-              </button>
-            )) : <p className="no-tags">No tags available</p>}
+          {/* Price Filter */}
+          <div className="price-filter">
+            <label>Price Range: ${priceRange.min} - ${priceRange.max}</label>
+            <div className="price-inputs">
+              <input type="number" min={0} max={priceRange.max - 1} value={priceRange.min} onChange={(e) => handlePriceChange(e, 'min')} aria-label="Minimum price" />
+              <span>to</span>
+              <input type="number" min={priceRange.min + 1} max={actualPriceRange.max} value={priceRange.max} onChange={(e) => handlePriceChange(e, 'max')} aria-label="Maximum price" />
+            </div>
+            <div className="range-slider">
+              <input type="range" min={0} max={actualPriceRange.max} value={priceRange.min} onChange={(e) => handlePriceChange(e, 'min')} />
+              <input type="range" min={0} max={actualPriceRange.max} value={priceRange.max} onChange={(e) => handlePriceChange(e, 'max')} />
+              <div className="slider-track">
+                <div className="slider-range" style={{
+                  left: `${(priceRange.min / actualPriceRange.max) * 100}%`,
+                  right: `${100 - (priceRange.max / actualPriceRange.max) * 100}%`
+                }} />
+              </div>
+            </div>
           </div>
-          {selectedTags.length > 0 && (
-            <p className="selected-tags-count">{selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''} selected</p>
+
+          <button className="reset-filters" onClick={resetFilters}>Reset All Filters</button>
+        </div>
+
+        {/* Results Summary */}
+        <div className="results-summary">
+          <p>Showing {products.length} of {totalCount} products</p>
+        </div>
+
+        {/* Product Grid */}
+        <div className="products-grid">
+          {products.length > 0 ? (
+            products.map(product => (
+              <Card key={product.id} card={product} categories={categories} tags={tags} />
+            ))
+          ) : (
+            <div className="no-products">
+              <h3>No products found</h3>
+              <p>Try adjusting your filters or search terms.</p>
+              <button onClick={resetFilters}>Reset All Filters</button>
+            </div>
           )}
         </div>
 
-        {/* Price Filter */}
-        <div className="price-filter">
-          <label>Price Range: ${priceRange.min} - ${priceRange.max}</label>
-          <div className="price-inputs">
-            <input type="number" min={0} max={priceRange.max - 1} value={priceRange.min} onChange={(e) => handlePriceChange(e, 'min')} aria-label="Minimum price" />
-            <span>to</span>
-            <input type="number" min={priceRange.min + 1} max={actualPriceRange.max} value={priceRange.max} onChange={(e) => handlePriceChange(e, 'max')} aria-label="Maximum price" />
-          </div>
-          <div className="range-slider">
-            <input type="range" min={0} max={actualPriceRange.max} value={priceRange.min} onChange={(e) => handlePriceChange(e, 'min')} />
-            <input type="range" min={0} max={actualPriceRange.max} value={priceRange.max} onChange={(e) => handlePriceChange(e, 'max')} />
-            <div className="slider-track">
-              <div className="slider-range" style={{
-                left: `${(priceRange.min / actualPriceRange.max) * 100}%`,
-                right: `${100 - (priceRange.max / actualPriceRange.max) * 100}%`
-              }} />
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              <span className="page-info">Page {currentPage} of {totalPages} ({totalCount} total)</span>
             </div>
-          </div>
-        </div>
-
-        <button className="reset-filters" onClick={resetFilters}>Reset All Filters</button>
-      </div>
-
-      {/* Results Summary */}
-      <div className="results-summary">
-        <p>Showing {products.length} of {totalCount} products</p>
-      </div>
-
-      {/* Product Grid */}
-      <div className="products-grid">
-        {products.length > 0 ? (
-          products.map(product => (
-            <Card key={product.id} card={product} categories={categories} tags={tags} />
-          ))
-        ) : (
-          <div className="no-products">
-            <h3>No products found</h3>
-            <p>Try adjusting your filters or search terms.</p>
-            <button onClick={resetFilters}>Reset All Filters</button>
+            <div className="pagination-controls">
+              <button className="pagination-btn prev-btn" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
+              <div className="page-numbers">
+                {getPageNumbers().map((p, i) =>
+                  p === '...' ? <span key={`e-${i}`} className="page-ellipsis">...</span> :
+                    <button key={p} className={`page-number ${currentPage === p ? 'active' : ''}`} onClick={() => handlePageChange(p)}>{p}</button>
+                )}
+              </div>
+              <button className="pagination-btn next-btn" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination-container">
-          <div className="pagination-info">
-            <span className="page-info">Page {currentPage} of {totalPages} ({totalCount} total)</span>
-          </div>
-          <div className="pagination-controls">
-            <button className="pagination-btn prev-btn" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
-            <div className="page-numbers">
-              {getPageNumbers().map((p, i) =>
-                p === '...' ? <span key={`e-${i}`} className="page-ellipsis">...</span> :
-                <button key={p} className={`page-number ${currentPage === p ? 'active' : ''}`} onClick={() => handlePageChange(p)}>{p}</button>
-              )}
-            </div>
-            <button className="pagination-btn next-btn" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
