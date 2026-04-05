@@ -1,4 +1,4 @@
-import { createApp } from "vinxi";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from 'vite-plugin-pwa'  // ✅ this line must exist
 
@@ -18,7 +18,7 @@ const handleMalformedURI = {
   },
 };
 
-export default createApp({
+export default defineConfig({
   routers: [
     {
       name: "public",
@@ -79,7 +79,7 @@ export default createApp({
               // Code splitting strategy for better caching
               manualChunks: {
                 'vendor': ['react', 'react-dom', 'react-router-dom'],
-                'stripe': ['@stripe/react-stripe-js', 'stripe'],
+                'stripe': ['@stripe/react-stripe-js'],
                 'ui': ['lucide-react', 'react-icons', '@fancyapps/ui'],
               }
             }
