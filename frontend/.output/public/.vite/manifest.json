@@ -1,0 +1,152 @@
+{
+  "_Form-FckMSdyP.css": {
+    "file": "assets/Form-FckMSdyP.css",
+    "src": "_Form-FckMSdyP.css"
+  },
+  "_Form-vZe7rYmF.js": {
+    "file": "assets/Form-vZe7rYmF.js",
+    "name": "Form",
+    "imports": [
+      "index.html"
+    ],
+    "css": [
+      "assets/Form-FckMSdyP.css"
+    ]
+  },
+  "_fancybox-BMl6Hdpu.css": {
+    "file": "assets/fancybox-BMl6Hdpu.css",
+    "src": "_fancybox-BMl6Hdpu.css"
+  },
+  "_fancybox-Bp3tuYnc.js": {
+    "file": "assets/fancybox-Bp3tuYnc.js",
+    "name": "fancybox",
+    "css": [
+      "assets/fancybox-BMl6Hdpu.css"
+    ]
+  },
+  "_index-BouQhNnc.js": {
+    "file": "assets/index-BouQhNnc.js",
+    "name": "index",
+    "imports": [
+      "index.html",
+      "_fancybox-Bp3tuYnc.js"
+    ]
+  },
+  "index.html": {
+    "file": "assets/index-DEulsML5.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "dynamicImports": [
+      "src/Pages/Home/index.jsx",
+      "src/Pages/Products/index.jsx",
+      "src/Pages/Cart/index.jsx",
+      "src/Pages/Login/Login.jsx",
+      "src/Pages/Register/Register.jsx",
+      "src/Pages/Profile/index.jsx",
+      "src/Pages/Checkout/index.jsx",
+      "src/Pages/OTP/OTPVerify.jsx"
+    ],
+    "css": [
+      "assets/index-Cj1-X3Vt.css"
+    ]
+  },
+  "src/Pages/Cart/index.jsx": {
+    "file": "assets/index-BIRKUGr2.js",
+    "name": "index",
+    "src": "src/Pages/Cart/index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html"
+    ],
+    "css": [
+      "assets/index-_6EwRLhP.css"
+    ]
+  },
+  "src/Pages/Checkout/index.jsx": {
+    "file": "assets/index-Bn8hmP3Q.js",
+    "name": "index",
+    "src": "src/Pages/Checkout/index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html"
+    ],
+    "css": [
+      "assets/index-Dv3BuFFC.css"
+    ]
+  },
+  "src/Pages/Home/index.jsx": {
+    "file": "assets/index-KUtA3c11.js",
+    "name": "index",
+    "src": "src/Pages/Home/index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_index-BouQhNnc.js",
+      "_fancybox-Bp3tuYnc.js"
+    ],
+    "css": [
+      "assets/index-DciAcPRM.css"
+    ]
+  },
+  "src/Pages/Login/Login.jsx": {
+    "file": "assets/Login-DHzBK72T.js",
+    "name": "Login",
+    "src": "src/Pages/Login/Login.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_Form-vZe7rYmF.js"
+    ]
+  },
+  "src/Pages/OTP/OTPVerify.jsx": {
+    "file": "assets/OTPVerify-MTaFy0S1.js",
+    "name": "OTPVerify",
+    "src": "src/Pages/OTP/OTPVerify.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html"
+    ]
+  },
+  "src/Pages/Products/index.jsx": {
+    "file": "assets/index-plZdLgaB.js",
+    "name": "index",
+    "src": "src/Pages/Products/index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_index-BouQhNnc.js",
+      "_fancybox-Bp3tuYnc.js"
+    ],
+    "css": [
+      "assets/index-DDpst52A.css"
+    ]
+  },
+  "src/Pages/Profile/index.jsx": {
+    "file": "assets/index-DN9n1V5f.js",
+    "name": "index",
+    "src": "src/Pages/Profile/index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_fancybox-Bp3tuYnc.js"
+    ],
+    "css": [
+      "assets/index-CPDFlbvh.css"
+    ]
+  },
+  "src/Pages/Register/Register.jsx": {
+    "file": "assets/Register-Da5sLWnM.js",
+    "name": "Register",
+    "src": "src/Pages/Register/Register.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "index.html",
+      "_Form-vZe7rYmF.js"
+    ]
+  },
+  "src/imgs/whatsapp.png": {
+    "file": "assets/whatsapp-C_AbbPz3.png",
+    "src": "src/imgs/whatsapp.png"
+  }
+}

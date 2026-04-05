@@ -149,6 +149,10 @@ class Category(models.Model):
     class Meta:
         ordering = ['name']  # ✅ Order by name
         verbose_name_plural = "Categories"
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active']),
+        ]
     
     def __str__(self):
         return self.name
@@ -183,6 +187,10 @@ class Tag(models.Model):
     class Meta:
         ordering = ['name']  # ✅ Order by name
         verbose_name_plural = 'Tags'
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active']),
+        ]
     def save(self, *args, **kwargs):
         if not self.slug:
             # Convert Arabic to transliterated text, then slugify
@@ -243,6 +251,13 @@ class Product(models.Model , ImageHandlingMixin):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creation Date")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Last Updated")
     
+    indexes = [
+        models.Index(fields=['slug']),
+        models.Index(fields=['category']),
+        models.Index(fields=['owner']),
+        models.Index(fields=['is_active', '-created_at']),
+        models.Index(fields=['name']),
+    ]
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Product"
@@ -342,6 +357,10 @@ class Service(models.Model):
         ordering = ['-created_at']
         verbose_name = "Service"
         verbose_name_plural = "Services"
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['price']),
+        ]
     
     def __str__(self):
         return f"{self.name} (${self.price})"

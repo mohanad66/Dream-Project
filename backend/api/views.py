@@ -12,8 +12,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.conf import settings
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
 from .serializer import *
 from .models import *
+from .cache_utils import cache_api_response
 import logging
 import stripe
 
@@ -22,13 +25,13 @@ User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10  # Match the expected page size, or make it configurable
+    page_size = 20  # Increased from 10 to reduce API calls
     page_size_query_param = 'page_size'
     max_page_size = 100
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
 class ProductAdminViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all().select_related('owner')
+    queryset = Product.objects.all().select_related('owner').prefetch_related('tags')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination  # ✅ Add this line
@@ -109,7 +112,7 @@ class CreateUserView(generics.CreateAPIView):
 @permission_classes([IsAdminUser])
 def get_all_users(request):
     try:
-        users = User.objects.all().order_by('-date_joined')
+        users = User.objects.all().order_by('-date_joined').only('id', 'username', 'email', 'is_active', 'is_staff', 'date_joined')
         
         if is_active := request.query_params.get('is_active'):
             users = users.filter(is_active=is_active.lower() == 'true')
@@ -216,12 +219,6 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
-class CurrentUserView(generics.RetrieveUpdateAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
     def get_serializer_class(self):
         if self.request.method == 'PATCH':
             return UserProfileUpdateSerializer
@@ -231,9 +228,15 @@ class CurrentUserView(generics.RetrieveUpdateAPIView):
 def create_public_list_view(model, serializer_class, order_by=None, filter_active=False):
     @api_view(["GET"])
     @permission_classes([AllowAny])
+    @cache_api_response(timeout=600)  # Cache for 10 minutes
     def view_func(request):
         try:
             queryset = model.objects.all()
+            
+            # Optimize queries
+            if model == Product:
+                queryset = queryset.select_related('owner').prefetch_related('tags')
+            
             if filter_active:
                 queryset = queryset.filter(is_active=True)
             if order_by:
@@ -250,7 +253,13 @@ def create_public_list_view(model, serializer_class, order_by=None, filter_activ
                 context={'is_admin': request.user.is_staff}
             )
             
-            return paginator.get_paginated_response(serializer.data)
+            response = paginator.get_paginated_response(serializer.data)
+            
+            # Add HTTP cache headers for browser caching
+            if not request.user.is_authenticated:
+                response['Cache-Control'] = 'public, max-age=600'  # 10 minutes
+            
+            return response
             
         except Exception as e:
             logger.error(f"Error fetching {model.__name__}: {str(e)}")
@@ -391,7 +400,12 @@ class ProductSearchView(APIView):
             if category == 'uncategorized':
                 queryset = queryset.filter(category__isnull=True)
             else:
-                queryset = queryset.filter(category__id=category)
+                if category.isdigit():
+                    sort = request.query_params.get('sort', '-created_at')
+                    allowed_sorts = ['price', '-price', '-created_at', 'name']
+                    if sort in allowed_sorts:
+                        queryset = queryset.order_by(sort)
+                    queryset = queryset.filter(category__id=int(category))
 
         # Tags filter (comma-separated IDs: ?tags=1,2,3)
         tags = request.query_params.get('tags', '')
@@ -404,15 +418,24 @@ class ProductSearchView(APIView):
         min_price = request.query_params.get('minPrice', '')
         max_price = request.query_params.get('maxPrice', '')
         if min_price:
-            queryset = queryset.filter(price__gte=min_price)
+            try:
+                queryset = queryset.filter(price__gte=Decimal(min_price))
+            except:
+                pass
         if max_price:
-            queryset = queryset.filter(price__lte=max_price)
-
+            try:
+                queryset = queryset.filter(price__lte=Decimal(max_price))
+            except:
+                pass
+        # Sorting
+        sort = request.query_params.get('sort', '-created_at')
+        allowed_sorts = ['price', '-price', '-created_at', 'name']
+        if sort in allowed_sorts:
+            queryset = queryset.order_by(sort)
         # Pagination
         paginator = StandardResultsSetPagination()
         paginated = paginator.paginate_queryset(queryset, request)
         serializer = ProductSerializer(paginated, many=True, context={'is_admin': request.user.is_staff})
         return paginator.get_paginated_response(serializer.data)
 
-# Keep this for backward compatibility (carousel, categories, etc.)
 get_product = ProductSearchView.as_view()

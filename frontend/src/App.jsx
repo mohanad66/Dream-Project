@@ -1,23 +1,28 @@
 // src/App.js
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import Home from './Pages/Home/index.jsx';
-import Products from './Pages/Products/index.jsx';
-import Cart from "./Pages/Cart/index.jsx";
-import Login from './Pages/Login/Login.jsx';
-import ProfilePage from './Pages/Profile/index.jsx';
-import CheckoutPage from "./Pages/Checkout/index.jsx"
-// import About from './Pages/About us/index.jsx';
+import React, { Suspense, lazy } from "react";
 import Navbar from './Components/Navbar/index.jsx';
-import "./css/style.scss";
 import ProtectedRoute from './Components/ProtectedRoute/ProtectedRoute.jsx';
-import Register from './Pages/Register/Register.jsx';
+import "./css/style.scss";
 import { useAuth } from './services/auth';
 import { useLocation } from 'react-router-dom';
-import VerifyOtp from './Pages/OTP/OTPVerify.jsx';
-import React, { Suspense } from "react";
 
+// ✅ Code splitting with React.lazy() - components load on demand
+const Home = lazy(() => import('./Pages/Home/index.jsx'));
+const Products = lazy(() => import('./Pages/Products/index.jsx'));
+const Cart = lazy(() => import('./Pages/Cart/index.jsx'));
+const Login = lazy(() => import('./Pages/Login/Login.jsx'));
+const Register = lazy(() => import('./Pages/Register/Register.jsx'));
+const ProfilePage = lazy(() => import('./Pages/Profile/index.jsx'));
+const CheckoutPage = lazy(() => import('./Pages/Checkout/index.jsx'));
+const VerifyOtp = lazy(() => import('./Pages/OTP/OTPVerify.jsx'));
 
-// const Home = React.lazy(() => import("./Pages/Home/index.jsx"));
+// Loading fallback component
+const LoadingFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+    <div>Loading...</div>
+  </div>
+);
 
 
 export default function App() {
@@ -47,12 +52,10 @@ export default function App() {
 
   return (
     <>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
-
           <Route path="/register" element={<Register />} />
-
           <Route path="/" element={
             <Home
               contacts={data.contacts || []}
@@ -63,7 +66,6 @@ export default function App() {
               tags={data.tags || []}
             />
           } />
-
           <Route path="/products" element={
             <Products
               products={data.products || []}
@@ -71,34 +73,24 @@ export default function App() {
               tags={data.tags || []}
             />
           } />
-
           <Route path="/cart" element={
             <Cart categories={data.categories || []} />
           } />
-
           <Route path="/checkout" element={
             <ProtectedRoute>
               <CheckoutPage />
             </ProtectedRoute>
           } />
-
           <Route path="/profile" element={
             <ProtectedRoute>
               <ProfilePage categories={data.categories} tags={data.tags} />
             </ProtectedRoute>
           } />
-          {/* <Route path="/about" element={
-          <ProtectedRoute>
-            <About />
-          </ProtectedRoute>
-        } /> */}
-
-          {/* <Route path="/verify-otp" element={<VerifyOtp />} /> */}
-
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path='*' element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-      {(location.pathname !== "/checkout" && location.pathname !== "/login" && location.pathname !== "/register") ? <Navbar onLogout={handleLogout} /> : null}
+      {(location.pathname !== "/checkout" && location.pathname !== "/login" && location.pathname !== "/register") && <Navbar onLogout={handleLogout} />}
     </>
   );
 }
