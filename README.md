@@ -4,7 +4,7 @@ A full-stack e-commerce platform built with React and Django, featuring a modern
 
 ## 🌐 Live Demo
 
-**Website:** [https://frontend-production-d50a.up.railway.app](https://frontend-production-d50a.up.railway.app)
+**Website:** [working on it)
 
 ---
 
