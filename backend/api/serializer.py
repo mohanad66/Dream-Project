@@ -271,10 +271,42 @@ class AdminUserSerializer(UserSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ["id" , 'amount' , 'currency' , 'stripe_payment_id' , 'created_at' , 'user_email']
+        fields = ['id', 'amount', 'currency', 'stripe_payment_id', 'user_email', 'status', 'created_at']
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 'last_name']
+        
+        
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'product_name', 'quantity', 'unit_price', 'subtotal']
+        read_only_fields = ['unit_price', 'subtotal', 'product_name']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    payment_status = serializers.CharField(source='payment.status', read_only=True)
+    payment_id = serializers.CharField(source='payment.stripe_payment_id', read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'owner', 'payment', 'payment_id', 'payment_status',
+            'status', 'shipping_address', 'note',
+            'items', 'total_price', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['owner', 'payment', 'payment_id', 'payment_status', 'total_price', 'created_at', 'updated_at']
+
+
+class OrderStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['status']

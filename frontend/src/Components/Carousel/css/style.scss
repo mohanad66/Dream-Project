@@ -8,7 +8,7 @@
    ========================================================================== */
 
 /* Light Theme */
-.light-theme {
+:root {
   /* Core Colors */
   --color-primary: #3b82f6;
   --color-primary-hover: #2563eb;
@@ -125,7 +125,7 @@
 
 /* Dark Theme */
 .dark-theme {
-  /* Neutral Colors */
+  /* Override grays - flipped scale */
   --color-gray-50: #0a0a0a;
   --color-gray-100: #111827;
   --color-gray-200: #1f2937;
@@ -137,30 +137,26 @@
   --color-gray-800: #f3f4f6;
   --color-gray-900: #f9fafb;
 
-  /* Text Colors */
-  --text-primary: var(--color-gray-100);
-  --text-secondary: var(--color-gray-400);
-  --text-muted: var(--color-gray-500);
+  /* ✅ Use explicit hex values, NOT var() references */
+  --text-primary: #f9fafb;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 
-  /* Background Colors */
-  --bg-body: var(--color-gray-900);
-  --bg-surface: var(--color-gray-800);
-  --bg-elevated: var(--color-gray-700);
-  --bg-subtle: var(--color-gray-800);
-  --bg-muted: var(--color-gray-700);
+  --bg-body: #0a0a0a;
+  --bg-surface: #111827;
+  --bg-elevated: #1f2937;
+  --bg-subtle: #111827;
+  --bg-muted: #1f2937;
 
-  /* Border & Radius */
-  --border-color: var(--color-gray-700);
-  --border-color-strong: var(--color-gray-600);
+  --border-color: #374151;
+  --border-color-strong: #4b5563;
 
-  /* Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0, 0, 0, 0.2);
   --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5), 0 10px 10px rgba(0, 0, 0, 0.2);
 }
-
 
 
 /* ==========================================================================
@@ -1426,7 +1422,3 @@
     transition-duration: 0.01ms !important;
   }
 }
-
-
-
-// ===================================================================== //

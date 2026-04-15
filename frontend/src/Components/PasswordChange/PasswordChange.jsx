@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 import "./css/style.scss";
+import React from 'react'
 
 export const PasswordChangeSection = () => {
     const [currentPassword, setCurrentPassword] = useState('');

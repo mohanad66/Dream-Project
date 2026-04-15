@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { ACCESS_TOKEN } from '../../services/constants.js';
 import { jwtDecode } from 'jwt-decode';
+import React from 'react'          // ✅ add this
 
 export default function ProtectedRoute({ children }) {
   const [authState, setAuthState] = useState({

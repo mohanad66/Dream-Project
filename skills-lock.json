@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "getting-started": {
+      "source": "crewaiinc/skills",
+      "sourceType": "github",
+      "computedHash": "9a10e2f3c38b66b2c963815d1d0ee80e49b794da63a144a4d0c9609bc8275ce6"
+    }
+  }
+}

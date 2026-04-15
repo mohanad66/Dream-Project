@@ -1,4 +1,4 @@
-// src/Components/CheckoutForm/index.jsx - UPDATED FOR EGP WITH QUANTITY
+// src/Components/CheckoutForm/index.jsx - UPDATED FOR ORDER CREATION BEFORE PAYMENT
 
 import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -10,22 +10,23 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
     const elements = useElements();
 
     const [email, setEmail] = useState('');
+    const [shippingAddress, setShippingAddress] = useState('');
+    const [note, setNote] = useState('');
     const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const [error, setError] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [succeeded, setSucceeded] = useState(false);
+    const [orderId, setOrderId] = useState(null);
 
     // Load cart from localStorage or use props
     useEffect(() => {
         if (propCartItems && propTotal !== undefined) {
-            // Use props if available
             setCartItems(propCartItems);
             setTotal(propTotal);
             setTotalItems(propTotalItems || 0);
         } else {
-            // Fallback to localStorage
             const items = JSON.parse(localStorage.getItem('cart')) || [];
             const itemsWithQuantity = items.map(item => ({
                 ...item,
@@ -53,6 +54,7 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
         }
 
         setProcessing(true);
+        setError(null);
 
         try {
             // Prepare order items with quantities for backend
@@ -64,16 +66,22 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
                 subtotal: (parseFloat(item.price) || 0) * (item.quantity || 1)
             }));
 
-            const response = await api.post('/api/payments/create-intent/', {
+            // STEP 1: Create payment intent (which creates order on backend)
+            const paymentResponse = await api.post('/api/payments/create-intent/', {
                 amount: Math.round(total * 100), // Convert to cents
                 currency: 'egp',
-                user_email: email,
-                order_items: orderItems, // Send items with quantities
-                total_items: totalItems
+                order_items: orderItems,
+                total_items: totalItems,
+                shipping_address: shippingAddress,
+                note: note
             });
 
-            const clientSecret = response.data.clientSecret;
+            const clientSecret = paymentResponse.data.clientSecret;
+            const backendOrderId = paymentResponse.data.orderId;
+            
+            setOrderId(backendOrderId);
 
+            // STEP 2: Confirm card payment with Stripe
             const payload = await stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
                     card: elements.getElement(CardElement),
@@ -86,11 +94,16 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
             if (payload.error) {
                 setError(`Payment failed: ${payload.error.message}`);
                 setProcessing(false);
-            } else {
+            } else if (payload.paymentIntent.status === 'succeeded') {
+                // Payment successful
                 setError(null);
                 setProcessing(false);
                 setSucceeded(true);
                 localStorage.removeItem('cart');
+            } else {
+                // Payment requires action or is still processing
+                setError(`Payment status: ${payload.paymentIntent.status}`);
+                setProcessing(false);
             }
         } catch (err) {
             const errorMessage = err.response?.data?.error ||
@@ -100,15 +113,15 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
         }
     };
 
-    // Redirect to home after 2 seconds if payment succeeded or cart is empty
+    // Redirect after success
     useEffect(() => {
-        if (succeeded || (cartItems.length === 0 && !succeeded)) {
+        if (succeeded) {
             const timer = setTimeout(() => {
-                window.location.href = '/';
+                window.location.href = orderId ? `/orders/${orderId}` : '/';
             }, 2000);
             return () => clearTimeout(timer);
         }
-    }, [succeeded, cartItems.length]);
+    }, [succeeded, orderId]);
 
     if (succeeded) {
         return (
@@ -116,7 +129,7 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
                 <h2>Payment Successful!</h2>
                 <p>Thank you for your purchase. A confirmation has been sent to your email.</p>
                 <p className="order-details">
-                    Total items: {totalItems} | Total paid: {total.toFixed(2)} EGP
+                    Order ID: #{orderId} | Total items: {totalItems} | Total paid: {total.toFixed(2)} EGP
                 </p>
             </div>
         );
@@ -161,6 +174,28 @@ export default function CheckoutForm({ cartItems: propCartItems, totalAmount: pr
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
                     required
+                />
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="shipping">Shipping Address</label>
+                <textarea
+                    id="shipping"
+                    value={shippingAddress}
+                    onChange={(e) => setShippingAddress(e.target.value)}
+                    placeholder="Enter your shipping address"
+                    rows="3"
+                />
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="note">Order Notes (Optional)</label>
+                <textarea
+                    id="note"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Add any special instructions"
+                    rows="2"
                 />
             </div>
 

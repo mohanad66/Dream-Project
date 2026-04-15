@@ -4,6 +4,7 @@ import { useState } from "react";
 import api from "../../services/api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../services/constants.js";
 import "./css/styles.scss";
+import React from 'react'          // ✅ add this
 
 export default function Form({ route, method, onLogin, successRedirect }) {
     const [formData, setFormData] = useState({

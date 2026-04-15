@@ -61,7 +61,7 @@ INSTALLED_APPS = [
 ]
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
-
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET') 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
@@ -414,7 +414,6 @@ PARSE_CONFIG = {
 
 PARSE_SERVER_URL = PARSE_CONFIG['SERVER_URL']
 
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -423,12 +422,13 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
+    'loggers': {
+        'stripe': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
     },
 }
-
 
 # Email Configuration (Gmail example)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

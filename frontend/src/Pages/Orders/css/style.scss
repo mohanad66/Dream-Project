@@ -1,0 +1,407 @@
+// Theme variables for orders page only
+.light-theme .orders-page-container {
+  --orders-bg-primary: #f5f5f5;
+  --orders-bg-secondary: #ffffff;
+  --orders-bg-card: #ffffff;
+  --orders-bg-header: #fafafa;
+  --orders-bg-footer: #fafafa;
+  --orders-text-primary: #333333;
+  --orders-text-secondary: #666666;
+  --orders-text-muted: #999999;
+  --orders-border-color: #e0e0e0;
+  --orders-border-light: #f0f0f0;
+  --orders-shadow-color: rgba(0, 0, 0, 0.1);
+  --orders-status-pending-bg: #fff3e0;
+  --orders-status-pending-text: #ff9800;
+  --orders-status-confirmed-bg: #e3f2fd;
+  --orders-status-confirmed-text: #2196f3;
+  --orders-status-delivered-bg: #e8f5e9;
+  --orders-status-delivered-text: #4caf50;
+  --orders-status-cancelled-bg: #ffebee;
+  --orders-status-cancelled-text: #f44336;
+  --orders-btn-primary-bg: #4caf50;
+  --orders-btn-primary-hover: #45a049;
+  --orders-btn-secondary-bg: #2196f3;
+  --orders-btn-secondary-hover: #1976d2;
+  --orders-spinner-border: #f3f3f3;
+  --orders-spinner-top: #4caf50;
+}
+
+.dark-theme .orders-page-container {
+  --orders-bg-primary: #1a1a1a;
+  --orders-bg-secondary: #2d2d2d;
+  --orders-bg-card: #363636;
+  --orders-bg-header: #2d2d2d;
+  --orders-bg-footer: #2d2d2d;
+  --orders-text-primary: #ffffff;
+  --orders-text-secondary: #b0b0b0;
+  --orders-text-muted: #808080;
+  --orders-border-color: #404040;
+  --orders-border-light: #353535;
+  --orders-shadow-color: rgba(0, 0, 0, 0.3);
+  --orders-status-pending-bg: #332700;
+  --orders-status-pending-text: #ffb74d;
+  --orders-status-confirmed-bg: #0d3b66;
+  --orders-status-confirmed-text: #64b5f6;
+  --orders-status-delivered-bg: #1b5e20;
+  --orders-status-delivered-text: #81c784;
+  --orders-status-cancelled-bg: #4a0e0e;
+  --orders-status-cancelled-text: #ef9a9a;
+  --orders-btn-primary-bg: #2e7d32;
+  --orders-btn-primary-hover: #1b5e20;
+  --orders-btn-secondary-bg: #1565c0;
+  --orders-btn-secondary-hover: #0d47a1;
+  --orders-spinner-border: #404040;
+  --orders-spinner-top: #64b5f6;
+}
+
+// Orders page styles (isolated - won't affect main website)
+.orders-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 110vh;
+    // background: var(--orders-bg-primary);
+    transition: background-color 0.3s ease;
+
+    .orders-wrapper {
+        background: var(--orders-bg-secondary);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px var(--orders-shadow-color);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+        h1 {
+            margin-bottom: 2rem;
+            color: var(--orders-text-primary);
+            font-size: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 3rem;
+            
+            p {
+                color: var(--orders-text-secondary);
+                margin-bottom: 1.5rem;
+                font-size: 1.1rem;
+                transition: color 0.3s ease;
+            }
+
+            .shop-now-btn {
+                background: var(--orders-btn-primary-bg);
+                color: white;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: background 0.3s;
+
+                &:hover {
+                    background: var(--orders-btn-primary-hover);
+                }
+            }
+        }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+
+            .order-card {
+                border: 1px solid var(--orders-border-color);
+                border-radius: 8px;
+                overflow: hidden;
+                transition: box-shadow 0.3s, border-color 0.3s;
+                background: var(--orders-bg-card);
+
+                &:hover {
+                    box-shadow: 0 4px 12px var(--orders-shadow-color);
+                }
+
+                .order-header {
+                    background: var(--orders-bg-header);
+                    padding: 1rem 1.5rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid var(--orders-border-color);
+                    transition: background-color 0.3s ease;
+
+                    .order-info {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.25rem;
+
+                        .order-number {
+                            font-weight: bold;
+                            color: var(--orders-text-primary);
+                            font-size: 1.1rem;
+                            transition: color 0.3s ease;
+                        }
+
+                        .order-date {
+                            color: var(--orders-text-secondary);
+                            font-size: 0.85rem;
+                            transition: color 0.3s ease;
+                        }
+                    }
+
+                    .order-status {
+                        padding: 0.25rem 0.75rem;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+
+                        &.status-pending {
+                            background: var(--orders-status-pending-bg);
+                            color: var(--orders-status-pending-text);
+                        }
+
+                        &.status-confirmed {
+                            background: var(--orders-status-confirmed-bg);
+                            color: var(--orders-status-confirmed-text);
+                        }
+
+                        &.status-delivered {
+                            background: var(--orders-status-delivered-bg);
+                            color: var(--orders-status-delivered-text);
+                        }
+
+                        &.status-cancelled {
+                            background: var(--orders-status-cancelled-bg);
+                            color: var(--orders-status-cancelled-text);
+                        }
+                    }
+                }
+
+                .order-items {
+                    padding: 1rem 1.5rem;
+                    max-height: 300px;
+                    overflow-y: auto;
+
+                    /* Custom scrollbar for orders page */
+                    &::-webkit-scrollbar {
+                        width: 8px;
+                    }
+
+                    &::-webkit-scrollbar-track {
+                        background: var(--orders-border-light);
+                        border-radius: 4px;
+                    }
+
+                    &::-webkit-scrollbar-thumb {
+                        background: var(--orders-text-muted);
+                        border-radius: 4px;
+                        
+                        &:hover {
+                            background: var(--orders-text-secondary);
+                        }
+                    }
+
+                    .order-item {
+                        display: flex;
+                        gap: 1rem;
+                        padding: 0.75rem 0;
+                        border-bottom: 1px solid var(--orders-border-light);
+                        transition: border-color 0.3s ease;
+
+                        &:last-child {
+                            border-bottom: none;
+                        }
+
+                        .order-item-image {
+                            width: 60px;
+                            height: 60px;
+                            object-fit: cover;
+                            border-radius: 4px;
+                        }
+
+                        .order-item-details {
+                            flex: 1;
+
+                            h4 {
+                                margin: 0 0 0.25rem 0;
+                                color: var(--orders-text-primary);
+                                font-size: 0.95rem;
+                                transition: color 0.3s ease;
+                            }
+
+                            p {
+                                margin: 0;
+                                color: var(--orders-text-secondary);
+                                font-size: 0.85rem;
+                                transition: color 0.3s ease;
+                            }
+                        }
+
+                        .order-item-total {
+                            font-weight: bold;
+                            color: var(--orders-text-primary);
+                            min-width: 80px;
+                            text-align: right;
+                            transition: color 0.3s ease;
+                        }
+                    }
+                }
+
+                .order-footer {
+                    padding: 1rem 1.5rem;
+                    background: var(--orders-bg-footer);
+                    border-top: 1px solid var(--orders-border-color);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    transition: background-color 0.3s ease;
+
+                    .order-total {
+                        font-size: 1.1rem;
+
+                        strong {
+                            margin-right: 0.5rem;
+                            color: var(--orders-text-primary);
+                            transition: color 0.3s ease;
+                        }
+
+                        span {
+                            color: var(--orders-status-delivered-text);
+                            font-weight: bold;
+                            transition: color 0.3s ease;
+                        }
+                    }
+
+                    .view-details-btn {
+                        background: var(--orders-btn-secondary-bg);
+                        color: white;
+                        border: none;
+                        padding: 0.5rem 1rem;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: background 0.3s;
+
+                        &:hover {
+                            background: var(--orders-btn-secondary-hover);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Loading and error containers (orders page only)
+.orders-page-container .loading-container, 
+.orders-page-container .error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    background: var(--orders-bg-primary);
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--orders-spinner-border);
+        border-top: 3px solid var(--orders-spinner-top);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    .retry-btn, .back-btn {
+        background: var(--orders-btn-primary-bg);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 1rem;
+        transition: background 0.3s;
+
+        &:hover {
+            background: var(--orders-btn-primary-hover);
+        }
+    }
+
+    p {
+        color: var(--orders-text-primary);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Pagination controls (orders page only)
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--orders-border-color);
+    transition: border-color 0.3s ease;
+
+    .pagination-btn {
+        background: var(--orders-btn-secondary-bg);
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s;
+
+        &:hover {
+            background: var(--orders-btn-secondary-hover);
+        }
+    }
+}
+
+// No items message (orders page only)
+.order-items {
+    .no-items {
+        text-align: center;
+        padding: 2rem;
+        color: var(--orders-text-muted);
+        transition: color 0.3s ease;
+    }
+}
+
+// Theme toggle button styles (add to your navbar or settings)
+.theme-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--orders-border-color, #e0e0e0);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--orders-text-primary, #333);
+
+    &:hover {
+        transform: scale(1.1);
+        background: var(--orders-bg-header, #fafafa);
+    }
+
+    svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+    .orders-page-container {
+        padding: 1rem;
+        
+        .orders-wrapper {
+            padding: 1rem;
+        }
+    }
+}

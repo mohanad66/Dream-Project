@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaShoppingCart, FaUserCircle } from 'react-icons/fa';
+import { FaHome, FaShoppingCart, FaUserCircle, FaBoxOpen } from 'react-icons/fa';
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { FaStore } from "react-icons/fa";
 import { ACCESS_TOKEN } from '../../services/constants';
@@ -14,14 +14,18 @@ export default function Navbar({ onLogout }) {
     setActiveLink(location.pathname);
   }, [location]);
 
+  const access = localStorage.getItem(ACCESS_TOKEN);
+  const isLoggedIn = access && access.trim() !== "";
+
   const navItems = [
     { to: "/", icon: <FaHome />, label: "Home" },
     { to: "/products", icon: <FaStore />, label: "Shop" },
     { to: "/cart", icon: <FaShoppingCart />, label: "Cart" },
-    { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
+    ...(isLoggedIn ? [
+      { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
+      { to: "/orders", icon: <FaBoxOpen />, label: "My Orders" } // Added Orders tab
+    ] : []),
   ];
-
-  const isLoggedIn = localStorage.getItem(ACCESS_TOKEN);
 
   return (
     <nav className="performant-navbar">

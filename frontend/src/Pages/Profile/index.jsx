@@ -21,7 +21,9 @@ const MODAL_TYPES = {
   CONTACT: 'Contact',
   TAG: 'Tag'
 };
-
+const ORDER_STATUSES = [
+  'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'
+];
 const PaginationControls = ({ pagination, onPageChange, loading }) => {
   const totalPages = Math.ceil(pagination.count / 10);
 
@@ -97,13 +99,29 @@ export default function Profile({ categories: initialCategories = [] }) {
       previous: null,
       currentPage: 1,
     },
+    allProducts: [],
+    allProductsLoading: false,
+    allProductsPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
     usersPagination: {
       count: 0,
       next: null,
       previous: null,
       currentPage: 1,
     },
-    editingItem: null
+    editingItem: null,
+    allOrders: [],
+    ordersLoading: false,
+    ordersPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
   });
 
   const {
@@ -124,13 +142,19 @@ export default function Profile({ categories: initialCategories = [] }) {
     myProducts,
     productsLoading,
     productsPagination,
+    allProducts,
+    allProductsLoading,
+    allProductsPagination,
     allCategories,
     categoriesLoading,
     categoriesPagination,
     allContacts,
     contactsLoading,
     contactsPagination,
-    editingItem
+    editingItem,
+    allOrders,
+    ordersLoading,
+    ordersPagination,
   } = state;
 
   // Derived state
@@ -188,7 +212,31 @@ export default function Profile({ categories: initialCategories = [] }) {
       }));
     }
   }, [isSuperuser, fetchData]);
-
+  const fetchAllOrders = useCallback(async (page = 1) => {
+    if (!isAdmin) return;
+    setState(prev => ({ ...prev, ordersLoading: true }));
+    try {
+      const response = await fetchData(`/api/admins/orders/?page=${page}`);
+      setState(prev => ({
+        ...prev,
+        allOrders: response.data.results ?? [],
+        ordersPagination: {
+          count: response.data.count ?? 0,
+          next: response.data.next ?? null,
+          previous: response.data.previous ?? null,
+          currentPage: page,
+        },
+        ordersLoading: false,
+      }));
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setState(prev => ({
+        ...prev,
+        error: "Failed to load orders.",
+        ordersLoading: false
+      }));
+    }
+  }, [isAdmin, fetchData]);
   const fetchMyProducts = useCallback(async (page = 1) => {
     if (!isAdmin) return;
 
@@ -311,7 +359,38 @@ export default function Profile({ categories: initialCategories = [] }) {
       }));
     }
   }, [isAdmin, fetchData]);
-  
+
+  const fetchAllProducts = useCallback(async (page = 1) => {
+    if (!isSuperuser) return;
+
+    setState(prev => ({ ...prev, allProductsLoading: true }));
+
+    try {
+      const response = await fetchData(`/api/admins/products/?page=${page}`);
+
+      const allProductsList = response.data?.results ?? response.data ?? [];
+
+      setState(prev => ({
+        ...prev,
+        allProducts: allProductsList,
+        allProductsPagination: {
+          count: response.data?.count ?? 0,
+          next: response.data?.next ?? null,
+          previous: response.data?.previous ?? null,
+          currentPage: page,
+        },
+        allProductsLoading: false
+      }));
+    } catch (err) {
+      console.error('Error fetching all products:', err);
+      setState(prev => ({
+        ...prev,
+        error: "Failed to load all products.",
+        allProductsLoading: false
+      }));
+    }
+  }, [isSuperuser, fetchData]);
+
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetchData("/api/user/myuser/");
@@ -343,12 +422,37 @@ export default function Profile({ categories: initialCategories = [] }) {
       fetchAllCategories();
       fetchAllContacts();
       fetchAllTags();
+      fetchAllOrders(); // ✅ Orders will load immediately when tab opens
       if (isSuperuser) {
         fetchAllUsers();
+        fetchAllProducts();
       }
     }
-  }, [activeTab, isAdmin, isSuperuser, fetchMyProducts, fetchAllCategories, fetchAllContacts, fetchAllTags, fetchAllUsers]);
-
+  }, [
+    activeTab,
+    isAdmin,
+    isSuperuser,
+    fetchMyProducts,
+    fetchAllCategories,
+    fetchAllContacts,
+    fetchAllTags,
+    fetchAllOrders, // ✅ Include in dependencies
+    fetchAllUsers,
+    fetchAllProducts
+  ]);
+  const handleOrderStatusChange = async (orderId, newStatus) => {
+    try {
+      await updateData(`/api/admins/orders/${orderId}/`, { status: newStatus });
+      setState(prev => ({
+        ...prev,
+        allOrders: prev.allOrders.map(order =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        ),
+      }));
+    } catch (err) {
+      setState(prev => ({ ...prev, error: "Failed to update order status." }));
+    }
+  };
   const handleOpenModal = (type, item = null) => {
     let config = {};
 
@@ -491,6 +595,25 @@ export default function Profile({ categories: initialCategories = [] }) {
   const handleCategoryStatusToggle = createToggleHandler('category');
   const handleContactStatusToggle = createToggleHandler('contact');
 
+  const handleAllProductsStatusToggle = async (id, currentStatus) => {
+    try {
+      const endpoint = `/api/admins/products/${id}/`;
+      await updateData(endpoint, { is_active: !currentStatus });
+
+      setState(prev => ({
+        ...prev,
+        allProducts: prev.allProducts.map(product =>
+          product.id === id ? { ...product, is_active: !currentStatus } : product
+        )
+      }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: "Failed to update product status."
+      }));
+    }
+  };
+
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
       await updateData(`/api/user/${userId}/`, { is_active: !currentStatus });
@@ -543,6 +666,25 @@ export default function Profile({ categories: initialCategories = [] }) {
   const handleDeleteCategory = createDeleteHandler('category');
   const handleDeleteContact = createDeleteHandler('contact');
   const handleDeleteTag = createDeleteHandler('tag');
+
+  const handleDeleteAllProduct = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      const endpoint = `/api/admins/products/${id}/`;
+      await updateData(endpoint, {}, 'delete');
+
+      setState(prev => ({
+        ...prev,
+        allProducts: prev.allProducts.filter(product => product.id !== id)
+      }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: "Failed to delete product."
+      }));
+    }
+  };
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure? This action is irreversible.")) return;
@@ -696,11 +838,19 @@ export default function Profile({ categories: initialCategories = [] }) {
 
         {activeTab === 'admin' && isAdmin && (
           <AdminTab
+            allOrders={allOrders}
+            ordersLoading={ordersLoading}
+            ordersPagination={ordersPagination}
+            onRefreshOrders={fetchAllOrders}
+            onOrderStatusChange={handleOrderStatusChange}
             isSuperuser={isSuperuser}
             user={user}
             myProducts={myProducts}
             productsLoading={productsLoading}
             productsPagination={productsPagination}
+            allProducts={allProducts}
+            allProductsLoading={allProductsLoading}
+            allProductsPagination={allProductsPagination}
             allCategories={allCategories}
             categoriesLoading={categoriesLoading}
             categoriesPagination={categoriesPagination}
@@ -714,15 +864,18 @@ export default function Profile({ categories: initialCategories = [] }) {
             adminLoading={adminLoading}
             usersPagination={usersPagination}
             onRefreshProducts={fetchMyProducts}
+            onRefreshAllProducts={fetchAllProducts}
             onRefreshCategories={fetchAllCategories}
             onRefreshContacts={fetchAllContacts}
             onRefreshTags={fetchAllTags}
             onRefreshUsers={fetchAllUsers}
             onProductStatusToggle={handleProductStatusToggle}
+            onAllProductsStatusToggle={handleAllProductsStatusToggle}
             onCategoryStatusToggle={handleCategoryStatusToggle}
             onContactStatusToggle={handleContactStatusToggle}
             onUserStatusToggle={handleUserStatusToggle}
             onDeleteProduct={handleDeleteProduct}
+            onDeleteAllProduct={handleDeleteAllProduct}
             onDeleteCategory={handleDeleteCategory}
             onDeleteContact={handleDeleteContact}
             onDeleteTag={handleDeleteTag}
@@ -840,11 +993,19 @@ const SettingsTab = () => (
   </section>
 );
 const AdminTab = ({
+  allOrders = [],
+  ordersLoading,
+  ordersPagination,
+  onRefreshOrders,
+  onOrderStatusChange,
   isSuperuser,
   user,
   myProducts = [],              // ✅ Add default
   productsLoading,
   productsPagination,
+  allProducts = [],             // ✅ Add default for all products
+  allProductsLoading,
+  allProductsPagination,
   allCategories = [],           // ✅ Add default
   categoriesLoading,
   categoriesPagination,
@@ -858,15 +1019,18 @@ const AdminTab = ({
   adminLoading,
   usersPagination,
   onRefreshProducts,
+  onRefreshAllProducts,
   onRefreshCategories,
   onRefreshContacts,
   onRefreshTags,
   onRefreshUsers,
   onProductStatusToggle,
+  onAllProductsStatusToggle,
   onCategoryStatusToggle,
   onContactStatusToggle,
   onUserStatusToggle,
   onDeleteProduct,
+  onDeleteAllProduct,
   onDeleteCategory,
   onDeleteContact,
   onDeleteTag,
@@ -878,7 +1042,7 @@ const AdminTab = ({
       <h3>Admin Panel</h3>
     </div>
 
-    {/* Products Section */}
+    {/* My Products Section */}
     <div className="my-products-section">
       <div className="profile-content__header">
         <h4>My Products ({productsPagination.count})</h4>
@@ -911,6 +1075,42 @@ const AdminTab = ({
         <p>You have not created any products yet.</p>
       )}
     </div>
+
+    {/* All Products Section (Superuser Only) */}
+    {isSuperuser && (
+      <div className="all-products-section management-section">
+        <div className="profile-content__header">
+          <h4>All Products ({allProductsPagination.count})</h4>
+          <button
+            onClick={() => onRefreshAllProducts(1)}
+            className="button button--secondary"
+            disabled={allProductsLoading}
+          >
+            {allProductsLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+
+        {allProductsLoading ? (
+          <div className="loading-spinner" />
+        ) : allProducts.length > 0 ? (
+          <>
+            <AllProductsTable
+              products={allProducts}
+              allUsers={allUsers}          // ← add this
+              onStatusToggle={onAllProductsStatusToggle}
+              onDelete={onDeleteAllProduct}
+            />
+            <PaginationControls
+              pagination={allProductsPagination}
+              onPageChange={onRefreshAllProducts}
+              loading={allProductsLoading}
+            />
+          </>
+        ) : (
+          <p>No products found.</p>
+        )}
+      </div>
+    )}
 
     {/* Categories Section */}
     <div className="category-management-section management-section">
@@ -1045,7 +1245,36 @@ const AdminTab = ({
         )}
       </div>
     )}
+    <div className="orders-management-section management-section">
+      <div className="profile-content__header">
+        <h4>Order Management ({ordersPagination?.count ?? 0})</h4>
+        <button
+          onClick={() => onRefreshOrders(1)}
+          className="button button--secondary"
+          disabled={ordersLoading}
+        >
+          {ordersLoading ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
 
+      {ordersLoading ? (
+        <div className="loading-spinner" />
+      ) : allOrders.length > 0 ? (
+        <>
+          <OrderTable
+            orders={allOrders}
+            onStatusChange={onOrderStatusChange}
+          />
+          <PaginationControls
+            pagination={ordersPagination}
+            onPageChange={onRefreshOrders}
+            loading={ordersLoading}
+          />
+        </>
+      ) : (
+        <p>No orders found.</p>
+      )}
+    </div>
     {/* Content Management Actions */}
     <div className="management-section">
       <div className="profile-content__header">
@@ -1082,6 +1311,49 @@ const AdminTab = ({
 );
 
 // Table Components
+const OrderTable = ({ orders, onStatusChange }) => (
+  <div className="orders-table table">
+    <div className="orders-table__header table__header">
+      <span>Order #</span>
+      <span>Customer</span>
+      <span>Items</span>
+      <span>Total</span>
+      <span>Payment</span>
+      <span>Status</span>
+      <span>Date</span>
+      <span>Actions</span>
+    </div>
+
+    {orders.map(order => (
+      <div key={order.id} className="orders-table__row table__row">
+        <span>#{order.id}</span>
+        <span>{order.owner ?? '—'}</span>
+        <span>{order.items?.length ?? 0} item{order.items?.length !== 1 ? 's' : ''}</span>
+        <span>{parseFloat(order.total_price || 0).toFixed(2)} EGP</span>
+        <span className={`status-pill status-pill--${order.payment_status === 'success' ? 'active' : 'inactive'}`}>
+          {order.payment_status ?? '—'}
+        </span>
+        <span className={`status-pill status-pill--${order.status}`}>
+          {order.status}
+        </span>
+        <span>{new Date(order.created_at).toLocaleDateString()}</span>
+        <div className="actions">
+          <select
+            value={order.status}
+            onChange={(e) => onStatusChange(order.id, e.target.value)}
+            className="form-input form-input--small"
+          >
+            {ORDER_STATUSES.map(s => (
+              <option key={s} value={s}>
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 const TagTable = ({ tags, onEdit, onDelete }) => (
   <div className="tags-table table">
     <div className="tags-table__header table__header">
@@ -1152,6 +1424,47 @@ const ProductTable = ({ products, onStatusToggle, onEdit, onDelete }) => (
   </div>
 );
 
+const AllProductsTable = ({ products, allUsers = [], onStatusToggle, onDelete }) => {
+  const getUserName = (ownerId) => {
+    const user = allUsers.find(u => u.id === ownerId);
+    return user?.username || user?.email || `User #${ownerId}`;
+  };
+
+  return (
+    <div className="all-products-table table">
+      <div className="all-products-table__header table__header">
+        <span>Product Name</span>
+        <span>Owner</span>
+        <span>Status</span>
+        <span>Actions</span>
+      </div>
+
+      {products.map(product => (
+        <div key={product.id} className="all-products-table__row table__row">
+          <span>{product.name}</span>
+          <span className="product-owner">{getUserName(product.owner)}</span>
+          <span className={`status-pill status-pill--${product.is_active ? 'active' : 'inactive'}`}>
+            {product.is_active ? 'Active' : 'Inactive'}
+          </span>
+          <div className="actions">
+            <button
+              className="button button--small button--secondary"
+              onClick={() => onStatusToggle(product.id, product.is_active)}
+            >
+              {product.is_active ? 'Deactivate' : 'Activate'}
+            </button>
+            <button
+              className="button button--small button--danger"
+              onClick={() => onDelete(product.id)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 const CategoryTable = ({ categories, onStatusToggle, onEdit, onDelete }) => (
   <div className="categories-table table">
     <div className="categories-table__header table__header">

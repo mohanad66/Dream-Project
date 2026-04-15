@@ -230,7 +230,8 @@ export const useAuth = () => {
         setAuthData({ isAuthenticated: true });
       } catch (err) {
         console.error('Auth initialization failed:', err);
-        logout();
+        setAuthData({ isAuthenticated: true, isLoading: false });
+
       }
     };
 

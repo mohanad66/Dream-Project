@@ -57,7 +57,10 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy'
     }), name='admin-tag-detail'),
-    
+    # Order
+    path('admins/orders/', OrderAdminViewSet.as_view({'get': 'list'}), name='admin-order-list'),
+    path('admins/orders/<int:pk>/', OrderAdminViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update'}), name='admin-order-detail'),
+
     # Authentication endpoints
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
@@ -69,5 +72,11 @@ urlpatterns = [
     path('user/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     path('auth/password/change/', PasswordChangeView.as_view(), name='password-change'),
     path("payments/create-intent/", CreatePaymentIntentView.as_view(), name="CreatePaymentIntentView"),
+    path("orders/create/", CreateOrderView.as_view(), name="create-order"),
+    path("orders/mine/", MyOrdersView.as_view(), name="my-orders"),
+    path("orders/<int:pk>/", MyOrderDetailView.as_view(), name="order-detail"),
+    
+    
+    path('webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
     # ++++++++++++++++++++++++++++++++++++
 ]

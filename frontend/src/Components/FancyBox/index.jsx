@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-
+import React from 'react'
 import { Fancybox } from "@fancyapps/ui/dist/fancybox";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 

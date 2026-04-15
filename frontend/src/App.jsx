@@ -6,8 +6,9 @@ import ProtectedRoute from './Components/ProtectedRoute/ProtectedRoute.jsx';
 import "./css/style.scss";
 import { useAuth } from './services/auth';
 import { useLocation } from 'react-router-dom';
+import OrdersPage from './Pages/Orders/index.jsx';
+import OrderDetailsPage from './Pages/OrderDetails/index.jsx';
 
-// ✅ Code splitting with React.lazy() - components load on demand
 const Home = lazy(() => import('./Pages/Home/index.jsx'));
 const Products = lazy(() => import('./Pages/Products/index.jsx'));
 const Cart = lazy(() => import('./Pages/Cart/index.jsx'));
@@ -17,13 +18,11 @@ const ProfilePage = lazy(() => import('./Pages/Profile/index.jsx'));
 const CheckoutPage = lazy(() => import('./Pages/Checkout/index.jsx'));
 const VerifyOtp = lazy(() => import('./Pages/OTP/OTPVerify.jsx'));
 
-// Loading fallback component
 const LoadingFallback = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
     <div>Loading...</div>
   </div>
 );
-
 
 export default function App() {
   const {
@@ -36,19 +35,22 @@ export default function App() {
   } = useAuth();
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   async function handleLogin(userData) {
     const success = await login(userData);
     if (success) {
-      navigate('/');  // Use React Router navigation instead
+      navigate('/');
     }
   }
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+    navigate('/login');
   }
-  const location = useLocation();
+
+  const hideNavbarRoutes = ["/checkout", "/login", "/register", "/verify-otp"];
+  const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
   return (
     <>
@@ -56,6 +58,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          
           <Route path="/" element={
             <Home
               contacts={data.contacts || []}
@@ -66,6 +70,7 @@ export default function App() {
               tags={data.tags || []}
             />
           } />
+          
           <Route path="/products" element={
             <Products
               products={data.products || []}
@@ -73,24 +78,41 @@ export default function App() {
               tags={data.tags || []}
             />
           } />
+          
           <Route path="/cart" element={
             <Cart categories={data.categories || []} />
           } />
+          
           <Route path="/checkout" element={
             <ProtectedRoute>
               <CheckoutPage />
             </ProtectedRoute>
           } />
+          
           <Route path="/profile" element={
             <ProtectedRoute>
               <ProfilePage categories={data.categories} tags={data.tags} />
             </ProtectedRoute>
           } />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
+          
+          {/* ✅ Fixed: Wrap orders routes with ProtectedRoute */}
+          <Route path="/orders" element={
+            <ProtectedRoute>
+              <OrdersPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/orders/:id" element={
+            <ProtectedRoute>
+              <OrderDetailsPage />
+            </ProtectedRoute>
+          } />
+          
           <Route path='*' element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-      {(location.pathname !== "/checkout" && location.pathname !== "/login" && location.pathname !== "/register") && <Navbar onLogout={handleLogout} />}
+      
+      {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
     </>
   );
 }

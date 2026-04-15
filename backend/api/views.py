@@ -19,15 +19,17 @@ from .models import *
 from .cache_utils import cache_api_response
 import logging
 import stripe
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__ )
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 20  # Increased from 10 to reduce API calls
+    page_size = 9  # Increased from 10 to reduce API calls
     page_size_query_param = 'page_size'
-    max_page_size = 100
+    max_page_size = 1000
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
 class ProductAdminViewSet(viewsets.ModelViewSet):
@@ -315,70 +317,137 @@ class PaymentListView(ListAPIView):
     serializer_class = PaymentSerializer
 
 class CreatePaymentIntentView(APIView):
+    """
+    Create payment intent AFTER creating the order.
+    Flow: Create Order → Create Payment Intent → Return to frontend
+    """
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        amount = request.data.get('amount')
-        currency = request.data.get('currency', '').lower()
-        email = request.data.get('user_email')
-        
-        # Validation
-        if not email or '@' not in email:
-            return Response({"error": "Valid email is required"}, status=400)
-            
         try:
-            amount_int = int(amount)
-            if amount_int <= 0:
-                return Response({"error": "Amount must be positive"}, status=400)
-        except (TypeError, ValueError):
-            return Response({"error": "Invalid amount format"}, status=400)
-        
-        supported_currencies = ["usd", "egp"]
-        if currency not in supported_currencies:
-            return Response({"error": f"Unsupported currency. Supported: {', '.join(supported_currencies)}"}, 
-                          status=400)
-        
-        # EGP-specific validation
-        if currency == "egp":
-            if amount_int < 2500:  # 25 EGP minimum (2500 piasters)
-                return Response({"error": "Minimum amount for EGP is 25 EGP (2500 piasters)"}, 
-                              status=400)
-            if amount_int % 1 != 0:  # Must be whole piasters
-                return Response({"error": "EGP amount must be in whole piasters"}, 
-                              status=400)
-        
-        try:
-            intent = stripe.PaymentIntent.create(
-                amount=amount_int,
-                currency=currency,
-                receipt_email=email,
-                metadata={
-                    "user_email": email,
-                    "amount_egp": f"{amount_int/100:.2f}" if currency == "egp" else "n/a"
-                }
+            # Extract data from request
+            amount = request.data.get('amount')  # in cents
+            currency = request.data.get('currency', 'egp').lower()
+            order_items = request.data.get('order_items', [])
+            shipping_address = request.data.get('shipping_address', '')
+            note = request.data.get('note', '')
+
+            # Validate amount
+            if not amount or amount <= 0:
+                return Response(
+                    {'error': 'Invalid amount'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not order_items or len(order_items) == 0:
+                return Response(
+                    {'error': 'Order must contain at least one item'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # ===== STEP 1: CREATE ORDER FIRST =====
+            order = Order.objects.create(
+                owner=request.user,
+                status='pending',  # Order starts as pending
+                shipping_address=shipping_address,
+                note=note
             )
-            
-            payment_data = {
-                "amount": amount_int,
-                "currency": currency,
-                "stripe_payment_id": intent["id"],
-                "user_email": email
-            }
-            
-            serializer = PaymentSerializer(data=payment_data)
-            if serializer.is_valid():
-                serializer.save()
+
+            # ===== STEP 2: CREATE ORDER ITEMS =====
+            total_price = 0
+            for item_data in order_items:
+                try:
+                    product = Product.objects.get(id=item_data.get('id'))
+                    quantity = item_data.get('quantity', 1)
+                    price = float(item_data.get('price', product.price))
+                    
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=quantity,
+                        unit_price=product.price,
+                    )
+                    total_price += price * quantity
+                except Product.DoesNotExist:
+                    order.delete()  # Rollback if product not found
+                    return Response(
+                        {'error': f'Product {item_data.get("id")} not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+
+            # ===== STEP 3: CREATE PAYMENT INTENT =====
+            try:
+                # Convert amount to proper format (Stripe expects smallest currency unit)
+                amount_in_cents = int(amount)
+                
+                payment_intent = stripe.PaymentIntent.create(
+                    amount=amount_in_cents,
+                    currency=currency,
+                    metadata={
+                        'order_id': order.id,
+                        'user_id': request.user.id,
+                        'user_email': request.user.email
+                    }
+                )
+
+                # ===== STEP 4: CREATE PAYMENT RECORD =====
+                payment = Payment.objects.create(
+                    stripe_payment_id=payment_intent.id,
+                    amount=amount_in_cents / 100,  # Convert back to EGP
+                    currency=currency,
+                    status='pending'  # Payment starts as pending
+                )
+
                 return Response({
-                    "clientSecret": intent["client_secret"],
-                    "payment": serializer.data,
+                    'clientSecret': payment_intent.client_secret,
+                    'orderId': order.id,
+                    'paymentId': payment.id,
+                    'amount': amount_in_cents / 100,
+                    'currency': currency
                 }, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe error: {str(e)}")
-            return Response({"error": f"Payment processing error: {str(e)}"}, status=400)
+
+            except stripe.error.CardError as e:
+                order.delete()  # Rollback order if payment intent fails
+                return Response(
+                    {'error': f'Card error: {e.user_message}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except stripe.error.RateLimitError:
+                order.delete()
+                return Response(
+                    {'error': 'Too many requests to Stripe'},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS
+                )
+            except stripe.error.InvalidRequestError as e:
+                order.delete()
+                return Response(
+                    {'error': f'Invalid request: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except stripe.error.AuthenticationError:
+                order.delete()
+                return Response(
+                    {'error': 'Stripe authentication failed'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            except stripe.error.APIConnectionError:
+                order.delete()
+                return Response(
+                    {'error': 'Failed to connect to Stripe'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            except stripe.error.StripeError as e:
+                order.delete()
+                return Response(
+                    {'error': f'Stripe error: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         except Exception as e:
-            logger.error(f"Internal error: {str(e)}")
-            return Response({"error": "Internal server error"}, status=500)
-        
+            return Response(
+                {'error': f'Unexpected error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class ProductSearchView(APIView):
     permission_classes = [AllowAny]
@@ -439,3 +508,259 @@ class ProductSearchView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 get_product = ProductSearchView.as_view()
+
+
+
+
+class CreateOrderView(APIView):
+    """
+    Called by frontend after stripe.confirmCardPayment succeeds.
+    Receives the stripe payment_intent_id, looks up the Payment record,
+    and creates the Order + OrderItems.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        payment_intent_id = request.data.get('payment_intent_id')
+        order_items = request.data.get('order_items', [])  # [{id, name, price, quantity}]
+        shipping_address = request.data.get('shipping_address', '')
+        note = request.data.get('note', '')
+
+        if not payment_intent_id:
+            return Response({"error": "payment_intent_id is required"}, status=400)
+
+        # Look up the payment
+        try:
+            payment = Payment.objects.get(
+                stripe_payment_id=payment_intent_id,
+                owner=request.user
+            )
+        except Payment.DoesNotExist:
+            return Response({"error": "Payment not found"}, status=404)
+
+        # Prevent duplicate orders
+        if hasattr(payment, 'order'):
+            return Response(
+                OrderSerializer(payment.order).data,
+                status=status.HTTP_200_OK
+            )
+
+        # Verify payment succeeded with Stripe before creating order
+        try:
+            intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            if intent['status'] != 'succeeded':
+                return Response(
+                    {"error": f"Payment not completed. Status: {intent['status']}"},
+                    status=400
+                )
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe retrieve error: {str(e)}")
+            return Response({"error": "Could not verify payment with Stripe"}, status=400)
+
+        # Update payment status
+        payment.status = Payment.Status.SUCCESS
+        payment.save(update_fields=['status'])
+
+        # Create order
+        order = Order.objects.create(
+            owner=request.user,
+            payment=payment,
+            shipping_address=shipping_address,
+            note=note,
+            status=Order.Status.CONFIRMED,
+        )
+
+        # Create order items — snapshot price at time of purchase
+        for item_data in order_items:
+            try:
+                product = Product.objects.get(pk=item_data['id'])
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=int(item_data.get('quantity', 1)),
+                    unit_price=product.price,  # Always use DB price, never trust frontend
+                )
+            except Product.DoesNotExist:
+                logger.warning(f"Product {item_data.get('id')} not found during order creation")
+                continue
+
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MyOrdersView(ListAPIView):
+    """Returns the authenticated user's own orders, newest first."""
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+    pagination_class = None  # Disable pagination
+
+    def get_queryset(self):
+        return (
+            Order.objects
+            .filter(owner=self.request.user)
+            .select_related('payment')
+            .prefetch_related('items__product')
+            .order_by('-created_at')
+        )
+
+
+class MyOrderDetailView(APIView):
+    """Returns a single order belonging to the authenticated user."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        order = get_object_or_404(
+            Order.objects.select_related('payment').prefetch_related('items__product'),
+            pk=pk,
+            owner=request.user
+        )
+        return Response(OrderSerializer(order).data)
+
+
+class OrderAdminViewSet(viewsets.ModelViewSet):
+    """Full CRUD for admins. Status updates go through partial_update (PATCH)."""
+    queryset = (
+        Order.objects
+        .select_related('owner', 'payment')
+        .prefetch_related('items__product')
+        .order_by('-created_at')
+    )
+    permission_classes = [IsAdminUser]
+    pagination_class = StandardResultsSetPagination
+
+    def get_serializer_class(self):
+        if self.action == 'partial_update':
+            return OrderStatusUpdateSerializer
+        return OrderSerializer
+
+    def partial_update(self, request, *args, **kwargs):
+        order = self.get_object()
+        serializer = OrderStatusUpdateSerializer(order, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(OrderSerializer(order).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@method_decorator(csrf_exempt, name='dispatch')
+class StripeWebhookView(APIView):
+    """
+    Handle Stripe webhook events to update order and payment status.
+    
+    Events handled:
+    - payment_intent.succeeded: Mark payment as successful, update order status
+    - payment_intent.payment_failed: Mark payment as failed
+    - payment_intent.canceled: Mark payment as cancelled
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload,
+                sig_header,
+                settings.STRIPE_WEBHOOK_SECRET
+            )
+        except ValueError:
+            return Response(
+                {'error': 'Invalid payload'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except stripe.error.SignatureVerificationError:
+            return Response(
+                {'error': 'Invalid signature'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Handle the event
+        if event['type'] == 'payment_intent.succeeded':
+            self.handle_payment_succeeded(event['data']['object'])
+
+        elif event['type'] == 'payment_intent.payment_failed':
+            self.handle_payment_failed(event['data']['object'])
+
+        elif event['type'] == 'payment_intent.canceled':
+            self.handle_payment_cancelled(event['data']['object'])
+
+        return Response({'status': 'success'}, status=status.HTTP_200_OK)
+
+    def handle_payment_succeeded(self, payment_intent):
+        """
+        Update payment and order status when payment succeeds.
+        """
+        try:
+            order_id = payment_intent['metadata'].get('order_id')
+            payment_intent_id = payment_intent['id']
+
+            # Update Payment record
+            payment = Payment.objects.get(stripe_payment_id=payment_intent_id)
+            payment.status = 'success'
+            payment.save()
+
+            # Update Order status from pending to confirmed
+            order = Order.objects.get(id=order_id)
+            if order.status == 'pending':
+                order.status = 'confirmed'
+                order.save()
+
+            print(f"✓ Payment succeeded for Order #{order_id}")
+
+        except Payment.DoesNotExist:
+            print(f"✗ Payment not found: {payment_intent_id}")
+        except Order.DoesNotExist:
+            print(f"✗ Order not found: {order_id}")
+        except Exception as e:
+            print(f"✗ Error handling payment success: {str(e)}")
+
+    def handle_payment_failed(self, payment_intent):
+        """
+        Update payment status when payment fails.
+        """
+        try:
+            payment_intent_id = payment_intent['id']
+
+            # Update Payment record
+            payment = Payment.objects.get(stripe_payment_id=payment_intent_id)
+            payment.status = 'failed'
+            payment.save()
+
+            # Update Order status to cancelled if payment fails
+            order = payment.order
+            if order.status == 'pending':
+                order.status = 'cancelled'
+                order.save()
+
+            print(f"✗ Payment failed for Order #{order.id}")
+
+        except Payment.DoesNotExist:
+            print(f"✗ Payment not found: {payment_intent_id}")
+        except Exception as e:
+            print(f"✗ Error handling payment failure: {str(e)}")
+
+    def handle_payment_cancelled(self, payment_intent):
+        """
+        Update payment status when payment is cancelled.
+        """
+        try:
+            payment_intent_id = payment_intent['id']
+
+            # Update Payment record
+            payment = Payment.objects.get(stripe_payment_id=payment_intent_id)
+            payment.status = 'cancelled'
+            payment.save()
+
+            # Update Order status to cancelled
+            order = payment.order
+            if order.status == 'pending':
+                order.status = 'cancelled'
+                order.save()
+
+            print(f"⊘ Payment cancelled for Order #{order.id}")
+
+        except Payment.DoesNotExist:
+            print(f"✗ Payment not found: {payment_intent_id}")
+        except Exception as e:
+            print(f"✗ Error handling payment cancellation: {str(e)}")

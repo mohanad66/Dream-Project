@@ -4,6 +4,7 @@ import './css/style.scss';
 import useFancybox from '../FancyBox';
 import { FiMail, FiPhone, FiInfo, FiLink, } from "react-icons/fi";
 import { FaFacebook, FaWhatsapp, FaGithub, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
+import React from 'react'          // ✅ add this
 
 const Carousel = ({ images = [], contacts = [] }) => {
   // ✅ Add safety checks at the top

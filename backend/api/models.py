@@ -8,6 +8,7 @@ from django.db import models
 from decimal import Decimal
 from PIL import Image
 from utils.image_compression import compress_image
+import uuid
 
 # =============================================== #
 class ImageHandlingMixin: 
@@ -248,6 +249,7 @@ class Product(models.Model , ImageHandlingMixin):
     )    
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Price in USD (min $0.01)")
     is_active = models.BooleanField(default=True, verbose_name="Active", help_text="Is this product available for sale?")
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creation Date")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Last Updated")
     
@@ -317,6 +319,9 @@ class Product(models.Model , ImageHandlingMixin):
     def aspect_ratio(self):
         width, height = self.dimensions
         return round(width / height, 2) if height else 0
+
+
+
 
 class Service(models.Model):
     image = models.ImageField(
@@ -480,8 +485,119 @@ class Contact(models.Model):
 
 
 class Payment(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING  = 'pending',  'Pending'
+        SUCCESS  = 'success',  'Success'
+        FAILED   = 'failed',   'Failed'
+        REFUNDED = 'refunded', 'Refunded'
     amount = models.DecimalField(max_digits=10 , decimal_places=2)
     currency = models.CharField(max_length=10 , default="usd")
     stripe_payment_id = models.CharField(max_length=255 , blank=True ,null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     user_email = models.EmailField()
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='payments'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True
+    )
+    stripe_client_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="PaymentIntent client_secret — sent to frontend only, never logged"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['owner', '-created_at']),
+            models.Index(fields=['status']),
+            models.Index(fields=['stripe_payment_id']),
+        ]
+
+    def __str__(self):
+        return f"Payment {self.stripe_payment_id} — {self.get_status_display()} — {self.amount} {self.currency.upper()}"
+
+    @property
+    def is_successful(self):
+        return self.status == self.Status.SUCCESS
+class Order(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING    = 'pending',    'Pending'
+        CONFIRMED  = 'confirmed',  'Confirmed'
+        PROCESSING = 'processing', 'Processing'
+        SHIPPED    = 'shipped',    'Shipped'
+        DELIVERED  = 'delivered',  'Delivered'
+        CANCELLED  = 'cancelled',  'Cancelled'
+        REFUNDED   = 'refunded',   'Refunded'
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='orders'           # user.orders.all()
+    )
+    payment = models.OneToOneField(
+        Payment, 
+        on_delete=models.SET_NULL,  # or models.CASCADE
+        null=True,  # Allow orders without payment initially
+        blank=True,
+        related_name='order'  # This is the reverse accessor from Payment to Order
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.CONFIRMED,       # starts confirmed because payment passed
+        db_index=True
+    )
+    shipping_address = models.TextField(blank=True)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['owner', '-created_at']),
+            models.Index(fields=['status']),
+        ]
+
+    def __str__(self):
+        return f"Order #{self.pk} — {self.owner} — {self.get_status_display()}"
+
+    @property
+    def total_price(self):
+        return sum(item.subtotal for item in self.items.all())
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='order_items'
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)   # snapshot
+
+    def __str__(self):
+        return f"{self.quantity} × {self.product} in Order #{self.order_id}"
+
+    @property
+    def subtotal(self):
+        return self.unit_price * self.quantity
