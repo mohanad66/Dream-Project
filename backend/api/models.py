@@ -573,11 +573,18 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"Order #{self.pk} — {self.owner} — {self.get_status_display()}"
+        # Use owner_name property to display string instead of ID
+        return f"Order #{self.pk} — {self.owner_name()} — {self.get_status_display()}"
 
     @property
     def total_price(self):
         return sum(item.subtotal for item in self.items.all())
+    
+    def owner_name(self):
+        """Return owner's username or full name as string"""
+        if self.owner:
+            return self.owner.username  # or self.owner.get_full_name()
+        return "No owner assigned"
 
 
 class OrderItem(models.Model):

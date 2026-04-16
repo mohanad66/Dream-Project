@@ -176,14 +176,6 @@ export default function OrdersPage() {
                                         {order.items && order.items.length > 0 ? (
                                             order.items.map((item) => (
                                                 <div key={item.id} className="order-item">
-                                                    <img
-                                                        src={item.product?.image || '/placeholder-image.jpg'}
-                                                        alt={item.product?.name || 'Product'}
-                                                        className="order-item-image"
-                                                        onError={(e) => {
-                                                            e.target.src = '/placeholder-image.jpg';
-                                                        }}
-                                                    />
                                                     <div className="order-item-details">
                                                         <h4>{item.product?.name || 'Product'}</h4>
                                                         <p>Quantity: {item.quantity}</p>

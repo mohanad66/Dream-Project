@@ -58,9 +58,11 @@
 // Orders page styles (isolated - won't affect main website)
 .orders-page-container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 5rem auto;
+    margin-top: 0;
     padding: 2rem;
     min-height: 110vh;
+
     // background: var(--orders-bg-primary);
     transition: background-color 0.3s ease;
 

@@ -1263,6 +1263,7 @@ const AdminTab = ({
         <>
           <OrderTable
             orders={allOrders}
+            users={allUsers}
             onStatusChange={onOrderStatusChange}
           />
           <PaginationControls
@@ -1311,14 +1312,13 @@ const AdminTab = ({
 );
 
 // Table Components
-const OrderTable = ({ orders, onStatusChange }) => (
+const OrderTable = ({ users = [], orders, onStatusChange }) => (
   <div className="orders-table table">
     <div className="orders-table__header table__header">
       <span>Order #</span>
       <span>Customer</span>
       <span>Items</span>
       <span>Total</span>
-      <span>Payment</span>
       <span>Status</span>
       <span>Date</span>
       <span>Actions</span>
@@ -1327,12 +1327,10 @@ const OrderTable = ({ orders, onStatusChange }) => (
     {orders.map(order => (
       <div key={order.id} className="orders-table__row table__row">
         <span>#{order.id}</span>
-        <span>{order.owner ?? '—'}</span>
+        <span>{order.owner_detail?.username || `User #${order.owner}`}</span>
+
         <span>{order.items?.length ?? 0} item{order.items?.length !== 1 ? 's' : ''}</span>
         <span>{parseFloat(order.total_price || 0).toFixed(2)} EGP</span>
-        <span className={`status-pill status-pill--${order.payment_status === 'success' ? 'active' : 'inactive'}`}>
-          {order.payment_status ?? '—'}
-        </span>
         <span className={`status-pill status-pill--${order.status}`}>
           {order.status}
         </span>

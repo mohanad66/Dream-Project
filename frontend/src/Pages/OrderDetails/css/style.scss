@@ -1,60 +1,65 @@
 // Theme variables for order details page only
 .light-theme .order-details-container {
-  --order-bg-primary: #f5f5f5;
-  --order-bg-secondary: #ffffff;
-  --order-bg-card: #f9f9f9;
-  --order-text-primary: #333333;
-  --order-text-secondary: #666666;
-  --order-border-color: #e0e0e0;
-  --order-border-light: #f0f0f0;
-  --order-shadow-color: rgba(0, 0, 0, 0.1);
-  --order-status-pending-bg: #fff3e0;
-  --order-status-pending-text: #ff9800;
-  --order-status-confirmed-bg: #e3f2fd;
-  --order-status-confirmed-text: #2196f3;
-  --order-status-delivered-bg: #e8f5e9;
-  --order-status-delivered-text: #4caf50;
-  --order-status-cancelled-bg: #ffebee;
-  --order-status-cancelled-text: #f44336;
-  --order-step-bg: #e0e0e0;
-  --order-step-completed: #4caf50;
-  --order-step-current: #2196f3;
-  --order-btn-primary: #2196f3;
-  --order-btn-primary-hover: #1976d2;
+    --order-bg-primary: #f5f5f5;
+    --order-bg-secondary: #ffffff;
+    --order-bg-card: #f9f9f9;
+    --order-text-primary: #333333;
+    --order-text-secondary: #666666;
+    --order-border-color: #e0e0e0;
+    --order-border-light: #f0f0f0;
+    --order-shadow-color: rgba(0, 0, 0, 0.1);
+    --order-status-pending-bg: #fff3e0;
+    --order-status-pending-text: #ff9800;
+    --order-status-confirmed-bg: #e3f2fd;
+    --order-status-confirmed-text: #2196f3;
+    --order-status-delivered-bg: #e8f5e9;
+    --order-status-delivered-text: #4caf50;
+    --order-status-cancelled-bg: #ffebee;
+    --order-status-cancelled-text: #f44336;
+    --order-step-bg: #e0e0e0;
+    --order-step-completed: #4caf50;
+    --order-step-current: #2196f3;
+    --order-btn-primary: #2196f3;
+    --order-btn-primary-hover: #1976d2;
 }
 
 .dark-theme .order-details-container {
-  --order-bg-primary: #1a1a1a;
-  --order-bg-secondary: #2d2d2d;
-  --order-bg-card: #363636;
-  --order-text-primary: #ffffff;
-  --order-text-secondary: #b0b0b0;
-  --order-border-color: #404040;
-  --order-border-light: #353535;
-  --order-shadow-color: rgba(0, 0, 0, 0.3);
-  --order-status-pending-bg: #332700;
-  --order-status-pending-text: #ffb74d;
-  --order-status-confirmed-bg: #0d3b66;
-  --order-status-confirmed-text: #64b5f6;
-  --order-status-delivered-bg: #1b5e20;
-  --order-status-delivered-text: #81c784;
-  --order-status-cancelled-bg: #4a0e0e;
-  --order-status-cancelled-text: #ef9a9a;
-  --order-step-bg: #404040;
-  --order-step-completed: #2e7d32;
-  --order-step-current: #1565c0;
-  --order-btn-primary: #1565c0;
-  --order-btn-primary-hover: #0d47a1;
+    --order-bg-primary: #1a1a1a;
+    --order-bg-secondary: #2d2d2d;
+    --order-bg-card: #363636;
+    --order-text-primary: #ffffff;
+    --order-text-secondary: #b0b0b0;
+    --order-border-color: #404040;
+    --order-border-light: #353535;
+    --order-shadow-color: rgba(0, 0, 0, 0.3);
+    --order-status-pending-bg: #332700;
+    --order-status-pending-text: #ffb74d;
+    --order-status-confirmed-bg: #0d3b66;
+    --order-status-confirmed-text: #64b5f6;
+    --order-status-delivered-bg: #1b5e20;
+    --order-status-delivered-text: #81c784;
+    --order-status-cancelled-bg: #4a0e0e;
+    --order-status-cancelled-text: #ef9a9a;
+    --order-step-bg: #404040;
+    --order-step-completed: #2e7d32;
+    --order-step-current: #1565c0;
+    --order-btn-primary: #1565c0;
+    --order-btn-primary-hover: #0d47a1;
 }
 
 // Order Details Container (isolated - won't affect main website)
 .order-details-container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 5rem auto;
+    margin-top: 0;
     padding: 2rem;
     min-height: 110vh;
     // background: var(--order-bg-primary);
     transition: background-color 0.3s ease;
+    -webkit-transition: background-color 0.3s ease;
+    -moz-transition: background-color 0.3s ease;
+    -ms-transition: background-color 0.3s ease;
+    -o-transition: background-color 0.3s ease;
 
     .order-details-wrapper {
         background: var(--order-bg-secondary);
@@ -379,10 +384,12 @@
         transform: scale(1);
         opacity: 1;
     }
+
     50% {
         transform: scale(1.1);
         opacity: 0.8;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;

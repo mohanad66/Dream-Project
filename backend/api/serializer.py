@@ -295,15 +295,26 @@ class OrderSerializer(serializers.ModelSerializer):
     total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     payment_status = serializers.CharField(source='payment.status', read_only=True)
     payment_id = serializers.CharField(source='payment.stripe_payment_id', read_only=True)
+    owner_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
             'id', 'owner', 'payment', 'payment_id', 'payment_status',
             'status', 'shipping_address', 'note',
-            'items', 'total_price', 'created_at', 'updated_at'
+            'items', 'total_price', 'created_at', 'updated_at','owner_detail'
         ]
         read_only_fields = ['owner', 'payment', 'payment_id', 'payment_status', 'total_price', 'created_at', 'updated_at']
+    
+    def get_owner_detail(self, obj):
+        if obj.owner:
+            return {
+                'id': obj.owner.id,
+                'username': obj.owner.username,
+                'email': obj.owner.email,
+                'full_name': f"{obj.owner.first_name} {obj.owner.last_name}".strip()
+            }
+        return None
 
 
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):

@@ -145,7 +145,7 @@ export default function OrderDetailsPage() {
                         <div className="info-card">
                             <h3>Payment Information</h3>
                             <p><strong>Payment Status:</strong> {order.payment.status}</p>
-                            <p><strong>Amount:</strong> {parseFloat(order.payment.amount).toFixed(2)} L.E</p>
+                            <p><strong>Amount:</strong> {parseFloat(order.payment.amount).toFixed(1)} L.E</p>
                             <p><strong>Currency:</strong> {order.payment.currency}</p>
                         </div>
                     )}
@@ -183,19 +183,15 @@ export default function OrderDetailsPage() {
                     <div className="order-items-list">
                         {order.items?.map((item) => (
                             <div key={item.id} className="order-item-detail">
-                                <img 
-                                    src={item.product?.image || '/placeholder-image.jpg'} 
-                                    alt={item.product?.name}
-                                    className="order-item-image"
-                                />
+                               
                                 <div className="order-item-info">
                                     <h4>{item.product?.name}</h4>
                                     <p>Quantity: {item.quantity}</p>
-                                    <p>Unit Price: {parseFloat(item.unit_price).toFixed(2)} L.E</p>
+                                    <p>Unit Price: {parseFloat(item.unit_price).toFixed(1)} L.E</p>
                                 </div>
                                 <div className="order-item-total">
-                                    <strong>Total:</strong>
-                                    {(item.quantity * parseFloat(item.unit_price)).toFixed(2)} L.E
+                                    <strong>Total: </strong>
+                                    {(item.quantity * parseFloat(item.unit_price)).toFixed(1)} L.E
                                 </div>
                             </div>
                         ))}
@@ -207,7 +203,7 @@ export default function OrderDetailsPage() {
                         <span>Subtotal:</span>
                         <span>{order.items?.reduce((sum, item) => 
                             sum + (item.quantity * parseFloat(item.unit_price)), 0
-                        ).toFixed(2)} L.E</span>
+                        ).toFixed(1)} L.E</span>
                     </div>
                     <div className="summary-line">
                         <span>Shipping:</span>
@@ -217,7 +213,7 @@ export default function OrderDetailsPage() {
                         <span>Total:</span>
                         <span>{order.items?.reduce((sum, item) => 
                             sum + (item.quantity * parseFloat(item.unit_price)), 0
-                        ).toFixed(2)} L.E</span>
+                        ).toFixed(1)} L.E</span>
                     </div>
                 </div>
             </div>

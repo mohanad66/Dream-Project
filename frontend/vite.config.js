@@ -30,7 +30,9 @@ export default defineConfig({
     })
   ],
   server: {
+    host: '0.0.0.0',  // ✅ ADD THIS - allows network access
     port: 5173,
+    strictPort: false, // If port 5173 is taken, try next available
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
@@ -38,6 +40,10 @@ export default defineConfig({
         secure: false,
       }
     }
+  },
+  preview: {
+    host: '0.0.0.0',  // ✅ ADD THIS - for production preview
+    port: 5173,
   },
   build: {
     outDir: 'dist',
