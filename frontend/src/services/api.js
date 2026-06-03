@@ -3,97 +3,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from './constants';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/";
 
-const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-api.interceptors.request.use(
-    (config) => {
-        console.log(`🚀 REQUEST: ${config.method?.toUpperCase()} ${config.url}`, {
-            skipAuthRefresh: config.skipAuthRefresh,
-            hasAuth: !!config.headers.Authorization,
-            data: config.data
-        });
-
-        if (config.skipAuthRefresh) {
-            console.log(`⚠️ SKIPPING AUTH for ${config.url}`);
-            return config;
-        }
-
-        const token = localStorage.getItem(ACCESS_TOKEN);
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        console.error('❌ REQUEST ERROR:', error);
-        return Promise.reject(error);
-    }
-);
-
-api.interceptors.response.use(
-    (response) => {
-        console.log(`✅ RESPONSE: ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
-        return response;
-    },
-    async (error) => {
-        console.error(`❌ RESPONSE ERROR: ${error.response?.status} ${error.config?.method?.toUpperCase()} ${error.config?.url}`);
-
-        const originalRequest = error.config;
-
-        if (originalRequest.skipAuthRefresh) {
-            console.log(`⚠️ SKIPPING REFRESH for ${originalRequest.url} (skipAuthRefresh flag)`);
-            return Promise.reject(error);
-        }
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            console.log(`🔄 ATTEMPTING TOKEN REFRESH for failed request: ${originalRequest.url}`);
-            originalRequest._retry = true;
-
-            const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-            if (refreshToken) {
-                try {
-                    console.log('🔑 Making token refresh request...');
-
-                    const response = await axios.post(`${API_URL}/api/token/refresh/`, {
-                        refresh: refreshToken
-                    });
-
-                    const newAccessToken = response.data.access;
-                    localStorage.setItem(ACCESS_TOKEN, newAccessToken);
-
-                    api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-
-                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-                    console.log(`🔄 RETRYING original request: ${originalRequest.url}`);
-                    return api(originalRequest);
-                } catch (refreshError) {
-                    console.error('💥 TOKEN REFRESH FAILED:', refreshError);
-                    console.error('💥 REFRESH ERROR RESPONSE:', refreshError.response?.data);
-
-                    localStorage.removeItem(ACCESS_TOKEN);
-                    localStorage.removeItem(REFRESH_TOKEN);
-                    delete api.defaults.headers.common['Authorization'];
-
-                    window.location.href = '/login';
-                    return Promise.reject(refreshError);
-                }
-            } else {
-                console.log('❌ No refresh token available');
-                localStorage.removeItem(ACCESS_TOKEN);
-                localStorage.removeItem(REFRESH_TOKEN);
-                delete api.defaults.headers.common['Authorization'];
-                window.location.href = '/login';
-            }
-        }
-
-        return Promise.reject(error);
-    }
-);
+// State for handling concurrent token refreshes
 let isRefreshing = false;
 let refreshSubscribers = [];
 
@@ -102,17 +12,64 @@ const subscribeTokenRefresh = (cb) => {
 };
 
 const onRefreshed = (token) => {
-    refreshSubscribers.forEach(cb => cb(token));
+    refreshSubscribers.forEach((cb) => cb(token));
     refreshSubscribers = [];
 };
 
-api.interceptors.response.use(
-    response => response,
-    async error => {
-        const originalRequest = error.config;
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+// Request Interceptor
+api.interceptors.request.use(
+    (config) => {
+        // Only log in development environment to improve production performance
+        if (import.meta.env.DEV) {
+            console.log(`🚀 [API] REQUEST: ${config.method?.toUpperCase()} ${config.url}`);
+        }
+
+        if (config.skipAuthRefresh) return config;
+
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        if (import.meta.env.DEV) console.error('❌ [API] REQUEST ERROR:', error);
+        return Promise.reject(error);
+    }
+);
+
+// Unified Response Interceptor
+api.interceptors.response.use(
+    (response) => {
+        if (import.meta.env.DEV) {
+            console.log(`✅ [API] RESPONSE: ${response.status} ${response.config.url}`);
+        }
+        return response;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        
+        // Handle network errors or missing config
+        if (!originalRequest) return Promise.reject(error);
+
+        const status = error.response ? error.response.status : null;
+
+        // Skip refresh logic if explicitly requested
+        if (originalRequest.skipAuthRefresh) {
+            return Promise.reject(error);
+        }
+
+        // Handle 401 Unauthorized errors
+        if (status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
+                // Queue the request if a refresh is already in progress
                 return new Promise((resolve) => {
                     subscribeTokenRefresh((token) => {
                         originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -124,21 +81,35 @@ api.interceptors.response.use(
             originalRequest._retry = true;
             isRefreshing = true;
 
+            const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+            
+            if (!refreshToken) {
+                handleAuthFailure();
+                return Promise.reject(error);
+            }
+
             try {
-                const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-                const { data } = await axios.post('/api/token/refresh/', { refresh: refreshToken });
+                if (import.meta.env.DEV) console.log('🔑 [API] Refreshing token...');
+                
+                // Use a clean axios instance for the refresh call to avoid interceptor loops
+                const { data } = await axios.post(`${API_URL}/api/token/refresh/`, {
+                    refresh: refreshToken
+                });
 
-                localStorage.setItem(ACCESS_TOKEN, data.access);
-                api.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
-                onRefreshed(data.access);
+                const newAccessToken = data.access;
+                localStorage.setItem(ACCESS_TOKEN, newAccessToken);
+                
+                // Update global headers and notify subscribers
+                api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+                onRefreshed(newAccessToken);
 
-                originalRequest.headers.Authorization = `Bearer ${data.access}`;
+                // Retry the original request
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return api(originalRequest);
-            } catch (e) {
-                localStorage.removeItem(ACCESS_TOKEN);
-                localStorage.removeItem(REFRESH_TOKEN);
-                window.location.href = '/login';
-                return Promise.reject(e);
+            } catch (refreshError) {
+                if (import.meta.env.DEV) console.error('💥 [API] Refresh failed:', refreshError);
+                handleAuthFailure();
+                return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
             }
@@ -147,4 +118,19 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+/**
+ * Helper to handle authentication failures consistently
+ */
+function handleAuthFailure() {
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
+    delete api.defaults.headers.common['Authorization'];
+    
+    // Avoid redirect loop if already on login page
+    if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+    }
+}
+
 export default api;

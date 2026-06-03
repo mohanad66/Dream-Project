@@ -128,13 +128,6 @@ export default function OrdersPage() {
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="loading-container">
-                <div className="loading-spinner"></div>
-            </div>
-        );
-    }
 
     if (error) {
         return (

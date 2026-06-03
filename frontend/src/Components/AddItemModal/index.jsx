@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import './css/style.scss';
+import { persistentCache } from '../../utils/persistentCache';
 
 export const AddItemModal = ({ config, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({});
@@ -28,7 +29,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
             if (field.value !== undefined && field.value !== null) {
                 // Special handling for file fields - don't include the URL in formData
                 if (field.type === 'file' && typeof field.value === 'string') {
-                    initialData[field.name] = ''; // Empty string for existing files
+                    initialData[field.name] = field.type === 'checkbox' ? false : '';
                 } else {
                     initialData[field.name] = field.value;
                 }
@@ -376,20 +377,9 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
 
             console.log("Save successful");
 
-            // Show success message briefly
-            setError('✓ Successfully saved! Reloading...');
-
-            // Call the parent's onSuccess callback first
-            if (onSuccess) {
-                onSuccess(response.data);
-            }
-
-            // Then reload the page after a short delay
-            setTimeout(() => {
-                console.log("Reloading page now...");
-                window.location.reload(true);
-            }, 500);
-
+            setError('✓ Successfully saved!');
+            await persistentCache.clear();
+            if (onSuccess) onSuccess(response.data);
         } catch (err) {
             const errorData = err.response?.data;
             let errorMsg = 'An unexpected error occurred.';

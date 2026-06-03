@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
-from unidecode import unidecode  # Install with: 
+from unidecode import unidecode
 from django.conf import settings
 from django.urls import reverse
 from django.db import models
@@ -585,26 +585,22 @@ class Order(models.Model):
         if self.owner:
             return self.owner.username  # or self.owner.get_full_name()
         return "No owner assigned"
+    
+    def owner_username(self):
+        """Return owner's username or 'Guest' if no owner"""
+        return self.owner.username if self.owner else 'Guest'
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(
-        Order,
-        on_delete=models.CASCADE,
-        related_name='items'
-    )
-    product = models.ForeignKey(
-        'Product',
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='order_items'
-    )
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, related_name='order_items')
     quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)   # snapshot
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # ✅ Real DB column
+
+    def save(self, *args, **kwargs):
+        self.subtotal = self.unit_price * self.quantity  # Keep in sync on save
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.quantity} × {self.product} in Order #{self.order_id}"
-
-    @property
-    def subtotal(self):
-        return self.unit_price * self.quantity

@@ -4,7 +4,7 @@ class DataCache {
     this.timestamps = {};
   }
 
-  get(key, maxAge = 5 * 60 * 1000) {
+  get(key, maxAge = 1 * 60 * 1000) {
     const cached = this.cache[key];
     const timestamp = this.timestamps[key];
 

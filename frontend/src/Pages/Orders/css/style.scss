@@ -67,7 +67,7 @@
     transition: background-color 0.3s ease;
 
     .orders-wrapper {
-        background: var(--orders-bg-secondary);
+        background: var(--bg-surface);
         border-radius: 12px;
         padding: 2rem;
         box-shadow: 0 2px 8px var(--orders-shadow-color);
@@ -113,23 +113,23 @@
             gap: 1.5rem;
 
             .order-card {
-                border: 1px solid var(--orders-border-color);
+                border: 1px solid var( --bg-muted);
                 border-radius: 8px;
                 overflow: hidden;
                 transition: box-shadow 0.3s, border-color 0.3s;
-                background: var(--orders-bg-card);
+                background: var( --bg-elevated);
 
                 &:hover {
                     box-shadow: 0 4px 12px var(--orders-shadow-color);
                 }
 
                 .order-header {
-                    background: var(--orders-bg-header);
+                    background: var( --bg-subtle);
                     padding: 1rem 1.5rem;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    border-bottom: 1px solid var(--orders-border-color);
+                    border-bottom: 1px solid var( --bg-elevated);
                     transition: background-color 0.3s ease;
 
                     .order-info {
@@ -252,8 +252,8 @@
 
                 .order-footer {
                     padding: 1rem 1.5rem;
-                    background: var(--orders-bg-footer);
-                    border-top: 1px solid var(--orders-border-color);
+                    background: var(--bg-subtle);
+                    border-top: 1px solid var(--bg-muted);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;

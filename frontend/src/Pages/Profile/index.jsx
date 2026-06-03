@@ -7,7 +7,7 @@ import Card from '../../Components/Card';
 import { useNavigate } from 'react-router-dom';
 import SimpleThemeToggle from '../../Components/ThemeToggle/SimpleThemeToggle';
 import ThemeToggle from '../../Components/ThemeToggle/SimpleThemeToggle';
-
+import CarouselManagementSection from "./CarouselAdminTable/index.jsx"
 // Constants for better maintainability
 const USER_ROLES = {
   SUPER_ADMIN: 'Super Admin',
@@ -99,6 +99,14 @@ export default function Profile({ categories: initialCategories = [] }) {
       previous: null,
       currentPage: 1,
     },
+    carouselItems: [],
+    carouselLoading: false,
+    carouselPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
     allProducts: [],
     allProductsLoading: false,
     allProductsPagination: {
@@ -155,6 +163,9 @@ export default function Profile({ categories: initialCategories = [] }) {
     allOrders,
     ordersLoading,
     ordersPagination,
+    carouselItems,
+    carouselLoading,
+    carouselPagination,
   } = state;
 
   // Derived state
@@ -173,17 +184,12 @@ export default function Profile({ categories: initialCategories = [] }) {
 
   const updateData = useCallback(async (url, data, method = 'patch') => {
     try {
-      if (method === 'patch') {
-        return await api.patch(url, data);
-      } else if (method === 'post') {
-        return await api.post(url, data);
-      } else if (method === 'delete') {
-        return await api.delete(url);
-      }
+      return await api.patch(url, data);
     } catch (error) {
-      throw error;
+      throw error; 
     }
   }, []);
+
 
   // Fetch functions
   const fetchAllUsers = useCallback(async (page = 1) => {
@@ -390,7 +396,26 @@ export default function Profile({ categories: initialCategories = [] }) {
       }));
     }
   }, [isSuperuser, fetchData]);
-
+  const fetchCarousel = useCallback(async (page = 1) => {
+    if (!isAdmin) return;
+    setState(prev => ({ ...prev, carouselLoading: true }));
+    try {
+      const res = await fetchData(`/api/admins/carousels/?page=${page}`);
+      setState(prev => ({
+        ...prev,
+        carouselItems: res.data.results ?? [],
+        carouselLoading: false,
+        carouselPagination: {
+          count: res.data.count ?? 0,
+          next: res.data.next ?? null,
+          previous: res.data.previous ?? null,
+          currentPage: page,
+        },
+      }));
+    } catch (err) {
+      setState(prev => ({ ...prev, carouselLoading: false, error: 'Failed to load carousel.' }));
+    }
+  }, [isAdmin, fetchData]);
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetchData("/api/user/myuser/");
@@ -422,8 +447,10 @@ export default function Profile({ categories: initialCategories = [] }) {
       fetchAllCategories();
       fetchAllContacts();
       fetchAllTags();
-      fetchAllOrders(); // ✅ Orders will load immediately when tab opens
+      fetchAllOrders();
+
       if (isSuperuser) {
+        fetchCarousel();
         fetchAllUsers();
         fetchAllProducts();
       }
@@ -436,7 +463,8 @@ export default function Profile({ categories: initialCategories = [] }) {
     fetchAllCategories,
     fetchAllContacts,
     fetchAllTags,
-    fetchAllOrders, // ✅ Include in dependencies
+    fetchAllOrders,
+    fetchCarousel,
     fetchAllUsers,
     fetchAllProducts
   ]);
@@ -497,13 +525,27 @@ export default function Profile({ categories: initialCategories = [] }) {
       [MODAL_TYPES.TAG]: [
         { name: 'name', label: 'Tag Name', type: 'text', required: true, value: item?.name },
         { name: 'slug', label: 'Slug (URL-friendly name)', type: 'text', required: false, value: item?.slug },
-      ]
+      ],
+      'Carousel': [           // Make sure this is a string key
+        { name: 'name', label: 'Slide Name', type: 'text', required: true, value: item?.name },
+        { name: 'image', label: 'Image', type: 'file', required: !item },
+        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
+      ],
+
     };
 
     // Determine the correct endpoint based on type
     let endpoint;
     endpoint = item ? `/api/admins/${type.toLowerCase()}s/${item.id}/` : `/api/admins/${type.toLowerCase()}s/`;
-
+    if (type === 'Carousel') {
+      endpoint = item
+        ? `/api/admins/carousels/${item.id}/`
+        : `/api/admins/carousels/`;
+    } else {
+      endpoint = item
+        ? `/api/admins/${type.toLowerCase()}s/${item.id}/`
+        : `/api/admins/${type.toLowerCase()}s/`;
+    }
     config = {
       title: item ? `Edit ${type}` : `Add New ${type}`,
       endpoint: endpoint,
@@ -525,7 +567,8 @@ export default function Profile({ categories: initialCategories = [] }) {
         ...prev,
         modalConfig: config,
         isModalOpen: true,
-        editingItem: item
+        editingItem: item,
+        modalType: type,
       };
     });
   };
@@ -666,6 +709,27 @@ export default function Profile({ categories: initialCategories = [] }) {
   const handleDeleteCategory = createDeleteHandler('category');
   const handleDeleteContact = createDeleteHandler('contact');
   const handleDeleteTag = createDeleteHandler('tag');
+  const handleDeleteCarousel = async (id) => {
+    if (!window.confirm('Delete this carousel slide?')) return;
+
+    await updateData(`/api/admins/carousels/${id}/`, {}, 'delete');
+    setState(prev => ({
+      ...prev,
+      carouselItems: prev.carouselItems.filter(c => c.id !== id),
+    }));
+
+  };
+
+  const handleToggleCarousel = async (id, currentStatus) => {
+    await updateData(`/api/admins/carousels/${id}/`, { is_active: !currentStatus });
+    setState(prev => ({
+      ...prev,
+      carouselItems: prev.carouselItems.map(c =>
+        c.id === id ? { ...c, is_active: !currentStatus } : c
+      ),
+    }));
+  };
+
 
   const handleDeleteAllProduct = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
@@ -732,13 +796,23 @@ export default function Profile({ categories: initialCategories = [] }) {
   };
 
   // Modal success handler
-  const handleModalSuccess = () => {
-    setState(prev => ({
-      ...prev,
-      isModalOpen: false,
-      editingItem: null
-    }));
-    setTimeout(() => window.location.reload(), 100);
+  const handleModalSuccess = (responseData) => {
+    setState(prev => {
+      const isEdit = !!prev.editingItem;
+
+      const updateList = (list) => isEdit
+        ? list.map(item => item.id === responseData.id ? responseData : item)
+        : [responseData, ...list];
+
+      switch (prev.modalType) {
+        case 'Product': return { ...prev, isModalOpen: false, editingItem: null, myProducts: updateList(prev.myProducts) };
+        case 'Category': return { ...prev, isModalOpen: false, editingItem: null, allCategories: updateList(prev.allCategories) };
+        case 'Contact': return { ...prev, isModalOpen: false, editingItem: null, allContacts: updateList(prev.allContacts) };
+        case 'Tag': return { ...prev, isModalOpen: false, editingItem: null, allTags: updateList(prev.allTags) };
+        case 'Carousel': return { ...prev, isModalOpen: false, editingItem: null, carouselItems: updateList(prev.carouselItems) };
+        default: return { ...prev, isModalOpen: false, editingItem: null };
+      }
+    });
   };
 
   // Helper functions
@@ -838,6 +912,13 @@ export default function Profile({ categories: initialCategories = [] }) {
 
         {activeTab === 'admin' && isAdmin && (
           <AdminTab
+            carouselItems={carouselItems}
+            carouselLoading={carouselLoading}
+            carouselPagination={carouselPagination}
+            onRefreshCarousel={fetchCarousel}
+            onOpenCarouselModal={(item) => handleOpenModal('Carousel', item)}
+            onDeleteCarousel={handleDeleteCarousel}
+            onToggleCarousel={handleToggleCarousel}
             allOrders={allOrders}
             ordersLoading={ordersLoading}
             ordersPagination={ordersPagination}
@@ -993,6 +1074,13 @@ const SettingsTab = () => (
   </section>
 );
 const AdminTab = ({
+  carouselItems,
+  carouselLoading,
+  carouselPagination,
+  onRefreshCarousel,
+  onOpenCarouselModal,
+  onDeleteCarousel,
+  onToggleCarousel,
   allOrders = [],
   ordersLoading,
   ordersPagination,
@@ -1041,11 +1129,19 @@ const AdminTab = ({
     <div className="profile-content__header">
       <h3>Admin Panel</h3>
     </div>
-
+    <CarouselManagementSection
+      carouselItems={carouselItems}
+      carouselLoading={carouselLoading}
+      carouselPagination={carouselPagination}
+      onRefreshCarousel={onRefreshCarousel}
+      onOpenCarouselModal={onOpenCarouselModal}
+      onDeleteCarousel={onDeleteCarousel}
+      onToggleCarousel={onToggleCarousel}
+    />
     {/* My Products Section */}
     <div className="my-products-section">
       <div className="profile-content__header">
-        <h4>My Products ({productsPagination.count})</h4>
+        <h4>My Products</h4>
         <button
           onClick={() => onRefreshProducts(1)}
           className="button button--secondary"

@@ -1,0 +1,95 @@
+.password-change-section {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.password-change-section .settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.password-change-section .settings-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.password-change-section .settings-form .form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+.password-change-section .settings-form .form-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+.password-change-section .settings-form .form-group input:focus {
+  outline: none;
+  border-color: #4a89dc;
+  box-shadow: 0 0 0 2px rgba(74, 137, 220, 0.2);
+}
+.password-change-section .settings-form .form-group input[type=password] {
+  letter-spacing: 1px;
+}
+.password-change-section .settings-form .form-group .form-text.text-muted {
+  font-size: 12px;
+  color: #666;
+}
+.password-change-section .settings-form .alert {
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.password-change-section .settings-form .alert.alert-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+.password-change-section .settings-form .alert.alert-danger {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+.password-change-section .settings-form .save-btn {
+  padding: 12px;
+  background-color: #4a89dc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.password-change-section .settings-form .save-btn:hover:not(:disabled) {
+  background-color: #3a70c2;
+}
+.password-change-section .settings-form .save-btn:disabled {
+  background-color: #a0bcf0;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+@media (max-width: 600px) {
+  .password-change-section {
+    padding: 15px;
+    box-shadow: none;
+    border: 1px solid #eee;
+  }
+  .password-change-section .settings-form {
+    gap: 15px;
+  }
+  .password-change-section .settings-form .form-group input {
+    padding: 10px;
+  }
+  .password-change-section .settings-form .save-btn {
+    padding: 10px;
+  }
+}/*# sourceMappingURL=style.css.map */

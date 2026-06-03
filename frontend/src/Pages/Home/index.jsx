@@ -4,7 +4,7 @@ import Carousel from '../../Components/Carousel'
 import "./css/style.scss"
 import { Link } from "react-router-dom"
 import { Helmet } from 'react-helmet-async';
-import React from 'react'          // ✅ add this
+import React from 'react'
 
 export default function Home({ contacts = [], img = [], categories = [], products = [], services = [], tags = [] }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -28,15 +28,6 @@ export default function Home({ contacts = [], img = [], categories = [], product
     }
   }, [categories, products]);
 
-
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner">
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>

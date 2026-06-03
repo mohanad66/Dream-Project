@@ -30,6 +30,15 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy'
     }), name='admin-category-detail'),
+    #Carousel
+    path('admins/carousels/', CarouselAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-carousel-list'),
+    path('admins/carousels/<int:pk>/', CarouselAdminViewSet.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy'
+    }), name='admin-service-detail'),
+    
     # Services
     path('admins/services/', ServiceAdminViewSet.as_view({'get': 'list', 'post': 'create'}), name='admin-service-list'),
     path('admins/services/<int:pk>/', ServiceAdminViewSet.as_view({
@@ -78,5 +87,10 @@ urlpatterns = [
     
     
     path('webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
+    
+    # Analytics endpoints
+    path('analytics/new-users/', NewUsersAnalyticsView.as_view(), name='analytics-new-users'),
+    path('analytics/top-products/', TopProductsAnalyticsView.as_view(), name='analytics-top-products'),
+    path('analytics/purchases/', PurchasesAnalyticsView.as_view(), name='analytics-purchases'),
     # ++++++++++++++++++++++++++++++++++++
 ]

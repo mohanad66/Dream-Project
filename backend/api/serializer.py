@@ -13,49 +13,27 @@ User = get_user_model()
 class CarouselImgSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarouselImg
-        fields = "__all__"
-        read_only_fields = ['thumbnail']
-    
+        fields = ['id', 'name', 'image', 'is_active', 'order']
+        read_only_fields = ['order']
+
     def create(self, validated_data):
-        # Compress image before creating
         if 'image' in validated_data:
-            image = validated_data['image']
             validated_data['image'] = compress_image(
-                image,
+                validated_data['image'],
                 quality=85,
                 max_width=1920,
                 max_height=1080
             )
-            
-            # Create thumbnail
-            validated_data['thumbnail'] = compress_image(
-                image,
-                quality=80,
-                max_width=400,
-                max_height=400
-            )
-        
         return super().create(validated_data)
-    
+
     def update(self, instance, validated_data):
-        # Compress image on update
         if 'image' in validated_data:
-            image = validated_data['image']
             validated_data['image'] = compress_image(
-                image,
+                validated_data['image'],
                 quality=85,
                 max_width=1920,
                 max_height=1080
             )
-            
-            # Update thumbnail
-            validated_data['thumbnail'] = compress_image(
-                image,
-                quality=80,
-                max_width=400,
-                max_height=400
-            )
-        
         return super().update(instance, validated_data)
 
 class UserDisplaySerializer(serializers.ModelSerializer):
@@ -321,3 +299,32 @@ class OrderStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['status']
+
+
+class NewUserSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    date_joined = serializers.DateTimeField()
+
+
+class TopProductSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    total_sold = serializers.IntegerField()
+    total_revenue = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+
+class PurchaseSerializer(serializers.Serializer):
+    order_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+    username = serializers.CharField()
+    product_id = serializers.IntegerField()
+    product_name = serializers.CharField()
+    quantity = serializers.IntegerField()
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
+    order_date = serializers.DateTimeField()

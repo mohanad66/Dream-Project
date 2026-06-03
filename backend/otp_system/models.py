@@ -23,13 +23,13 @@ class OTP(models.Model):
         return not self.is_verified and timezone.now() < self.expires_at
     
     @staticmethod
-    def genereate_otp():
+    def generate_otp():                              # ← single 'e' in generate
         return ''.join(random.choices(string.digits, k=6))
-     
-    def save(self , *args , **kwargs):
+
+    def save(self, *args, **kwargs):
         if not self.otp_code:
-            self.otp_code = self.genereate_otp()
+            self.otp_code = self.generate_otp()      # ← single 'e' in generate
         if not self.expires_at:
             self.expires_at = timezone.now() + timezone.timedelta(minutes=5)
-        super().save(*args , **kwargs)
+        super().save(*args, **kwargs)
 

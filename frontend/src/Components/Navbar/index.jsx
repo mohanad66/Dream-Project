@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaShoppingCart, FaUserCircle, FaBoxOpen } from 'react-icons/fa';
+import { FaHome, FaShoppingCart, FaUserCircle, FaBoxOpen, FaChartBar } from 'react-icons/fa';
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { FaStore } from "react-icons/fa";
 import { ACCESS_TOKEN } from '../../services/constants';
+import { useAuth } from '../../services/auth';
 import "./css/style.scss";
 
 export default function Navbar({ onLogout }) {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("");
+  const { data, isSuperuser } = useAuth();
 
   useEffect(() => {
     setActiveLink(location.pathname);
@@ -16,6 +18,8 @@ export default function Navbar({ onLogout }) {
 
   const access = localStorage.getItem(ACCESS_TOKEN);
   const isLoggedIn = access && access.trim() !== "";
+  // Use isSuperuser from useAuth hook directly (more reliable than data?.user?.is_superuser)
+  const isAdmin = isSuperuser || false;
 
   const navItems = [
     { to: "/", icon: <FaHome />, label: "Home" },
@@ -23,7 +27,10 @@ export default function Navbar({ onLogout }) {
     { to: "/cart", icon: <FaShoppingCart />, label: "Cart" },
     ...(isLoggedIn ? [
       { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
-      { to: "/orders", icon: <FaBoxOpen />, label: "My Orders" } // Added Orders tab
+      { to: "/orders", icon: <FaBoxOpen />, label: "My Orders" }
+    ] : []),
+    ...(isAdmin ? [
+      { to: "/admin/analytics", icon: <FaChartBar />, label: "Analytics" }
     ] : []),
   ];
 
@@ -63,7 +70,7 @@ export default function Navbar({ onLogout }) {
             </>
           )}
         </div>
-        
+
         {/* Simple active indicator */}
         <div className="active-indicator" />
       </div>

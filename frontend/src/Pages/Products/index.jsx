@@ -147,11 +147,6 @@ export default function Products() {
   };
 
   const availableCategories = categories.filter(c => c.is_active !== false);
-
-  if (isLoading) {
-    return <div className="loading-container"><div className="loading-spinner"></div></div>;
-  }
-
   return (
     <>
       <Helmet>

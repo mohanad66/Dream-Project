@@ -18,8 +18,6 @@ export default function Form({ route, method, onLogin, successRedirect }) {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [registrationSuccess, setRegistrationSuccess] = useState(false);
-    const [registeredEmail, setRegisteredEmail] = useState("");
     const navigate = useNavigate();
     const isLogin = method === "login";
     const formTitle = isLogin ? "Login" : "Register";
@@ -75,14 +73,9 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                 payload.first_name = formData.first_name.trim();
                 payload.last_name = formData.last_name.trim();
 
-                await api.post("/api/user/register/", payload);
-
-                setRegisteredEmail(payload.email);
-                setRegistrationSuccess(true);
-
-                setFormData({
-                    username: "", password: "", email: "", first_name: "", last_name: ""
-                });
+                const response = await api.post("/api/auth/register/", payload);
+                sessionStorage.setItem("pending_user_id", response.data.user_id);
+                navigate("/verify-email");
             }
         } catch (error) {
             console.error("Authentication error:", error);
@@ -124,13 +117,6 @@ export default function Form({ route, method, onLogin, successRedirect }) {
             setLoading(false);
         }
     };
-
-    if (registrationSuccess) {
-
-        return (
-           <Navigate to="/login" replace/>
-        );
-    }
 
     return (
         <div className="form-wrapper">
@@ -238,6 +224,11 @@ export default function Form({ route, method, onLogin, successRedirect }) {
                                 By registering, you agree to our Terms of Service and Privacy Policy
                             </p>
                         </>
+                    )}
+                    {isLogin && (
+                        <p className="form-link">
+                            <span onClick={() => navigate('/forgot-password')}>Forgot password?</span>
+                        </p>
                     )}
                 </div>
             </form>

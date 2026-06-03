@@ -4,6 +4,7 @@ $spacing-xl: 2rem;
 :root {
   --bottom-navbar-height: 110px; // visually perfect for floating navbars
 }
+
 // Enhanced Home Container
 .home {
   color: var(--text-color);
@@ -33,15 +34,63 @@ $spacing-xl: 2rem;
     z-index: -1;
     @include theme-transition;
   }
-  &::after{
-      padding-bottom: calc(var(--bottom-navbar-height) + $spacing-xl + env(safe-area-inset-bottom)) !important;
+
+  &::after {
+    padding-bottom: calc(var(--bottom-navbar-height) + $spacing-xl + env(safe-area-inset-bottom)) !important;
 
   }
+
   @media (min-width: $breakpoint-md) {
     padding: $spacing-lg 0;
   }
-  .empty{
-    
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: $product-spacing-3xl $product-spacing-lg;
+    background: var(--product-card-bg, #ffffff);
+    border-radius: $product-radius-xl;
+    box-shadow: $product-shadow-md;
+    margin: $product-spacing-xl 0;
+    position: relative;
+    overflow: hidden;
+    -webkit-border-radius: $product-radius-xl;
+    -moz-border-radius: $product-radius-xl;
+    -ms-border-radius: $product-radius-xl;
+    -o-border-radius: $product-radius-xl;
+
+    &::before {
+      content: '📦';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8rem;
+      opacity: 0.05;
+      pointer-events: none;
+    }
+
+    h2 {
+      color: var(--product-text-muted, #64748b);
+      font-size: $font-2xl;
+      font-weight: 700;
+      margin: 0 0 $product-spacing-md;
+      position: relative;
+      z-index: 1;
+    }
+
+    p {
+      color: var(--product-text-muted, #64748b);
+      font-size: $font-base;
+      margin: 0 0 $product-spacing-xl;
+      position: relative;
+      z-index: 1;
+    }
+
+    .modern-button {
+      position: relative;
+      z-index: 1;
+    }
   }
 }
 
@@ -60,6 +109,7 @@ $spacing-xl: 2rem;
   line-height: 1.2;
   letter-spacing: -0.025em;
   @include theme-transition;
+
   @media (min-width: $breakpoint-md) {
     margin: $spacing-xl 0;
 
@@ -290,4 +340,12 @@ $spacing-xl: 2rem;
       }
     }
   }
+}
+
+.no-images {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

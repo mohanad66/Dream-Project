@@ -75,13 +75,6 @@ export default function Cart() {
         navigate('/checkout');
     };
 
-    if (isLoading) {
-        return (
-            <div className="loading-container">
-                <div className="loading-spinner"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="cart-page-container">

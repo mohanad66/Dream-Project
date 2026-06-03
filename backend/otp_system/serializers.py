@@ -3,13 +3,12 @@ from django.contrib.auth.models import User
 from .models import OTP
 
 class SendOTPSerialzer(serializers.Serializer):
-    def validate(self, data):
-        return data
+    pass
     
-class VerifyOTPSerialzer(serializers.Serializer):
-    otp_code = serializers.CharField(max_length=6 , min_length=6)
-    def validate_otp_code(self):
-        otp_code = self.initial_data.get(otp_code)
-        if not otp_code.isdigital():
+class VerifyOTPSerializer(serializers.Serializer):
+    otp_code = serializers.CharField(max_length=6, min_length=6)
+
+    def validate_otp_code(self, value):  # ← was missing `value` parameter
+        if not value.isdigit():          # ← isdigital() doesn't exist → isdigit()
             raise serializers.ValidationError("OTP must contain only digits")
-        return otp_code
+        return value    

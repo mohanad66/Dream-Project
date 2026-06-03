@@ -7,10 +7,12 @@ from django.views.decorators.http import condition
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from rest_framework.response import Response
+from django.conf import settings
 
 def cache_api_response(timeout=300):
     """
     Cache API responses based on user authentication and view parameters.
+    Respects ENABLE_CACHING setting globally.
     
     Args:
         timeout: Cache duration in seconds (default: 5 minutes)
@@ -25,17 +27,19 @@ def cache_api_response(timeout=300):
             # Build cache key from request path and query params
             cache_key = f"api_response:{request.path}:{request.GET.urlencode()}"
             
-            # Try to get from cache
-            cached_response = cache.get(cache_key)
-            if cached_response is not None:
-                return Response(cached_response)
+            # Try to get from cache (only if caching is enabled)
+            if getattr(settings, 'ENABLE_CACHING', True):
+                cached_response = cache.get(cache_key)
+                if cached_response is not None:
+                    return Response(cached_response)
             
             # Call the view
             response = view_func(request, *args, **kwargs)
             
-            # Cache successful responses only
-            if hasattr(response, 'status_code') and 200 <= response.status_code < 300:
-                cache.set(cache_key, response.data, timeout)
+            # Cache successful responses only (if enabled)
+            if getattr(settings, 'ENABLE_CACHING', True):
+                if hasattr(response, 'status_code') and 200 <= response.status_code < 300:
+                    cache.set(cache_key, response.data, timeout)
             
             return response
         
@@ -46,18 +50,29 @@ def cache_api_response(timeout=300):
 def invalidate_cache_pattern(pattern):
     """
     Invalidate all cache keys matching a pattern.
+    Respects ENABLE_CACHING setting.
     
     Args:
         pattern: String pattern to match cache keys (e.g., 'api_response:*')
     """
-    # Note: LocMemCache and most cache backends don't support pattern deletion
-    # Consider using cache.clear() for simplicity or implement custom invalidation
-    pass
+    if not getattr(settings, 'ENABLE_CACHING', True):
+        return
+    
+    if hasattr(cache, 'delete_pattern'):
+        cache.delete_pattern(pattern)
+        return
+
+    # Fallback for backends without pattern deletion.
+    try:
+        cache.clear()
+    except Exception:
+        pass
 
 
 class CacheInvalidationMixin:
     """
     Mixin to automatically invalidate related caches when saving/deleting model instances.
+    Respects ENABLE_CACHING setting.
     """
     cache_key_prefix = None
     
@@ -70,5 +85,7 @@ class CacheInvalidationMixin:
         self._invalidate_cache()
     
     def _invalidate_cache(self):
+        if not getattr(settings, 'ENABLE_CACHING', True):
+            return
         if self.cache_key_prefix:
             cache.delete(self.cache_key_prefix)

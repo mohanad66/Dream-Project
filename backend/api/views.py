@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.conf import settings
 from django.core.cache import cache
+from datetime import timedelta
 from django.views.decorators.cache import cache_page
 from .serializer import *
 from .models import *
@@ -26,44 +27,61 @@ logger = logging.getLogger(__name__ )
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+class CacheInvalidateMixin:
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        if getattr(settings, 'ENABLE_CACHING', True):
+            cache.clear()
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        if getattr(settings, 'ENABLE_CACHING', True):
+            cache.clear()
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        if getattr(settings, 'ENABLE_CACHING', True):
+            cache.clear()
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 9  # Increased from 10 to reduce API calls
     page_size_query_param = 'page_size'
     max_page_size = 1000
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
-class ProductAdminViewSet(viewsets.ModelViewSet):
+class ProductAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related('owner').prefetch_related('tags')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination  # ✅ Add this line
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
 
-class CategoryAdminViewSet(viewsets.ModelViewSet):
+class CategoryAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = Category.objects.all()
     pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
 
-class ServiceAdminViewSet(viewsets.ModelViewSet):
+class ServiceAdminViewSet(CacheInvalidateMixin,viewsets.ModelViewSet):
     queryset = Service.objects.all()
     pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = ServiceSerializer
     permission_classes = [IsAdminUser]
 
-class ContactAdminViewSet(viewsets.ModelViewSet):
+class ContactAdminViewSet(CacheInvalidateMixin,viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
 
-class TagsAdminViewSet(viewsets.ModelViewSet):
+class TagsAdminViewSet(CacheInvalidateMixin,viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     pagination_class = StandardResultsSetPagination  # ✅ Add this line
     serializer_class = TagsSerializer
     permission_classes = [IsAdminUser]
-
+class CarouselAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
+    queryset = CarouselImg.objects.all()
+    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    serializer_class = CarouselImgSerializer
+    permission_classes = [IsAdminUser]
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     
@@ -449,6 +467,7 @@ class CreatePaymentIntentView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+@method_decorator(cache_api_response(timeout=600), name='dispatch')
 class ProductSearchView(APIView):
     permission_classes = [AllowAny]
 
@@ -764,3 +783,106 @@ class StripeWebhookView(APIView):
             print(f"✗ Payment not found: {payment_intent_id}")
         except Exception as e:
             print(f"✗ Error handling payment cancellation: {str(e)}")
+
+
+# +++++++++++ ANALYTICS VIEWS ++++++++++
+from django.db.models import Sum, Count
+from django.utils import timezone
+
+class NewUsersAnalyticsView(APIView):
+    """Get new users registered within a timeframe."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        days = int(request.query_params.get('days', 30))
+        since_date = timezone.now() - timedelta(days=days)
+        
+        new_users = User.objects.filter(
+            date_joined__gte=since_date
+        ).order_by('-date_joined').values(
+            'id', 'username', 'email', 'first_name', 'last_name', 'date_joined'
+        )
+        
+        total_count = new_users.count()
+        serializer = NewUserSerializer(new_users, many=True)
+        
+        return Response({
+            'total': total_count,
+            'days': days,
+            'users': serializer.data
+        })
+
+from django.db.models import F, ExpressionWrapper, DecimalField, Sum, Count
+
+class TopProductsAnalyticsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        limit = int(request.query_params.get('limit', 10))
+        days = int(request.query_params.get('days', 30))
+        since_date = timezone.now() - timedelta(days=days)
+
+        top_products = (
+            Product.objects
+            .filter(order_items__order__created_at__gte=since_date)
+            .annotate(
+                total_sold=Count('order_items'),
+                # ✅ Compute revenue from DB columns, not the Python property
+                total_revenue=Sum('order_items__subtotal')
+            )
+            .order_by('-total_revenue')
+            .values('id', 'name', 'price', 'total_sold', 'total_revenue')
+            [:limit]
+        )
+
+        serializer = TopProductSerializer(top_products, many=True)
+        return Response({'days': days, 'products': serializer.data})
+
+
+class PurchasesAnalyticsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        user_id = request.query_params.get('user_id')
+        product_id = request.query_params.get('product_id')
+        days = int(request.query_params.get('days', 30))
+        since_date = timezone.now() - timedelta(days=days)
+
+        query = OrderItem.objects.filter(order__created_at__gte=since_date)
+
+        if user_id:
+            query = query.filter(order__owner__id=user_id)
+        if product_id:
+            query = query.filter(product__id=product_id)
+
+        # Use select_related for better performance and debugging
+        query = query.select_related('order__owner', 'product')
+        
+        data = []
+        for item in query:
+            order = item.order
+            owner = order.owner
+            
+            # Handle case where order has no owner (NULL)
+            if owner:
+                username = owner.username
+                user_id_val = owner.id
+            else:
+                username = 'Guest User'
+                user_id_val = None
+            
+            data.append({
+                'order_id': order.id,
+                'user_id': user_id_val,
+                'username': username,  # Will be 'Guest User' if no owner
+                'product_id': item.product.id if item.product else None,
+                'product_name': item.product.name if item.product else 'Deleted Product',
+                'quantity': item.quantity,
+                'unit_price': float(item.unit_price),
+                'subtotal': float(item.subtotal),
+                'order_date': order.created_at,
+            })
+
+        total = len(data)
+        serializer = PurchaseSerializer(data, many=True)
+        return Response({'days': days, 'total': total, 'purchases': serializer.data})

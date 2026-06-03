@@ -97,15 +97,20 @@ export default function OrderDetailsPage() {
             isCancelled: order?.status === 'cancelled'
         }));
     };
-
     if (isLoading) {
         return (
             <div className="loading-container">
-                <div className="loading-spinner"></div>
+                <div style={{ display: "flex", textAlign: "center", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+                    <div style={{
+                        width: 48, height: 48, border: `3px solid var(--border-color)`,
+                        borderTop: `3px solid #3b82f6`, borderRadius: '50%',
+                        animation: 'spin 0.8s linear infinite', margin: 'auto 16px',
+                    }} />
+                    <p style={{ color: '#fff', fontSize: 14 }}>Loading…</p>
+                </div>
             </div>
-        );
+        )
     }
-
     if (error || !order) {
         return (
             <div className="error-container">
@@ -183,7 +188,7 @@ export default function OrderDetailsPage() {
                     <div className="order-items-list">
                         {order.items?.map((item) => (
                             <div key={item.id} className="order-item-detail">
-                               
+
                                 <div className="order-item-info">
                                     <h4>{item.product?.name}</h4>
                                     <p>Quantity: {item.quantity}</p>
@@ -201,7 +206,7 @@ export default function OrderDetailsPage() {
                 <div className="order-summary">
                     <div className="summary-line">
                         <span>Subtotal:</span>
-                        <span>{order.items?.reduce((sum, item) => 
+                        <span>{order.items?.reduce((sum, item) =>
                             sum + (item.quantity * parseFloat(item.unit_price)), 0
                         ).toFixed(1)} L.E</span>
                     </div>
@@ -211,7 +216,7 @@ export default function OrderDetailsPage() {
                     </div>
                     <div className="summary-line total">
                         <span>Total:</span>
-                        <span>{order.items?.reduce((sum, item) => 
+                        <span>{order.items?.reduce((sum, item) =>
                             sum + (item.quantity * parseFloat(item.unit_price)), 0
                         ).toFixed(1)} L.E</span>
                     </div>
