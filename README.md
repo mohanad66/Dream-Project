@@ -153,4 +153,4 @@ The project includes `Dockerfile` for the backend and `Dockerfile.prod` for the 
 Contributions are welcome! Please feel free to fork the repository, create a new branch, and submit a pull request with your improvements.
 
 ## License
-This project is open source and available under the MIT License.
+This project is licensed under the Educational Use Only License. See the LICENSE.md file for details.
