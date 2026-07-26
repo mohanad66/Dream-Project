@@ -1,7 +1,7 @@
 // src/Components/ThemeToggle/index.jsx
-import React from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
-import './ThemeToggle.scss';
+import React from "react";
+import { useTheme } from "../../contexts/ThemeContext";
+import "./ThemeToggle.scss";
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
@@ -11,15 +11,17 @@ const ThemeToggle = () => {
       <div className="theme-toggle-header">
         <h3>Theme Settings</h3>
         <div className="theme-toggle-badge">
-          <span className={`theme-badge ${theme === 'dark' ? 'dark' : 'light'}`}>
-            {theme === 'dark' ? ' Dark Mode' : ' Light Mode'}
+          <span
+            className={`theme-badge ${theme === "dark" ? "dark" : "light"}`}
+          >
+            {theme === "dark" ? " Dark Mode" : " Light Mode"}
           </span>
         </div>
       </div>
-      
+
       <div className="theme-toggle-card">
         <div className="theme-preview">
-          <div className={`theme-option ${theme === 'light' ? 'active' : ''}`}>
+          <div className={`theme-option ${theme === "light" ? "active" : ""}`}>
             <div className="theme-option__visual light-theme">
               <div className="sun-icon">☀️</div>
               <div className="theme-dots">
@@ -33,8 +35,8 @@ const ThemeToggle = () => {
               <p>Clean, bright interface</p>
             </div>
           </div>
-          
-          <div className={`theme-option ${theme === 'dark' ? 'active' : ''}`}>
+
+          <div className={`theme-option ${theme === "dark" ? "active" : ""}`}>
             <div className="theme-option__visual dark-theme">
               <div className="moon-icon">🌙</div>
               <div className="theme-stars">
@@ -49,12 +51,12 @@ const ThemeToggle = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="theme-toggle-control">
           <label className="theme-switch">
-            <input 
-              type="checkbox" 
-              checked={theme === 'dark'}
+            <input
+              type="checkbox"
+              checked={theme === "dark"}
               onChange={toggleTheme}
             />
             <span className="theme-switch__slider">

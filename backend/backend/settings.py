@@ -9,14 +9,18 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-import dj_database_url
-import cloudinary
-from pathlib import Path
+
 from datetime import timedelta
+from pathlib import Path
+
+import cloudinary
+import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-from dotenv import load_dotenv
 import os
 
+from dotenv import load_dotenv
+FRONTEND_URL = os.environ.get("FRONTEND_URL")   
 load_dotenv(override=True)
 
 # Quick-start development settings - unsuitable for production
@@ -26,114 +30,116 @@ load_dotenv(override=True)
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS" , "").split(",")
+DEBUG = os.environ.get("DEBUG", "True") == "True"
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
-PORT = int(os.environ.get('PORT', 8000))
+PORT = int(os.environ.get("PORT", 8000))
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 INSTALLED_APPS = [
-    # 'jazzmin', 
+    # 'jazzmin',
     "unfold",
-    "unfold.contrib.filters",  
-    "unfold.contrib.forms",  
-    "unfold.contrib.inlines",  
-    "unfold.contrib.import_export", 
-    "unfold.contrib.guardian", 
-    "unfold.contrib.simple_history", 
-    "unfold.contrib.location_field",  
-    "unfold.contrib.constance",  
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework_simplejwt.token_blacklist', 
-    'rest_framework_simplejwt',
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+    "unfold.contrib.inlines",
+    "unfold.contrib.import_export",
+    "unfold.contrib.guardian",
+    "unfold.contrib.simple_history",
+    "unfold.contrib.location_field",
+    "unfold.contrib.constance",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework_simplejwt.token_blacklist",
+    "rest_framework_simplejwt",
     "rest_framework",
     "corsheaders",
-    'otp_system',
-    'cloudinary',
-    'cloudinary_storage',
+    "otp_system",
+    "cloudinary",
+    "cloudinary_storage",
     "api",
 ]
+
+UNFOLD = {
+    "DASHBOARD_CALLBACK": "api.views.dashboard_callback",
+}
+
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET') 
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-    'django.middleware.security.SecurityMiddleware',
-    'django.middleware.gzip.GZipMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'backend.middleware.CacheControlMiddleware',  # Custom cache control middleware
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "backend.middleware.CacheControlMiddleware",  # Custom cache control middleware
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
     # 'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'backend.urls'
+ROOT_URLCONF = "backend.urls"
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
 }
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    )
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+WSGI_APPLICATION = "backend.wsgi.application"
 
-ASGI_APPLICATION = 'backend.asgi.application'
-CORS_ALLOW_ALL_ORIGINS = True 
+ASGI_APPLICATION = "backend.asgi.application"
+CORS_ALLOW_ALL_ORIGINS = True
 
-CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     "https://unique-piranha-idk1321-8a1bb675.koyeb.app",
-    "http://localhost:3000", # Common for React
+    "http://localhost:3000",  # Common for React
     "http://127.0.0.1:3000",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # ✅ Global cache control flag
-ENABLE_CACHING = os.getenv('ENABLE_CACHING', 'True').lower() in ('true', '1', 'yes')
+ENABLE_CACHING = os.getenv("ENABLE_CACHING", "True").lower() in ("true", "1", "yes")
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -146,47 +152,41 @@ ENABLE_CACHING = os.getenv('ENABLE_CACHING', 'True').lower() in ('true', '1', 'y
 # }
 
 
-
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600
-        )
+        "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
 # ✅ Add Caching Configuration
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 300,  # 5 minutes
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
-        }
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+        "TIMEOUT": 300,  # 5 minutes
+        "OPTIONS": {"MAX_ENTRIES": 1000},
     }
 }
 # If Redis is available, use it instead
-REDIS_URL = os.environ.get('REDIS_URL')
+REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': REDIS_URL,
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                'SOCKET_CONNECT_TIMEOUT': 5,
-                'SOCKET_TIMEOUT': 5,
-                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            }
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
+                "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
+            },
         }
     }
 #     DATABASES = {
@@ -206,29 +206,33 @@ if REDIS_URL:
 #     }
 
 # ✅ File Storage Configuration (Cloudinary)
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -236,9 +240,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -248,28 +252,30 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Where collectstatic puts files
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # Where collectstatic puts files
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # Your app's static files
+    os.path.join(BASE_DIR, "static"),  # Your app's static files
 ]
 
 # WhiteNoise Configuration for better performance
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # WhiteNoise settings for caching and compression
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_MAX_AGE = 31536000
 
-MEDIA_ROOT = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', os.path.join(BASE_DIR, 'media'))
-MEDIA_URL = '/media/'
+MEDIA_ROOT = os.environ.get(
+    "RAILWAY_VOLUME_MOUNT_PATH", os.path.join(BASE_DIR, "media")
+)
+MEDIA_URL = "/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
@@ -283,19 +289,19 @@ AUTHENTICATION_BACKENDS = [
 #     "login_logo_dark": None,
 #     "site_logo_classes": "img-circle",
 #     "site_icon": None,  # Add favicon path here
-    
+
 #     # Welcome text
 #     "welcome_sign": "Welcome to Professional Admin Dashboard",
-    
+
 #     # Copyright
 #     "copyright": "Your Company Ltd",
-    
+
 #     # Search model
 #     "search_model": ["auth.User", "auth.Group"],
-    
+
 #     # User avatar
 #     "user_avatar": None,
-    
+
 #     # Top Menu
 #     "topmenu_links": [
 #         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
@@ -303,57 +309,57 @@ AUTHENTICATION_BACKENDS = [
 #         {"model": "auth.User"},
 #         {"app": "books"},
 #     ],
-    
+
 #     # User menu on the top right
 #     "usermenu_links": [
 #         {"name": "Support", "url": "https://github.com/your-repo", "new_window": True},
 #         {"model": "auth.user"}
 #     ],
-    
+
 #     # Side Menu ordering
 #     "show_sidebar": True,
 #     "navigation_expanded": True,
 #     "hide_apps": [],
 #     "hide_models": [],
-    
+
 #     # Custom links to append to app groups
 #     "custom_links": {
 #         "books": [{
-#             "name": "Make Messages", 
-#             "url": "make_messages", 
+#             "name": "Make Messages",
+#             "url": "make_messages",
 #             "icon": "fas fa-comments",
 #             "permissions": ["books.view_book"]
 #         }]
 #     },
-    
+
 #     # Icons for side menu
 #     "icons": {
 #         "auth": "fas fa-users-cog",
 #         "auth.user": "fas fa-user",
 #         "auth.Group": "fas fa-users",
 #     },
-    
+
 #     # Icons for models (use Font Awesome or similar)
 #     "default_icon_parents": "fas fa-chevron-circle-right",
 #     "default_icon_children": "fas fa-circle",
-    
+
 #     # Related modal
 #     "related_modal_active": False,
-    
+
 #     # Custom CSS/JS
 #     "custom_css": None,  # Add this line
 #     "custom_js": None,
-    
+
 #     # Show language chooser
 #     "show_ui_builder": False,
-    
+
 #     # Changeform templates
 #     "changeform_format": "horizontal_tabs",  # or "vertical_tabs", "collapsible", "carousel"
 #     "changeform_format_overrides": {
-#         "auth.user": "collapsible", 
+#         "auth.user": "collapsible",
 #         "auth.group": "vertical_tabs"
 #     },
-    
+
 #     # Language chooser
 #     "language_chooser": False,
 # }
@@ -363,26 +369,26 @@ AUTHENTICATION_BACKENDS = [
 #     # Theme Selection
 #     "theme": "cyborg",  # Modern dark theme (alternatives: "slate", "superhero", "darkly")
 #     "dark_mode_theme": "cyborg",  # Consistent dark mode
-    
+
 #     # Typography
 #     "navbar_small_text": False,
 #     "footer_small_text": True,
 #     "body_small_text": False,
 #     "brand_small_text": False,
 #     "brand_colour": False,
-    
+
 #     # Accent colors
 #     "accent": "accent-primary",
-    
+
 #     # Navbar
 #     "navbar": "navbar-dark",
 #     "no_navbar_border": True,  # Cleaner look
 #     "navbar_fixed": True,
-    
+
 #     # Layout
 #     "layout_boxed": False,  # Full-width modern design
 #     "footer_fixed": False,
-    
+
 #     # Sidebar
 #     "sidebar_fixed": True,
 #     "sidebar": "sidebar-dark-primary",
@@ -392,7 +398,7 @@ AUTHENTICATION_BACKENDS = [
 #     "sidebar_nav_compact_style": False,  # More spacious
 #     "sidebar_nav_legacy_style": False,
 #     "sidebar_nav_flat_style": True,  # Modern flat design
-    
+
 #     # Button styling
 #     "button_classes": {
 #         "primary": "btn-primary",
@@ -405,41 +411,40 @@ AUTHENTICATION_BACKENDS = [
 # }
 # LOGIN_RIDERECT_URL = "/callback/"
 SOCIALACCOUNT_STORE_TOKENS = True
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 PARSE_CONFIG = {
-    'APPLICATION_ID': os.environ.get('PARSE_APP_ID'),
-    'MASTER_KEY': os.environ.get('PARSE_MASTER_KEY'),
-    'SERVER_URL': os.environ.get('PARSE_SERVER_URL'),  # Update this
-    'REST_API_KEY': os.environ.get('PARSE_REST_API_KEY'),
+    "APPLICATION_ID": os.environ.get("PARSE_APP_ID"),
+    "MASTER_KEY": os.environ.get("PARSE_MASTER_KEY"),
+    "SERVER_URL": os.environ.get("PARSE_SERVER_URL"),  # Update this
+    "REST_API_KEY": os.environ.get("PARSE_REST_API_KEY"),
 }
 
 
-
-PARSE_SERVER_URL = PARSE_CONFIG['SERVER_URL']
+PARSE_SERVER_URL = PARSE_CONFIG["SERVER_URL"]
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'stripe': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+    "loggers": {
+        "stripe": {
+            "handlers": ["console"],
+            "level": "DEBUG",
         },
     },
 }
 
 # Email Configuration (Gmail example)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
-SITE_NAME = os.environ.get('SITE_NAME')
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_HOST_USER")
+SITE_NAME = os.environ.get("SITE_NAME")

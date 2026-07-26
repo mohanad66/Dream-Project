@@ -7,9 +7,22 @@
   max-width: 1400px;
   margin: 0 auto;
   background:
-    radial-gradient(ellipse at top left, var(--color-secondary) 10%, transparent 50%),
-    radial-gradient(ellipse at bottom right, var(--color-primary) 10%, transparent 50%),
-    linear-gradient(135deg, var(--bg-body) 0%, var(--bg-subtle) 50%, var(--bg-muted) 100%);
+    radial-gradient(
+      ellipse at top left,
+      var(--color-secondary) 10%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      var(--color-primary) 10%,
+      transparent 50%
+    ),
+    linear-gradient(
+      135deg,
+      var(--bg-body) 0%,
+      var(--bg-subtle) 50%,
+      var(--bg-muted) 100%
+    );
   border-radius: 32px;
   padding: 2.5rem;
   align-items: stretch;
@@ -24,27 +37,43 @@
 
   /* Animated particle background */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
     background:
-      radial-gradient(circle at 20% 30%, var(--color-secondary) 0.1, transparent 40%),
-      radial-gradient(circle at 80% 70%, var(--color-primary) 0.08, transparent 40%),
-      radial-gradient(circle at 40% 90%, var(--color-danger) 0.06, transparent 40%);
+      radial-gradient(
+        circle at 20% 30%,
+        var(--color-secondary) 0.1,
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        var(--color-primary) 0.08,
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 40% 90%,
+        var(--color-danger) 0.06,
+        transparent 40%
+      );
     animation: rotate 30s linear infinite;
     pointer-events: none;
   }
 
   /* Floating orbs */
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, var(--color-secondary) 0.15, transparent 70%);
+    background: radial-gradient(
+      circle,
+      var(--color-secondary) 0.15,
+      transparent 70%
+    );
     border-radius: 50%;
     top: 20%;
     right: 10%;
@@ -64,7 +93,6 @@
   }
 
   @keyframes float {
-
     0%,
     100% {
       transform: translate(0, 0) scale(1);
@@ -108,8 +136,11 @@
 .main-carousel {
   flex: 2 1 500px;
   min-width: 0;
-  background:
-    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  background: linear-gradient(
+    145deg,
+    var(--bg-elevated) 0%,
+    var(--bg-surface) 100%
+  );
   backdrop-filter: blur(24px) saturate(180%);
   border-radius: 24px;
   border: 1px solid var(--border-color);
@@ -125,27 +156,33 @@
 
   /* Glass reflection effect */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 50%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 100%
+    );
     pointer-events: none;
     z-index: 1;
   }
 
   /* Animated border glow */
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -1px;
-    background: linear-gradient(45deg,
-        var(--color-secondary) 0.3,
-        var(--color-primary) 0.2,
-        var(--color-danger) 0.2,
-        var(--color-secondary) 0.3);
+    background: linear-gradient(
+      45deg,
+      var(--color-secondary) 0.3,
+      var(--color-primary) 0.2,
+      var(--color-danger) 0.2,
+      var(--color-secondary) 0.3
+    );
     border-radius: 24px;
     opacity: 0;
     z-index: -1;
@@ -158,7 +195,6 @@
   }
 
   @keyframes borderGlow {
-
     0%,
     100% {
       opacity: 0.3;
@@ -199,8 +235,11 @@
   align-items: center;
   justify-content: center;
   color: var(--text-primary);
-  background:
-    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  background: linear-gradient(
+    145deg,
+    var(--bg-elevated) 0%,
+    var(--bg-surface) 100%
+  );
   backdrop-filter: blur(16px);
   border-radius: 50%;
   border: 1px solid var(--border-color);
@@ -215,19 +254,26 @@
 
   /* Inner glow effect */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 2px;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--color-secondary) 0.2, transparent 70%);
+    background: radial-gradient(
+      circle,
+      var(--color-secondary) 0.2,
+      transparent 70%
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
   }
 
   &:hover {
     color: var(--text-on-primary);
-    background:
-      linear-gradient(145deg, var(--color-secondary) 0.3, var(--color-primary) 0.2);
+    background: linear-gradient(
+      145deg,
+      var(--color-secondary) 0.3,
+      var(--color-primary) 0.2
+    );
     transform: translateY(-50%) scale(1.15) rotate(5deg);
     box-shadow:
       0 20px 40px var(--color-secondary-alpha),
@@ -301,8 +347,11 @@
   height: 400px;
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(135deg, var(--bg-muted) 0%, var(--bg-subtle) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--bg-muted) 0%,
+    var(--bg-subtle) 100%
+  );
   z-index: 2;
 
   /* Tablet Styles */
@@ -363,8 +412,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background:
-    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  background: linear-gradient(
+    145deg,
+    var(--bg-elevated) 0%,
+    var(--bg-surface) 100%
+  );
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--border-color);
@@ -378,13 +430,18 @@
 
   /* Magic shimmer effect */
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: conic-gradient(from 0deg, transparent, var(--color-secondary) 0.3, transparent);
+    background: conic-gradient(
+      from 0deg,
+      transparent,
+      var(--color-secondary) 0.3,
+      transparent
+    );
     opacity: 0;
     transition: opacity 0.3s ease;
     animation: spin 2s linear infinite;
@@ -406,7 +463,7 @@
 
   /* Inner content protection */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 2px;
     background: inherit;
@@ -454,7 +511,12 @@
 .title1 {
   font-size: 1.75rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 50%, var(--color-danger) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary) 0%,
+    var(--color-primary) 50%,
+    var(--color-danger) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -466,13 +528,18 @@
 
   /* Animated underline */
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -6px;
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--color-secondary), var(--color-primary), var(--color-danger));
+    background: linear-gradient(
+      90deg,
+      var(--color-secondary),
+      var(--color-primary),
+      var(--color-danger)
+    );
     border-radius: 1px;
     transition: all 0.3s ease;
     transform: translateX(-50%);
@@ -535,8 +602,12 @@
   .btn {
     padding: 0.75rem 1.5rem;
     border-radius: 50px;
-    background:
-      linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 50%, var(--color-danger) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-secondary) 0%,
+      var(--color-primary) 50%,
+      var(--color-danger) 100%
+    );
     color: var(--text-on-primary);
     font-weight: 600;
     font-size: 0.9rem;
@@ -555,22 +626,32 @@
 
     /* Animated background */
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
       transition: left 0.6s ease;
     }
 
     /* Pulsing glow */
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       inset: -4px;
-      background: linear-gradient(135deg, var(--color-secondary), var(--color-primary), var(--color-danger));
+      background: linear-gradient(
+        135deg,
+        var(--color-secondary),
+        var(--color-primary),
+        var(--color-danger)
+      );
       border-radius: 50px;
       z-index: -1;
       opacity: 0;
@@ -595,7 +676,6 @@
     }
 
     @keyframes pulse {
-
       0%,
       100% {
         transform: scale(1);
@@ -644,8 +724,11 @@
   gap: 0.75rem;
   justify-content: center;
   padding: 1.5rem;
-  background:
-    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  background: linear-gradient(
+    145deg,
+    var(--bg-elevated) 0%,
+    var(--bg-surface) 100%
+  );
   backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-color);
   z-index: 2;
@@ -681,7 +764,7 @@
 
     /* Ripple effect */
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       inset: -6px;
       border-radius: 50%;
@@ -693,17 +776,25 @@
 
     /* Inner glow */
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       inset: 1px;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--color-secondary) 0.6, transparent 70%);
+      background: radial-gradient(
+        circle,
+        var(--color-secondary) 0.6,
+        transparent 70%
+      );
       opacity: 0;
       transition: opacity 0.3s ease;
     }
 
     &.active {
-      background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-secondary) 0%,
+        var(--color-primary) 100%
+      );
       transform: scale(1.2);
       /* Smaller scale */
       box-shadow:
@@ -749,8 +840,11 @@
 .contact-panel {
   flex: 1 1 400px;
   min-width: 0;
-  background:
-    linear-gradient(145deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  background: linear-gradient(
+    145deg,
+    var(--bg-elevated) 0%,
+    var(--bg-surface) 100%
+  );
   backdrop-filter: blur(32px) saturate(200%);
   border-radius: 24px;
   border: 1px solid var(--border-color);
@@ -788,13 +882,25 @@
 
   /* Animated gradient mesh background */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 20% 20%, var(--color-secondary) 0.15, transparent 50%),
-      radial-gradient(circle at 80% 80%, var(--color-danger) 0.1, transparent 50%),
-      radial-gradient(circle at 50% 0%, var(--color-primary) 0.08, transparent 50%);
+      radial-gradient(
+        circle at 20% 20%,
+        var(--color-secondary) 0.15,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        var(--color-danger) 0.1,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 0%,
+        var(--color-primary) 0.08,
+        transparent 50%
+      );
     animation: meshMove 12s ease-in-out infinite;
     pointer-events: none;
     z-index: 0;
@@ -802,7 +908,7 @@
 
   /* Floating particles */
   &::after {
-    content: '✦ ★ ◆ ▲';
+    content: "✦ ★ ◆ ▲";
     position: absolute;
     top: 10%;
     right: 10%;
@@ -815,7 +921,6 @@
   }
 
   @keyframes meshMove {
-
     0%,
     100% {
       transform: translate(0, 0) rotate(0deg);
@@ -831,7 +936,6 @@
   }
 
   @keyframes particleFloat {
-
     0%,
     100% {
       transform: translateY(0) rotate(0deg);
@@ -856,7 +960,12 @@
   h3 {
     font-size: 1.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 50%, var(--color-danger) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-secondary) 0%,
+      var(--color-primary) 50%,
+      var(--color-danger) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -869,7 +978,7 @@
 
     /* Animated contact icon */
     &::before {
-      content: '📞';
+      content: "📞";
       font-size: 1.25rem;
       animation: bounce 2s ease-in-out infinite;
       filter: drop-shadow(0 4px 8px var(--color-secondary-alpha));
@@ -877,17 +986,21 @@
 
     /* Decorative line */
     &::after {
-      content: '';
+      content: "";
       flex: 1;
       height: 1px;
-      background: linear-gradient(90deg, transparent, var(--color-secondary) 0.5, transparent);
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--color-secondary) 0.5,
+        transparent
+      );
       border-radius: 1px;
       position: relative;
       overflow: hidden;
     }
 
     @keyframes bounce {
-
       0%,
       100% {
         transform: translateY(0) rotate(0deg);
@@ -935,13 +1048,17 @@
 
     /* Subtle highlight */
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       left: -0.75rem;
       top: 0;
       bottom: 0;
       width: 2px;
-      background: linear-gradient(135deg, var(--color-secondary), var(--color-danger));
+      background: linear-gradient(
+        135deg,
+        var(--color-secondary),
+        var(--color-danger)
+      );
       border-radius: 1px;
       opacity: 0.6;
     }
@@ -1040,10 +1157,16 @@
 
   /* Hover glow effect */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: -1px;
-    background: linear-gradient(45deg, var(--color-secondary), var(--color-primary), var(--color-danger), var(--color-secondary));
+    background: linear-gradient(
+      45deg,
+      var(--color-secondary),
+      var(--color-primary),
+      var(--color-danger),
+      var(--color-secondary)
+    );
     border-radius: 13px;
     opacity: 0;
     z-index: -1;
@@ -1251,7 +1374,6 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-
   .carousel *,
   .carousel *::before,
   .carousel *::after {

@@ -6,22 +6,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0001_initial'),
+        ("api", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Tag',
+            name="Tag",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30, unique=True)),
-                ('slug', models.SlugField(editable=False, max_length=21, unique=True)),
-                ('is_active', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=30, unique=True)),
+                ("slug", models.SlugField(editable=False, max_length=21, unique=True)),
+                ("is_active", models.BooleanField(default=True)),
             ],
         ),
         migrations.AddField(
-            model_name='product',
-            name='tags',
-            field=models.ManyToManyField(blank=True, help_text='Select product tags', related_name='products', to='api.tag'),
+            model_name="product",
+            name="tags",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Select product tags",
+                related_name="products",
+                to="api.tag",
+            ),
         ),
     ]

@@ -1,5 +1,5 @@
 class PersistentCache {
-  constructor(cacheName = 'dream-project-cache-v1') {
+  constructor(cacheName = "dream-project-cache-v1") {
     this.cacheName = cacheName;
     this.memoryCache = {};
   }
@@ -17,7 +17,7 @@ class PersistentCache {
 
       if (response) {
         const data = await response.json();
-        const timestamp = parseInt(response.headers.get('X-Timestamp') || '0');
+        const timestamp = parseInt(response.headers.get("X-Timestamp") || "0");
 
         if (Date.now() - timestamp < maxAge) {
           console.log(`✅ DISK CACHE HIT: ${key}`);
@@ -31,7 +31,7 @@ class PersistentCache {
         }
       }
     } catch (error) {
-      console.error('Cache get error:', error);
+      console.error("Cache get error:", error);
     }
 
     console.log(`❌ CACHE MISS: ${key}`);
@@ -47,15 +47,15 @@ class PersistentCache {
       const cache = await caches.open(this.cacheName);
       const response = new Response(JSON.stringify(data), {
         headers: {
-          'Content-Type': 'application/json',
-          'X-Timestamp': timestamp.toString()
-        }
+          "Content-Type": "application/json",
+          "X-Timestamp": timestamp.toString(),
+        },
       });
 
       await cache.put(key, response);
       console.log(`💾 CACHED TO DISK: ${key}`);
     } catch (error) {
-      console.error('Cache set error:', error);
+      console.error("Cache set error:", error);
     }
   }
 
@@ -63,9 +63,9 @@ class PersistentCache {
     this.memoryCache = {};
     try {
       await caches.delete(this.cacheName);
-      console.log('🗑️ CACHE CLEARED');
+      console.log("🗑️ CACHE CLEARED");
     } catch (error) {
-      console.error('Cache clear error:', error);
+      console.error("Cache clear error:", error);
     }
   }
 
@@ -75,7 +75,7 @@ class PersistentCache {
       const cache = await caches.open(this.cacheName);
       await cache.delete(key);
     } catch (error) {
-      console.error('Cache delete error:', error);
+      console.error("Cache delete error:", error);
     }
   }
 
@@ -88,19 +88,19 @@ class PersistentCache {
       const keys = await cache.keys();
       diskKeys = keys.length;
     } catch (error) {
-      console.error('Stats error:', error);
+      console.error("Stats error:", error);
     }
 
     return {
       memoryKeys,
       diskKeys,
-      totalKeys: diskKeys
+      totalKeys: diskKeys,
     };
   }
 }
 
 export const persistentCache = new PersistentCache();
 
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.persistentCache = persistentCache;
 }

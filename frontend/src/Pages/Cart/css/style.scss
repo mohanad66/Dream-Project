@@ -130,7 +130,7 @@ $light-colors: (
   shadow: 0 4px 6px rgba(0, 0, 0, 0.05),
   shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.1),
   overlay: rgba(0, 0, 0, 0.1),
-  overlay-heavy: rgba(0, 0, 0, 0.3)
+  overlay-heavy: rgba(0, 0, 0, 0.3),
 );
 
 // Dark Theme
@@ -145,7 +145,7 @@ $dark-colors: (
   shadow: 0 4px 6px rgba(0, 0, 0, 0.3),
   shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.4),
   overlay: rgba(0, 0, 0, 0.2),
-  overlay-heavy: rgba(0, 0, 0, 0.6)
+  overlay-heavy: rgba(0, 0, 0, 0.6),
 );
 
 // ====================
@@ -356,15 +356,19 @@ $dark-colors: (
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background-image:
-      radial-gradient(circle at 25% 25%, rgba(var(--cart-primary-rgb), 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 25% 25%,
+        rgba(var(--cart-primary-rgb), 0.05) 0%,
+        transparent 50%),
+      radial-gradient(circle at 75% 75%,
+        rgba(16, 185, 129, 0.05) 0%,
+        transparent 50%);
     pointer-events: none;
     z-index: -1;
   }
@@ -386,14 +390,16 @@ $dark-colors: (
     color: var(--cart-text-primary);
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: -$cart-spacing-sm;
       left: 50%;
       transform: translateX(-50%);
       width: clamp(60px, 15%, 120px);
       height: 4px;
-      background: linear-gradient(90deg, var(--cart-primary), var(--cart-secondary));
+      background: linear-gradient(90deg,
+          var(--cart-primary),
+          var(--cart-secondary));
       border-radius: $radius-full;
       opacity: 0.8;
     }
@@ -562,14 +568,16 @@ $dark-colors: (
     position: relative;
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: -$cart-spacing-sm;
       left: 50%;
       transform: translateX(-50%);
       width: 80px;
       height: 3px;
-      background: linear-gradient(90deg, var(--cart-primary), var(--cart-secondary));
+      background: linear-gradient(90deg,
+          var(--cart-primary),
+          var(--cart-secondary));
       border-radius: $radius-full;
     }
   }
@@ -630,6 +638,7 @@ $dark-colors: (
 .empty-cart {
   text-align: center;
   padding: $cart-spacing-2xl;
+  margin: 0 5% !important;
   background: var(--cart-background-card);
   border-radius: $radius-xl;
   box-shadow: var(--cart-shadow);

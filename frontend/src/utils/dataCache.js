@@ -29,7 +29,7 @@ class DataCache {
   clear() {
     this.cache = {};
     this.timestamps = {};
-    console.log('🗑️ Cache cleared');
+    console.log("🗑️ Cache cleared");
   }
 
   delete(key) {

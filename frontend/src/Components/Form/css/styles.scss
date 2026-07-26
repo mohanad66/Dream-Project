@@ -7,7 +7,6 @@
   box-sizing: border-box;
 }
 
-
 /* ===========================
    THEME VARIABLES
 =========================== */
@@ -64,7 +63,9 @@
   border-radius: 16px;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
 
   @media (max-width: 480px) {
     padding: 1.5rem 1.25rem;
@@ -96,7 +97,9 @@
   background: var(--input-bg);
   color: var(--text);
   font-size: 0.95rem;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease;
 
   &::placeholder {
     color: var(--muted-text);
@@ -138,7 +141,9 @@
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 
   &:hover:not(:disabled) {
     background: var(--primary-hover);

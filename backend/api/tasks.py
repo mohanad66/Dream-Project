@@ -29,11 +29,12 @@ Setup Instructions:
    celery -A backend worker -l info
 """
 
+import logging
+from io import BytesIO
+
 from celery import shared_task
 from django.core.files.base import ContentFile
 from PIL import Image
-from io import BytesIO
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -42,32 +43,32 @@ logger = logging.getLogger(__name__)
 def compress_image_async(image_path, quality=85, max_width=1920, max_height=1080):
     """
     Asynchronously compress and optimize image file.
-    
+
     Args:
         image_path: Path to the image file
         quality: JPEG quality (1-100)
         max_width: Maximum width in pixels
         max_height: Maximum height in pixels
-    
+
     Returns:
         Path to the compressed image
     """
     try:
         with Image.open(image_path) as img:
             # Convert RGBA/P to RGB
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
-            
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
             # Resize if needed
             if img.width > max_width or img.height > max_height:
                 ratio = min(max_width / img.width, max_height / img.height)
                 new_size = (int(img.width * ratio), int(img.height * ratio))
                 img = img.resize(new_size, Image.LANCZOS)
-            
+
             # Save with optimization
             img.save(image_path, quality=quality, optimize=True)
             logger.info(f"Compressed image: {image_path}")
-            
+
     except Exception as e:
         logger.error(f"Failed to compress image {image_path}: {str(e)}")
         raise
@@ -80,10 +81,10 @@ def cleanup_old_images():
     """
     import os
     from datetime import datetime, timedelta
-    
-    media_root = '/media/'
+
+    media_root = "/media/"
     cutoff_date = datetime.now() - timedelta(days=30)
-    
+
     try:
         for root, dirs, files in os.walk(media_root):
             for file in files:

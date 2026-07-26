@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0009_alter_order_payment'),
+        ("api", "0009_alter_order_payment"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='orderitem',
-            name='subtotal',
+            model_name="orderitem",
+            name="subtotal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
     ]

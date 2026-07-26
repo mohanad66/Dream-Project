@@ -24,7 +24,7 @@ $colors: (
   neutral-900: #222,
 
   white: #ffffff,
-  disabled-bg: #d1f2eb
+  disabled-bg: #d1f2eb,
 );
 
 $spacing: (
@@ -35,33 +35,33 @@ $spacing: (
   xl: 1.25rem,
   2xl: 1.5rem,
   3xl: 2rem,
-  4xl: 2.5rem
+  4xl: 2.5rem,
 );
 
 $radius: (
   sm: 8px,
   md: 12px,
   lg: 16px,
-  xl: 20px
+  xl: 20px,
 );
 
 $shadows: (
   sm: 0 1px 3px rgba(0, 0, 0, 0.05),
   md: 0 4px 16px rgba(0, 0, 0, 0.08),
   lg: 0 8px 32px rgba(0, 0, 0, 0.12),
-  xl: 0 12px 48px rgba(0, 0, 0, 0.15)
+  xl: 0 12px 48px rgba(0, 0, 0, 0.15),
 );
 
 $transitions: (
   fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1),
   normal: 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-  slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+  slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 );
 
 $breakpoints: (
   sm: 480px,
   md: 768px,
-  lg: 1024px
+  lg: 1024px,
 );
 
 // Helper Functions
@@ -146,17 +146,21 @@ $breakpoints: (
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  transition: transform transition(normal), box-shadow transition(normal);
-
+  transition:
+    transform transition(normal),
+    box-shadow transition(normal);
 
   &::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top right, rgba(39, 174, 96, .08), transparent 60%);
+    background: radial-gradient(
+      circle at top right,
+      rgba(39, 174, 96, 0.08),
+      transparent 60%
+    );
     pointer-events: none;
   }
-
 
   &:hover {
     transform: translateY(-6px);
@@ -176,8 +180,13 @@ $breakpoints: (
     border-radius: radius(lg);
     margin-bottom: spacing(xl);
     cursor: pointer;
-    transition: all transition(normal);
+    transition: all transition(normal), opacity 0.25s ease;
     box-shadow: shadow(sm);
+    opacity: 0;          // start invisible
+
+    &.img-ready {
+      opacity: 1;        // fade in once loaded
+    }
 
     &:hover {
       transform: scale(1.05) rotate(-1deg);
@@ -191,7 +200,6 @@ $breakpoints: (
     font-weight: 800;
     color: color(neutral-900);
   }
-
 
   .price {
     font-size: 1.2rem;
@@ -260,10 +268,12 @@ $breakpoints: (
     .add-to-cart-btn {
       border: 2px solid #2b2b2b !important;
 
-      @include button-variant(color(neutral-100),
+      @include button-variant(
+        color(neutral-100),
         color(neutral-800),
         color(neutral-200),
-        color(primary));
+        color(primary)
+      );
       flex: 1;
 
       &:disabled {
@@ -273,9 +283,11 @@ $breakpoints: (
     }
 
     .buy-now-btn {
-      @include button-variant(color(secondary),
+      @include button-variant(
+        color(secondary),
         color(white),
-        color(secondary-dark));
+        color(secondary-dark)
+      );
       flex: 1;
     }
   }
@@ -388,7 +400,11 @@ $breakpoints: (
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 
       &:hover {
-        background: linear-gradient(180deg, color(primary-dark), color(primary));
+        background: linear-gradient(
+          180deg,
+          color(primary-dark),
+          color(primary)
+        );
       }
     }
 
@@ -479,7 +495,11 @@ $breakpoints: (
         margin: 10px;
 
         .quantity-btn {
-          @include button-variant(color(primary), color(white), color(primary-dark));
+          @include button-variant(
+            color(primary),
+            color(white),
+            color(primary-dark)
+          );
           width: 40px;
           height: 40px;
           border-radius: radius(md);
@@ -570,8 +590,6 @@ $breakpoints: (
         margin-bottom: spacing(xl);
         overflow: visible; // Remove individual scrolling
 
-
-
         .popup-content-full {
           color: color(neutral-700);
           font-size: 1rem;
@@ -610,16 +628,18 @@ $breakpoints: (
         display: flex;
         gap: spacing(md);
         margin-top: auto;
-        *{
+        * {
           font-size: 1.5rem;
           font-weight: 400;
         }
         .add-to-cart-btn {
           border: 2px solid #2b2b2b !important;
-          @include button-variant(color(neutral-100),
+          @include button-variant(
+            color(neutral-100),
             color(neutral-800),
             color(neutral-200),
-            color(primary));
+            color(primary)
+          );
           flex: 1;
 
           &:disabled {
@@ -629,9 +649,11 @@ $breakpoints: (
         }
 
         .buy-now-btn {
-          @include button-variant(color(secondary),
+          @include button-variant(
+            color(secondary),
             color(white),
-            color(secondary-dark));
+            color(secondary-dark)
+          );
           flex: 1;
         }
       }
@@ -736,7 +758,7 @@ $breakpoints: (
 .scroll-snap-x {
   scroll-snap-type: x mandatory;
 
-  >* {
+  > * {
     scroll-snap-align: start;
   }
 }
@@ -744,7 +766,7 @@ $breakpoints: (
 .scroll-snap-y {
   scroll-snap-type: y mandatory;
 
-  >* {
+  > * {
     scroll-snap-align: start;
   }
 }
@@ -754,7 +776,12 @@ $breakpoints: (
 .card {
   &.loading {
     .card-image {
-      background: linear-gradient(90deg, color(neutral-100) 25%, color(neutral-50) 50%, color(neutral-100) 75%);
+      background: linear-gradient(
+        90deg,
+        color(neutral-100) 25%,
+        color(neutral-50) 50%,
+        color(neutral-100) 75%
+      );
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
     }
@@ -821,7 +848,94 @@ h2 {
   text-overflow: ellipsis;
 }
 
-
-
-
 // Price
+
+// Carousel Styles
+// ==========================================
+.card-carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  margin-bottom: 1.25rem;
+  width: 100%;
+
+  .card-image {
+    margin-bottom: 0 !important; 
+    transition: transform 0.3s ease;
+  }
+
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(4px);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #222;
+    transition: all 0.2s ease;
+    z-index: 2;
+    opacity: 0; 
+
+    &:hover {
+      background: white;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    &.prev { left: 0.5rem; }
+    &.next { right: 0.5rem; }
+  }
+
+  &:hover .carousel-btn {
+    opacity: 1; 
+  }
+
+  .carousel-dots {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+    border-radius: 12px;
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transition: all 0.2s ease;
+
+      &.active {
+        background: white;
+        transform: scale(1.3);
+      }
+    }
+  }
+}
+
+.popup-img.card-carousel {
+  margin-bottom: 0;
+  height: 100%;
+  
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    opacity: 1; 
+    &.prev { left: 1rem; }
+    &.next { right: 1rem; }
+  }
+}

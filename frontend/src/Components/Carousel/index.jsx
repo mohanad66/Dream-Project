@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
-import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from 'react-icons/bs';
-import './css/style.scss';
-import useFancybox from '../FancyBox';
-import { FiMail, FiPhone, FiInfo, FiLink, } from "react-icons/fi";
-import { FaFacebook, FaWhatsapp, FaGithub, FaLinkedin, FaInstagram, FaTwitter } from "react-icons/fa";
-import React from 'react'          // ✅ add this
+import { useState, useEffect } from "react";
+import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from "react-icons/bs";
+import "./css/style.scss";
+import useFancybox from "../FancyBox";
+import { FiMail, FiPhone, FiInfo, FiLink } from "react-icons/fi";
+import {
+  FaFacebook,
+  FaWhatsapp,
+  FaGithub,
+  FaLinkedin,
+  FaInstagram,
+  FaTwitter,
+} from "react-icons/fa";
+import React from "react"; // ✅ add this
 
 const Carousel = ({ images = [], contacts = [] }) => {
   // ✅ Add safety checks at the top
@@ -59,12 +66,17 @@ const Carousel = ({ images = [], contacts = [] }) => {
 
             {safeContacts.length > 0 ? (
               <div className="contact-columns">
-                {safeContacts.map(contact => (
-                  contact.is_active && <ContactItem key={contact.id} contact={contact} />
-                ))}
+                {safeContacts.map(
+                  (contact) =>
+                    contact.is_active && (
+                      <ContactItem key={contact.id} contact={contact} />
+                    ),
+                )}
               </div>
             ) : (
-              <a href="#contact" className="cta-button">Contact us</a>
+              <a href="#contact" className="cta-button">
+                Contact us
+              </a>
             )}
           </div>
         </div>
@@ -78,7 +90,7 @@ const Carousel = ({ images = [], contacts = [] }) => {
       <div className="main-carousel">
         <BsArrowLeftCircleFill
           onClick={handlePrevious}
-          className='arrow arrowLeft'
+          className="arrow arrowLeft"
           aria-label="Previous image"
           size={32}
         />
@@ -87,38 +99,41 @@ const Carousel = ({ images = [], contacts = [] }) => {
           {safeImages.map((imageItem, index) => (
             <div
               key={imageItem.id || `image-${index}`}
-              className={`slide ${currentImage === index ? 'active' : ''} ${index < currentImage ? 'left' : 'right'}`}
+              className={`slide ${currentImage === index ? "active" : ""} ${index < currentImage ? "left" : "right"}`}
             >
               <div className="image-container">
-                <a data-fancybox={`gallery${index}`} href={`${imageItem.image}`}>
+                <a
+                  data-fancybox={`gallery${index}`}
+                  href={`${imageItem.image}`}
+                >
                   <img
                     src={` ${imageItem.image}`}
                     alt={imageItem.altText || `Showcase ${index + 1}`}
                     loading="lazy"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = '/path/to/fallback-image.jpg';
+                      e.target.src = "/path/to/fallback-image.jpg";
                     }}
                   />
                 </a>
               </div>
-              {imageItem.name && <h4 className='title1'>{imageItem.name}</h4>}
+              {imageItem.name && <h4 className="title1">{imageItem.name}</h4>}
             </div>
           ))}
         </div>
 
         <BsArrowRightCircleFill
           onClick={handleNext}
-          className='arrow arrowRight'
+          className="arrow arrowRight"
           aria-label="Next image"
           size={32}
         />
 
-        <div className='circle-indicator'>
+        <div className="circle-indicator">
           {safeImages.map((_, index) => (
             <button
               key={`indicator-${index}`}
-              className={`indicator-dot ${currentImage === index ? 'active' : ''}`}
+              className={`indicator-dot ${currentImage === index ? "active" : ""}`}
               onClick={() => {
                 if (!isAnimating) {
                   setCurrentImage(index);
@@ -140,12 +155,22 @@ const Carousel = ({ images = [], contacts = [] }) => {
           {safeContacts.length > 0 ? (
             <div className="contact-columns">
               {/* Split contacts into two columns */}
-              {safeContacts.slice(0, Math.ceil(safeContacts.length / 2)).map(contact => (
-                contact.is_active && <ContactItem key={contact.id} contact={contact} />
-              ))}
-              {safeContacts.slice(Math.ceil(safeContacts.length / 2)).map(contact => (
-                contact.is_active && <ContactItem key={contact.id} contact={contact} />
-              ))}
+              {safeContacts
+                .slice(0, Math.ceil(safeContacts.length / 2))
+                .map(
+                  (contact) =>
+                    contact.is_active && (
+                      <ContactItem key={contact.id} contact={contact} />
+                    ),
+                )}
+              {safeContacts
+                .slice(Math.ceil(safeContacts.length / 2))
+                .map(
+                  (contact) =>
+                    contact.is_active && (
+                      <ContactItem key={contact.id} contact={contact} />
+                    ),
+                )}
             </div>
           ) : (
             <p>No contact information available</p>
@@ -159,17 +184,23 @@ const Carousel = ({ images = [], contacts = [] }) => {
 function ContactItem({ contact }) {
   const getIconComponent = () => {
     switch (contact.contact_type) {
-      case 'email':
+      case "email":
         return <FiMail className="contact-icon" />;
-      case 'phone':
+      case "phone":
         return <FiPhone className="contact-icon" />;
-      case 'social':
-        if (contact.value.includes('facebook')) return <FaFacebook className="contact-icon" />;
-        if (contact.value.includes('twitter')) return <FaTwitter className="contact-icon" />;
-        if (contact.value.includes('instagram')) return <FaInstagram className="contact-icon" />;
-        if (contact.value.includes('linkedin')) return <FaLinkedin className="contact-icon" />;
-        if (contact.value.includes('github')) return <FaGithub className="contact-icon" />;
-        if (contact.value.includes('whatsapp')) return <FaWhatsapp className="contact-icon" />;
+      case "social":
+        if (contact.value.includes("facebook"))
+          return <FaFacebook className="contact-icon" />;
+        if (contact.value.includes("twitter"))
+          return <FaTwitter className="contact-icon" />;
+        if (contact.value.includes("instagram"))
+          return <FaInstagram className="contact-icon" />;
+        if (contact.value.includes("linkedin"))
+          return <FaLinkedin className="contact-icon" />;
+        if (contact.value.includes("github"))
+          return <FaGithub className="contact-icon" />;
+        if (contact.value.includes("whatsapp"))
+          return <FaWhatsapp className="contact-icon" />;
         return <FiLink className="contact-icon" />;
       default:
         return contact.icon ? (
@@ -178,26 +209,27 @@ function ContactItem({ contact }) {
             alt={contact.name}
             className="contact-icon-img"
           />
-        ) : <FiInfo className="contact-icon" />;
+        ) : (
+          <FiInfo className="contact-icon" />
+        );
     }
   };
 
   return (
     <div className={`contact-method ${contact.contact_type}`}>
-      <div className="contact-icon-container">
-        {getIconComponent()}
-      </div>
+      <div className="contact-icon-container">{getIconComponent()}</div>
       <div className="contact-details">
-        <span className="contact-name">{contact.name}</span><br />
-        {contact.contact_type === 'email' ? (
+        <span className="contact-name">{contact.name}</span>
+        <br />
+        {contact.contact_type === "email" ? (
           <a href={`mailto:${contact.value}`} className="contact-value">
             {contact.value}
           </a>
-        ) : contact.contact_type === 'phone' ? (
+        ) : contact.contact_type === "phone" ? (
           <a href={`tel:${contact.value}`} className="contact-value">
             {formatPhoneNumber(contact.value)}
           </a>
-        ) : contact.contact_type === 'social' ? (
+        ) : contact.contact_type === "social" ? (
           <a
             href={contact.value}
             target="_blank"
@@ -217,13 +249,13 @@ function ContactItem({ contact }) {
 // Helper functions
 function formatPhoneNumber(phoneNumber) {
   // Format phone numbers for better readability
-  return phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+  return phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
 }
 
 function getSocialDisplayName(url) {
   // Extract cleaner display names from social URLs
-  const cleanUrl = url.replace(/^https?:\/\/(www\.)?/, '');
-  return cleanUrl.split('/')[0];
+  const cleanUrl = url.replace(/^https?:\/\/(www\.)?/, "");
+  return cleanUrl.split("/")[0];
 }
 
 export default Carousel;

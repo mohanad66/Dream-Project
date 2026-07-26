@@ -1,19 +1,19 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { ACCESS_TOKEN } from '../../services/constants.js';
-import { jwtDecode } from 'jwt-decode';
-import React from 'react'          // ✅ add this
+import { Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { ACCESS_TOKEN } from "../../services/constants.js";
+import { jwtDecode } from "jwt-decode";
+import React from "react"; // ✅ add this
 
 export default function ProtectedRoute({ children }) {
   const [authState, setAuthState] = useState({
     isAuthorized: false,
-    isLoading: true
+    isLoading: true,
   });
   const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    
+
     if (!token) {
       setAuthState({ isAuthorized: false, isLoading: false });
       return;
@@ -22,14 +22,14 @@ export default function ProtectedRoute({ children }) {
     try {
       const { exp } = jwtDecode(token);
       const isValid = exp * 1000 > Date.now();
-      
+
       setAuthState({
         isAuthorized: isValid,
-        isLoading: false
+        isLoading: false,
       });
 
       // If coming from login, assume token is fresh
-      if (location.state?.from === 'login') {
+      if (location.state?.from === "login") {
         setAuthState({ isAuthorized: true, isLoading: false });
       }
     } catch (error) {

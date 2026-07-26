@@ -1,5 +1,5 @@
 import Form from "../../Components/Form/Form";
-import React from 'react'
+import React from "react";
 
 export default function Register() {
   return (
@@ -18,13 +18,9 @@ export default function Register() {
           />
         ))}
       </div>
-      
+
       {/* Register Form */}
-      <Form 
-        route="/api/token/" 
-        method="register" 
-        successRedirect="/"
-      />
+      <Form route="/api/token/" method="register" successRedirect="/" />
     </div>
   );
 }

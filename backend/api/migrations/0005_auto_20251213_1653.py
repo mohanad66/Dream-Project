@@ -6,8 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0004_alter_tag_slug'),
+        ("api", "0004_alter_tag_slug"),
     ]
 
-    operations = [
-    ]
+    operations = []

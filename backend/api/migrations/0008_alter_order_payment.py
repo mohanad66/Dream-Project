@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0007_order_orderitem_alter_payment_options_payment_owner_and_more'),
+        ("api", "0007_order_orderitem_alter_payment_options_payment_owner_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='order',
-            name='payment',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.payment'),
+            model_name="order",
+            name="payment",
+            field=models.OneToOneField(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="api.payment",
+            ),
         ),
     ]

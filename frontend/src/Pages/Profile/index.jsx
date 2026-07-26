@@ -1,28 +1,34 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import api from '../../services/api';
-import './css/styles.scss';
-import { PasswordChangeSection } from '../../Components/PasswordChange/PasswordChange';
-import { AddItemModal } from '../../Components/AddItemModal/index';
-import Card from '../../Components/Card';
-import { useNavigate } from 'react-router-dom';
-import SimpleThemeToggle from '../../Components/ThemeToggle/SimpleThemeToggle';
-import ThemeToggle from '../../Components/ThemeToggle/SimpleThemeToggle';
-import CarouselManagementSection from "./CarouselAdminTable/index.jsx"
+import React, { useEffect, useState, useCallback } from "react";
+import api from "../../services/api";
+import "./css/styles.scss";
+import { PasswordChangeSection } from "../../Components/PasswordChange/PasswordChange";
+import { AddItemModal } from "../../Components/AddItemModal/index";
+import Card from "../../Components/Card";
+import { useNavigate } from "react-router-dom";
+import SimpleThemeToggle from "../../Components/ThemeToggle/SimpleThemeToggle";
+import ThemeToggle from "../../Components/ThemeToggle/SimpleThemeToggle";
+import CarouselManagementSection from "./CarouselAdminTable/index.jsx";
 // Constants for better maintainability
 const USER_ROLES = {
-  SUPER_ADMIN: 'Super Admin',
-  ADMIN: 'Admin',
-  USER: 'User'
+  SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
+  USER: "User",
 };
 
 const MODAL_TYPES = {
-  PRODUCT: 'Product',
-  CATEGORY: 'Category',
-  CONTACT: 'Contact',
-  TAG: 'Tag'
+  PRODUCT: "Product",
+  CATEGORY: "Category",
+  CONTACT: "Contact",
+  TAG: "Tag",
 };
 const ORDER_STATUSES = [
-  'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'
+  "pending",
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refunded",
 ];
 const PaginationControls = ({ pagination, onPageChange, loading }) => {
   const totalPages = Math.ceil(pagination.count / 10);
@@ -37,7 +43,8 @@ const PaginationControls = ({ pagination, onPageChange, loading }) => {
         Previous
       </button>
       <span>
-        Page {pagination.currentPage} of {totalPages || 1} ({pagination.count} total items)
+        Page {pagination.currentPage} of {totalPages || 1} ({pagination.count}{" "}
+        total items)
       </span>
       <button
         onClick={() => onPageChange(pagination.currentPage + 1)}
@@ -50,7 +57,11 @@ const PaginationControls = ({ pagination, onPageChange, loading }) => {
   );
 };
 const ProductCard = ({ product, categories, onToggleStatus }) => (
-  <Card card={product} categories={categories} onToggleStatus={onToggleStatus} />
+  <Card
+    card={product}
+    categories={categories}
+    onToggleStatus={onToggleStatus}
+  />
 );
 
 export default function Profile({ categories: initialCategories = [] }) {
@@ -60,9 +71,9 @@ export default function Profile({ categories: initialCategories = [] }) {
     user: null,
     loading: true,
     error: null,
-    activeTab: 'profile',
+    activeTab: "profile",
     editMode: false,
-    formData: { first_name: '', last_name: '' },
+    formData: { first_name: "", last_name: "" },
     isModalOpen: false,
     modalConfig: null,
     allUsers: [],
@@ -181,258 +192,288 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   }, []);
 
-
-  const updateData = useCallback(async (url, data, method = 'patch') => {
+  const updateData = useCallback(async (url, data, method = "patch") => {
     try {
       return await api.patch(url, data);
     } catch (error) {
-      throw error; 
+      throw error;
     }
   }, []);
 
-
   // Fetch functions
-  const fetchAllUsers = useCallback(async (page = 1) => {
-    if (!isSuperuser) return;
+  const fetchAllUsers = useCallback(
+    async (page = 1) => {
+      if (!isSuperuser) return;
 
-    setState(prev => ({ ...prev, adminLoading: true }));
+      setState((prev) => ({ ...prev, adminLoading: true }));
 
-    try {
-      const response = await fetchData(`/api/user/all/?page=${page}`);
-      setState(prev => ({
-        ...prev,
-        allUsers: response.data.results,
-        usersPagination: {
-          count: response.data.count,
-          next: response.data.next,
-          previous: response.data.previous,
-          currentPage: page,
-        },
-        adminLoading: false
-      }));
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load user list.",
-        adminLoading: false
-      }));
-    }
-  }, [isSuperuser, fetchData]);
-  const fetchAllOrders = useCallback(async (page = 1) => {
-    if (!isAdmin) return;
-    setState(prev => ({ ...prev, ordersLoading: true }));
-    try {
-      const response = await fetchData(`/api/admins/orders/?page=${page}`);
-      setState(prev => ({
-        ...prev,
-        allOrders: response.data.results ?? [],
-        ordersPagination: {
-          count: response.data.count ?? 0,
-          next: response.data.next ?? null,
-          previous: response.data.previous ?? null,
-          currentPage: page,
-        },
-        ordersLoading: false,
-      }));
-    } catch (err) {
-      console.error('Error fetching orders:', err);
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load orders.",
-        ordersLoading: false
-      }));
-    }
-  }, [isAdmin, fetchData]);
-  const fetchMyProducts = useCallback(async (page = 1) => {
-    if (!isAdmin) return;
+      try {
+        const response = await fetchData(`/api/user/all/?page=${page}`);
+        setState((prev) => ({
+          ...prev,
+          allUsers: response.data.results,
+          usersPagination: {
+            count: response.data.count,
+            next: response.data.next,
+            previous: response.data.previous,
+            currentPage: page,
+          },
+          adminLoading: false,
+        }));
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load user list.",
+          adminLoading: false,
+        }));
+      }
+    },
+    [isSuperuser, fetchData],
+  );
+  const fetchAllOrders = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
+      setState((prev) => ({ ...prev, ordersLoading: true }));
+      try {
+        const response = await fetchData(`/api/admins/orders/?page=${page}`);
+        setState((prev) => ({
+          ...prev,
+          allOrders: response.data.results ?? [],
+          ordersPagination: {
+            count: response.data.count ?? 0,
+            next: response.data.next ?? null,
+            previous: response.data.previous ?? null,
+            currentPage: page,
+          },
+          ordersLoading: false,
+        }));
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load orders.",
+          ordersLoading: false,
+        }));
+      }
+    },
+    [isAdmin, fetchData],
+  );
+  const fetchMyProducts = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
 
-    setState(prev => ({ ...prev, productsLoading: true }));
+      setState((prev) => ({ ...prev, productsLoading: true }));
 
-    try {
-      const response = await fetchData(`/api/admins/products/?page=${page}`);
+      try {
+        const response = await fetchData(`/api/admins/products/?page=${page}`);
 
-      const allProducts = response.data?.results ?? response.data ?? [];
+        const allProducts = response.data?.results ?? response.data ?? [];
 
-      const userProducts = allProducts.filter(product => product.owner === user?.id);
+        const userProducts = allProducts.filter(
+          (product) => product.owner === user?.id,
+        );
 
-      console.log('All products:', allProducts);
-      console.log('Current user ID:', user?.id);
-      console.log('Filtered user products:', userProducts);
+        console.log("All products:", allProducts);
+        console.log("Current user ID:", user?.id);
+        console.log("Filtered user products:", userProducts);
 
-      setState(prev => ({
-        ...prev,
-        myProducts: userProducts,
-        productsPagination: {
-          count: response.data?.count ?? 0,
-          next: response.data?.next ?? null,
-          previous: response.data?.previous ?? null,
-          currentPage: page,
-        },
-        productsLoading: false
-      }));
-    } catch (err) {
-      console.error('Error fetching products:', err);
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load your products.",
-        productsLoading: false
-      }));
-    }
-  }, [isAdmin, user?.id, fetchData]);
+        setState((prev) => ({
+          ...prev,
+          myProducts: userProducts,
+          productsPagination: {
+            count: response.data?.count ?? 0,
+            next: response.data?.next ?? null,
+            previous: response.data?.previous ?? null,
+            currentPage: page,
+          },
+          productsLoading: false,
+        }));
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load your products.",
+          productsLoading: false,
+        }));
+      }
+    },
+    [isAdmin, user?.id, fetchData],
+  );
 
-  const fetchAllCategories = useCallback(async (page = 1) => {
-    if (!isAdmin) return;
+  const fetchAllCategories = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
 
-    setState(prev => ({ ...prev, categoriesLoading: true }));
+      setState((prev) => ({ ...prev, categoriesLoading: true }));
 
-    try {
-      const response = await fetchData(`/api/admins/categories/?page=${page}`);
-      setState(prev => ({
-        ...prev,
-        allCategories: response.data.results,
-        categoriesPagination: {
-          count: response.data.count,
-          next: response.data.next,
-          previous: response.data.previous,
-          currentPage: page,
-        },
-        categoriesLoading: false
-      }));
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load categories.",
-        categoriesLoading: false
-      }));
-    }
-  }, [isAdmin, fetchData]);
+      try {
+        const response = await fetchData(
+          `/api/admins/categories/?page=${page}`,
+        );
+        setState((prev) => ({
+          ...prev,
+          allCategories: response.data.results,
+          categoriesPagination: {
+            count: response.data.count,
+            next: response.data.next,
+            previous: response.data.previous,
+            currentPage: page,
+          },
+          categoriesLoading: false,
+        }));
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load categories.",
+          categoriesLoading: false,
+        }));
+      }
+    },
+    [isAdmin, fetchData],
+  );
 
-  const fetchAllContacts = useCallback(async (page = 1) => {
-    if (!isAdmin) return;
+  const fetchAllContacts = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
 
-    setState(prev => ({ ...prev, contactsLoading: true }));
+      setState((prev) => ({ ...prev, contactsLoading: true }));
 
-    try {
-      const response = await fetchData(`/api/admins/contacts/?page=${page}`);
-      setState(prev => ({
-        ...prev,
-        allContacts: response.data.results,
-        contactsPagination: {
-          count: response.data.count,
-          next: response.data.next,
-          previous: response.data.previous,
-          currentPage: page,
-        },
-        contactsLoading: false
-      }));
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load contacts.",
-        contactsLoading: false
-      }));
-    }
-  }, [isAdmin, fetchData]);
+      try {
+        const response = await fetchData(`/api/admins/contacts/?page=${page}`);
+        setState((prev) => ({
+          ...prev,
+          allContacts: response.data.results,
+          contactsPagination: {
+            count: response.data.count,
+            next: response.data.next,
+            previous: response.data.previous,
+            currentPage: page,
+          },
+          contactsLoading: false,
+        }));
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load contacts.",
+          contactsLoading: false,
+        }));
+      }
+    },
+    [isAdmin, fetchData],
+  );
 
-  const fetchAllTags = useCallback(async (page = 1) => {
-    if (!isAdmin) return;
+  const fetchAllTags = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
 
-    setState(prev => ({ ...prev, tagsLoading: true }));
+      setState((prev) => ({ ...prev, tagsLoading: true }));
 
-    try {
-      const response = await fetchData(`/api/admins/tags/?page=${page}`);
-      console.log('Tags API response:', response.data); // Debug log
+      try {
+        const response = await fetchData(`/api/admins/tags/?page=${page}`);
+        console.log("Tags API response:", response.data); // Debug log
 
-      const tagsData = response.data?.results || response.data;
+        const tagsData = response.data?.results || response.data;
 
-      setState(prev => ({
-        ...prev,
-        allTags: Array.isArray(tagsData) ? tagsData : [],
-        tagsPagination: {
-          count: response.data?.count || 0,
-          next: response.data?.next || null,
-          previous: response.data?.previous || null,
-          currentPage: page,
-        },
-        tagsLoading: false
-      }));
-    } catch (err) {
-      console.error('Error fetching tags:', err);
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load tags.",
-        tagsLoading: false
-      }));
-    }
-  }, [isAdmin, fetchData]);
+        setState((prev) => ({
+          ...prev,
+          allTags: Array.isArray(tagsData) ? tagsData : [],
+          tagsPagination: {
+            count: response.data?.count || 0,
+            next: response.data?.next || null,
+            previous: response.data?.previous || null,
+            currentPage: page,
+          },
+          tagsLoading: false,
+        }));
+      } catch (err) {
+        console.error("Error fetching tags:", err);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load tags.",
+          tagsLoading: false,
+        }));
+      }
+    },
+    [isAdmin, fetchData],
+  );
 
-  const fetchAllProducts = useCallback(async (page = 1) => {
-    if (!isSuperuser) return;
+  const fetchAllProducts = useCallback(
+    async (page = 1) => {
+      if (!isSuperuser) return;
 
-    setState(prev => ({ ...prev, allProductsLoading: true }));
+      setState((prev) => ({ ...prev, allProductsLoading: true }));
 
-    try {
-      const response = await fetchData(`/api/admins/products/?page=${page}`);
+      try {
+        const response = await fetchData(`/api/admins/products/?page=${page}`);
 
-      const allProductsList = response.data?.results ?? response.data ?? [];
+        const allProductsList = response.data?.results ?? response.data ?? [];
 
-      setState(prev => ({
-        ...prev,
-        allProducts: allProductsList,
-        allProductsPagination: {
-          count: response.data?.count ?? 0,
-          next: response.data?.next ?? null,
-          previous: response.data?.previous ?? null,
-          currentPage: page,
-        },
-        allProductsLoading: false
-      }));
-    } catch (err) {
-      console.error('Error fetching all products:', err);
-      setState(prev => ({
-        ...prev,
-        error: "Failed to load all products.",
-        allProductsLoading: false
-      }));
-    }
-  }, [isSuperuser, fetchData]);
-  const fetchCarousel = useCallback(async (page = 1) => {
-    if (!isAdmin) return;
-    setState(prev => ({ ...prev, carouselLoading: true }));
-    try {
-      const res = await fetchData(`/api/admins/carousels/?page=${page}`);
-      setState(prev => ({
-        ...prev,
-        carouselItems: res.data.results ?? [],
-        carouselLoading: false,
-        carouselPagination: {
-          count: res.data.count ?? 0,
-          next: res.data.next ?? null,
-          previous: res.data.previous ?? null,
-          currentPage: page,
-        },
-      }));
-    } catch (err) {
-      setState(prev => ({ ...prev, carouselLoading: false, error: 'Failed to load carousel.' }));
-    }
-  }, [isAdmin, fetchData]);
+        setState((prev) => ({
+          ...prev,
+          allProducts: allProductsList,
+          allProductsPagination: {
+            count: response.data?.count ?? 0,
+            next: response.data?.next ?? null,
+            previous: response.data?.previous ?? null,
+            currentPage: page,
+          },
+          allProductsLoading: false,
+        }));
+      } catch (err) {
+        console.error("Error fetching all products:", err);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load all products.",
+          allProductsLoading: false,
+        }));
+      }
+    },
+    [isSuperuser, fetchData],
+  );
+  const fetchCarousel = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
+      setState((prev) => ({ ...prev, carouselLoading: true }));
+      try {
+        const res = await fetchData(`/api/admins/carousels/?page=${page}`);
+        setState((prev) => ({
+          ...prev,
+          carouselItems: res.data.results ?? [],
+          carouselLoading: false,
+          carouselPagination: {
+            count: res.data.count ?? 0,
+            next: res.data.next ?? null,
+            previous: res.data.previous ?? null,
+            currentPage: page,
+          },
+        }));
+      } catch (err) {
+        setState((prev) => ({
+          ...prev,
+          carouselLoading: false,
+          error: "Failed to load carousel.",
+        }));
+      }
+    },
+    [isAdmin, fetchData],
+  );
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetchData("/api/user/myuser/");
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         user: response.data,
         formData: {
-          first_name: response.data.first_name || '',
-          last_name: response.data.last_name || ''
+          first_name: response.data.first_name || "",
+          last_name: response.data.last_name || "",
         },
-        loading: false
+        loading: false,
       }));
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: "Failed to load user data.",
-        loading: false
+        loading: false,
       }));
     }
   }, [fetchData]);
@@ -442,7 +483,7 @@ export default function Profile({ categories: initialCategories = [] }) {
   }, [fetchUserData]);
 
   useEffect(() => {
-    if (isAdmin && activeTab === 'admin') {
+    if (isAdmin && activeTab === "admin") {
       fetchMyProducts();
       fetchAllCategories();
       fetchAllContacts();
@@ -466,19 +507,22 @@ export default function Profile({ categories: initialCategories = [] }) {
     fetchAllOrders,
     fetchCarousel,
     fetchAllUsers,
-    fetchAllProducts
+    fetchAllProducts,
   ]);
   const handleOrderStatusChange = async (orderId, newStatus) => {
     try {
       await updateData(`/api/admins/orders/${orderId}/`, { status: newStatus });
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        allOrders: prev.allOrders.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
+        allOrders: prev.allOrders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order,
         ),
       }));
     } catch (err) {
-      setState(prev => ({ ...prev, error: "Failed to update order status." }));
+      setState((prev) => ({
+        ...prev,
+        error: "Failed to update order status.",
+      }));
     }
   };
   const handleOpenModal = (type, item = null) => {
@@ -486,58 +530,162 @@ export default function Profile({ categories: initialCategories = [] }) {
 
     const commonFields = {
       [MODAL_TYPES.PRODUCT]: [
-        { name: 'name', label: 'Product Name', type: 'text', required: true, value: item?.name },
-        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item?.description },
-        { name: 'price', label: 'Price', type: 'number', required: true, value: item?.price },
-        { name: 'image', label: 'Product Image', type: 'file', required: !item },
         {
-          name: 'category',
-          label: 'Category',
-          type: 'select',
+          name: "name",
+          label: "Product Name",
+          type: "text",
+          required: true,
+          value: item?.name,
+        },
+        {
+          name: "description",
+          label: "Description",
+          type: "textarea",
+          required: true,
+          value: item?.description,
+        },
+        {
+          name: "price",
+          label: "Price",
+          type: "number",
+          required: true,
+          value: item?.price,
+        },
+        {
+          name: "image",
+          label: "Main Product Image",
+          type: "file",
+          required: !item,
+        },
+        {
+          name: "uploaded_images",
+          label: "Gallery Images (Additional)",
+          type: "multi-images",
+          required: false,
+          value: item?.gallery_images || [],
+        },
+        {
+          name: "category",
+          label: "Category",
+          type: "select",
           required: false,
           value: item?.category?.id,
-          options: (allCategories || []).map(cat => ({ id: cat.id, name: cat.name }))
+          options: (allCategories || []).map((cat) => ({
+            id: cat.id,
+            name: cat.name,
+          })),
         },
-        { name: 'tags', label: 'Tags', type: 'tags', value: item?.tags },
-        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
-      ],
-      [MODAL_TYPES.CATEGORY]: [
-        { name: 'name', label: 'Category Name', type: 'text', required: true, value: item?.name },
-        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
-      ],
-      [MODAL_TYPES.CONTACT]: [
-        { name: 'name', label: 'Name (e.g., Main Office)', type: 'text', required: true, value: item?.name },
-        { name: 'value', label: 'Value (e.g., 555-1234)', type: 'text', required: true, value: item?.value },
+        { name: "tags", label: "Tags", type: "tags", value: item?.tags },
         {
-          name: 'contact_type',
-          label: 'Type',
-          type: 'select',
-          required: true,
-          value: item?.contact_type,
-          options: ['phone', 'email', 'address', 'social', 'other'].map(type => ({
-            id: type,
-            name: type.charAt(0).toUpperCase() + type.slice(1)
-          }))
+          name: "is_active",
+          label: "Is Active?",
+          type: "checkbox",
+          default: true,
+          value: item?.is_active,
         },
-        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item?.display_order },
-        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
-      ],
-      [MODAL_TYPES.TAG]: [
-        { name: 'name', label: 'Tag Name', type: 'text', required: true, value: item?.name },
-        { name: 'slug', label: 'Slug (URL-friendly name)', type: 'text', required: false, value: item?.slug },
-      ],
-      'Carousel': [           // Make sure this is a string key
-        { name: 'name', label: 'Slide Name', type: 'text', required: true, value: item?.name },
-        { name: 'image', label: 'Image', type: 'file', required: !item },
-        { name: 'is_active', label: 'Is Active?', type: 'checkbox', default: true, value: item?.is_active },
       ],
 
+      [MODAL_TYPES.CATEGORY]: [
+        {
+          name: "name",
+          label: "Category Name",
+          type: "text",
+          required: true,
+          value: item?.name,
+        },
+        {
+          name: "is_active",
+          label: "Is Active?",
+          type: "checkbox",
+          default: true,
+          value: item?.is_active,
+        },
+      ],
+      [MODAL_TYPES.CONTACT]: [
+        {
+          name: "name",
+          label: "Name (e.g., Main Office)",
+          type: "text",
+          required: true,
+          value: item?.name,
+        },
+        {
+          name: "value",
+          label: "Value (e.g., 555-1234)",
+          type: "text",
+          required: true,
+          value: item?.value,
+        },
+        {
+          name: "contact_type",
+          label: "Type",
+          type: "select",
+          required: true,
+          value: item?.contact_type,
+          options: ["phone", "email", "address", "social", "other"].map(
+            (type) => ({
+              id: type,
+              name: type.charAt(0).toUpperCase() + type.slice(1),
+            }),
+          ),
+        },
+        {
+          name: "display_order",
+          label: "Display Order",
+          type: "number",
+          required: false,
+          value: item?.display_order,
+        },
+        {
+          name: "is_active",
+          label: "Is Active?",
+          type: "checkbox",
+          default: true,
+          value: item?.is_active,
+        },
+      ],
+      [MODAL_TYPES.TAG]: [
+        {
+          name: "name",
+          label: "Tag Name",
+          type: "text",
+          required: true,
+          value: item?.name,
+        },
+        {
+          name: "slug",
+          label: "Slug (URL-friendly name)",
+          type: "text",
+          required: false,
+          value: item?.slug,
+        },
+      ],
+      Carousel: [
+        // Make sure this is a string key
+        {
+          name: "name",
+          label: "Slide Name",
+          type: "text",
+          required: true,
+          value: item?.name,
+        },
+        { name: "image", label: "Image", type: "file", required: !item },
+        {
+          name: "is_active",
+          label: "Is Active?",
+          type: "checkbox",
+          default: true,
+          value: item?.is_active,
+        },
+      ],
     };
 
     // Determine the correct endpoint based on type
     let endpoint;
-    endpoint = item ? `/api/admins/${type.toLowerCase()}s/${item.id}/` : `/api/admins/${type.toLowerCase()}s/`;
-    if (type === 'Carousel') {
+    endpoint = item
+      ? `/api/admins/${type.toLowerCase()}s/${item.id}/`
+      : `/api/admins/${type.toLowerCase()}s/`;
+    if (type === "Carousel") {
       endpoint = item
         ? `/api/admins/carousels/${item.id}/`
         : `/api/admins/carousels/`;
@@ -549,18 +697,18 @@ export default function Profile({ categories: initialCategories = [] }) {
     config = {
       title: item ? `Edit ${type}` : `Add New ${type}`,
       endpoint: endpoint,
-      method: item ? 'PATCH' : 'POST',
-      fields: commonFields[type]
+      method: item ? "PATCH" : "POST",
+      fields: commonFields[type],
     };
 
-    setState(prev => {
+    setState((prev) => {
       // Ensure prev is always an object
-      if (!prev || typeof prev !== 'object') {
+      if (!prev || typeof prev !== "object") {
         return {
           ...state, // Use current state as fallback
           modalConfig: config,
           isModalOpen: true,
-          editingItem: item
+          editingItem: item,
         };
       }
       return {
@@ -576,12 +724,12 @@ export default function Profile({ categories: initialCategories = [] }) {
   // Form handling
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       formData: {
         ...prev.formData,
-        [name]: value
-      }
+        [name]: value,
+      },
     }));
   };
 
@@ -589,16 +737,16 @@ export default function Profile({ categories: initialCategories = [] }) {
     e.preventDefault();
     try {
       const response = await updateData("/api/user/myuser/", formData);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         user: response.data,
-        editMode: false
+        editMode: false,
       }));
       setTimeout(() => window.location.reload(), 100);
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: "Failed to update profile."
+        error: "Failed to update profile.",
       }));
     }
   };
@@ -610,49 +758,51 @@ export default function Profile({ categories: initialCategories = [] }) {
 
       await updateData(endpoint, { is_active: !currentStatus });
 
-      setState(prev => {
+      setState((prev) => {
         let stateKey;
-        if (entityType === 'product') stateKey = 'myProducts';
-        else if (entityType === 'category') stateKey = 'allCategories';
-        else if (entityType === 'contact') stateKey = 'allContacts';
-        else if (entityType === 'tag') stateKey = 'allTags';
+        if (entityType === "product") stateKey = "myProducts";
+        else if (entityType === "category") stateKey = "allCategories";
+        else if (entityType === "contact") stateKey = "allContacts";
+        else if (entityType === "tag") stateKey = "allTags";
 
-        const newItems = prev[stateKey].map(item =>
-          item.id === id ? { ...item, is_active: !currentStatus } : item
+        const newItems = prev[stateKey].map((item) =>
+          item.id === id ? { ...item, is_active: !currentStatus } : item,
         );
 
         return {
           ...prev,
-          [stateKey]: newItems
+          [stateKey]: newItems,
         };
       });
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: `Failed to update ${entityType} status.`
+        error: `Failed to update ${entityType} status.`,
       }));
     }
   };
 
-  const handleProductStatusToggle = createToggleHandler('product');
-  const handleCategoryStatusToggle = createToggleHandler('category');
-  const handleContactStatusToggle = createToggleHandler('contact');
+  const handleProductStatusToggle = createToggleHandler("product");
+  const handleCategoryStatusToggle = createToggleHandler("category");
+  const handleContactStatusToggle = createToggleHandler("contact");
 
   const handleAllProductsStatusToggle = async (id, currentStatus) => {
     try {
       const endpoint = `/api/admins/products/${id}/`;
       await updateData(endpoint, { is_active: !currentStatus });
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        allProducts: prev.allProducts.map(product =>
-          product.id === id ? { ...product, is_active: !currentStatus } : product
-        )
+        allProducts: prev.allProducts.map((product) =>
+          product.id === id
+            ? { ...product, is_active: !currentStatus }
+            : product,
+        ),
       }));
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: "Failed to update product status."
+        error: "Failed to update product status.",
       }));
     }
   };
@@ -660,92 +810,94 @@ export default function Profile({ categories: initialCategories = [] }) {
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
       await updateData(`/api/user/${userId}/`, { is_active: !currentStatus });
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        allUsers: prev.allUsers.map(u =>
-          u.id === userId ? { ...u, is_active: !currentStatus } : u
-        )
+        allUsers: prev.allUsers.map((u) =>
+          u.id === userId ? { ...u, is_active: !currentStatus } : u,
+        ),
       }));
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: "Failed to update user status."
+        error: "Failed to update user status.",
       }));
     }
   };
 
   // Delete handlers
   const createDeleteHandler = (entityType) => async (id) => {
-    if (!window.confirm(`Are you sure you want to delete this ${entityType}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete this ${entityType}?`))
+      return;
 
     try {
       const endpoint = `/api/admins/${entityType}s/${id}/`;
 
-      await updateData(endpoint, {}, 'delete');
+      await updateData(endpoint, {}, "delete");
 
-      setState(prev => {
+      setState((prev) => {
         let stateKey;
-        if (entityType === 'product') stateKey = 'myProducts';
-        else if (entityType === 'category') stateKey = 'allCategories';
-        else if (entityType === 'contact') stateKey = 'allContacts';
-        else if (entityType === 'tag') stateKey = 'allTags';
+        if (entityType === "product") stateKey = "myProducts";
+        else if (entityType === "category") stateKey = "allCategories";
+        else if (entityType === "contact") stateKey = "allContacts";
+        else if (entityType === "tag") stateKey = "allTags";
 
-        const newItems = prev[stateKey].filter(item => item.id !== id);
+        const newItems = prev[stateKey].filter((item) => item.id !== id);
 
         return {
           ...prev,
-          [stateKey]: newItems
+          [stateKey]: newItems,
         };
       });
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: `Failed to delete ${entityType}.`
+        error: `Failed to delete ${entityType}.`,
       }));
     }
   };
 
-  const handleDeleteProduct = createDeleteHandler('product');
-  const handleDeleteCategory = createDeleteHandler('category');
-  const handleDeleteContact = createDeleteHandler('contact');
-  const handleDeleteTag = createDeleteHandler('tag');
+  const handleDeleteProduct = createDeleteHandler("product");
+  const handleDeleteCategory = createDeleteHandler("category");
+  const handleDeleteContact = createDeleteHandler("contact");
+  const handleDeleteTag = createDeleteHandler("tag");
   const handleDeleteCarousel = async (id) => {
-    if (!window.confirm('Delete this carousel slide?')) return;
+    if (!window.confirm("Delete this carousel slide?")) return;
 
-    await updateData(`/api/admins/carousels/${id}/`, {}, 'delete');
-    setState(prev => ({
+    await updateData(`/api/admins/carousels/${id}/`, {}, "delete");
+    setState((prev) => ({
       ...prev,
-      carouselItems: prev.carouselItems.filter(c => c.id !== id),
+      carouselItems: prev.carouselItems.filter((c) => c.id !== id),
     }));
-
   };
 
   const handleToggleCarousel = async (id, currentStatus) => {
-    await updateData(`/api/admins/carousels/${id}/`, { is_active: !currentStatus });
-    setState(prev => ({
+    await updateData(`/api/admins/carousels/${id}/`, {
+      is_active: !currentStatus,
+    });
+    setState((prev) => ({
       ...prev,
-      carouselItems: prev.carouselItems.map(c =>
-        c.id === id ? { ...c, is_active: !currentStatus } : c
+      carouselItems: prev.carouselItems.map((c) =>
+        c.id === id ? { ...c, is_active: !currentStatus } : c,
       ),
     }));
   };
 
-
   const handleDeleteAllProduct = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
 
     try {
       const endpoint = `/api/admins/products/${id}/`;
-      await updateData(endpoint, {}, 'delete');
+      await updateData(endpoint, {}, "delete");
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        allProducts: prev.allProducts.filter(product => product.id !== id)
+        allProducts: prev.allProducts.filter((product) => product.id !== id),
       }));
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: "Failed to delete product."
+        error: "Failed to delete product.",
       }));
     }
   };
@@ -753,15 +905,15 @@ export default function Profile({ categories: initialCategories = [] }) {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure? This action is irreversible.")) return;
     try {
-      await updateData(`/api/user/${userId}/`, {}, 'delete');
-      setState(prev => ({
+      await updateData(`/api/user/${userId}/`, {}, "delete");
+      setState((prev) => ({
         ...prev,
-        allUsers: prev.allUsers.filter(u => u.id !== userId)
+        allUsers: prev.allUsers.filter((u) => u.id !== userId),
       }));
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: "Failed to delete user."
+        error: "Failed to delete user.",
       }));
     }
   };
@@ -773,44 +925,80 @@ export default function Profile({ categories: initialCategories = [] }) {
     try {
       const roleUpdateData = {
         is_staff: newRole !== USER_ROLES.USER,
-        is_superuser: newRole === USER_ROLES.SUPER_ADMIN
+        is_superuser: newRole === USER_ROLES.SUPER_ADMIN,
       };
 
       await updateData(`/api/user/${userId}/`, roleUpdateData);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        allUsers: prev.allUsers.map(u =>
-          u.id === userId ? { ...u, ...roleUpdateData } : u
+        allUsers: prev.allUsers.map((u) =>
+          u.id === userId ? { ...u, ...roleUpdateData } : u,
         ),
-        error: `Successfully updated role to ${newRole}`
+        error: `Successfully updated role to ${newRole}`,
       }));
 
-      setTimeout(() => setState(prev => ({ ...prev, error: null })), 3000);
+      setTimeout(() => setState((prev) => ({ ...prev, error: null })), 3000);
     } catch (err) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        error: "Failed to update user role: " + (err.response?.data?.detail || "Unknown error")
+        error:
+          "Failed to update user role: " +
+          (err.response?.data?.detail || "Unknown error"),
       }));
     }
   };
 
   // Modal success handler
   const handleModalSuccess = (responseData) => {
-    setState(prev => {
+    setState((prev) => {
       const isEdit = !!prev.editingItem;
 
-      const updateList = (list) => isEdit
-        ? list.map(item => item.id === responseData.id ? responseData : item)
-        : [responseData, ...list];
+      const updateList = (list) =>
+        isEdit
+          ? list.map((item) =>
+              item.id === responseData.id ? responseData : item,
+            )
+          : [responseData, ...list];
 
       switch (prev.modalType) {
-        case 'Product': return { ...prev, isModalOpen: false, editingItem: null, myProducts: updateList(prev.myProducts) };
-        case 'Category': return { ...prev, isModalOpen: false, editingItem: null, allCategories: updateList(prev.allCategories) };
-        case 'Contact': return { ...prev, isModalOpen: false, editingItem: null, allContacts: updateList(prev.allContacts) };
-        case 'Tag': return { ...prev, isModalOpen: false, editingItem: null, allTags: updateList(prev.allTags) };
-        case 'Carousel': return { ...prev, isModalOpen: false, editingItem: null, carouselItems: updateList(prev.carouselItems) };
-        default: return { ...prev, isModalOpen: false, editingItem: null };
+        case "Product":
+          return {
+            ...prev,
+            isModalOpen: false,
+            editingItem: null,
+            myProducts: updateList(prev.myProducts),
+          };
+        case "Category":
+          return {
+            ...prev,
+            isModalOpen: false,
+            editingItem: null,
+            allCategories: updateList(prev.allCategories),
+          };
+        case "Contact":
+          return {
+            ...prev,
+            isModalOpen: false,
+            editingItem: null,
+            allContacts: updateList(prev.allContacts),
+          };
+        case "Tag":
+          return {
+            ...prev,
+            isModalOpen: false,
+            editingItem: null,
+            allTags: updateList(prev.allTags),
+          };
+        case "Carousel":
+          return {
+            ...prev,
+            isModalOpen: false,
+            editingItem: null,
+            carouselItems: updateList(prev.carouselItems),
+          };
+        default:
+          return { ...prev, isModalOpen: false, editingItem: null };
       }
     });
   };
@@ -832,11 +1020,12 @@ export default function Profile({ categories: initialCategories = [] }) {
   }
 
   // Render error state
-  if (error) return (
-    <div className="profile-container error-message">
-      <p>{error}</p>
-    </div>
-  );
+  if (error)
+    return (
+      <div className="profile-container error-message">
+        <p>{error}</p>
+      </div>
+    );
 
   // Render nothing if no user
   if (!user) return null;
@@ -872,21 +1061,27 @@ export default function Profile({ categories: initialCategories = [] }) {
       {/* Navigation Tabs */}
       <nav className="profile-tabs">
         <button
-          className={`profile-tabs__button ${activeTab === 'profile' ? 'active' : ''}`}
-          onClick={() => setState(prev => ({ ...prev, activeTab: 'profile' }))}
+          className={`profile-tabs__button ${activeTab === "profile" ? "active" : ""}`}
+          onClick={() =>
+            setState((prev) => ({ ...prev, activeTab: "profile" }))
+          }
         >
           Profile
         </button>
         <button
-          className={`profile-tabs__button ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setState(prev => ({ ...prev, activeTab: 'settings' }))}
+          className={`profile-tabs__button ${activeTab === "settings" ? "active" : ""}`}
+          onClick={() =>
+            setState((prev) => ({ ...prev, activeTab: "settings" }))
+          }
         >
           Settings
         </button>
         {isAdmin && (
           <button
-            className={`profile-tabs__button ${activeTab === 'admin' ? 'active' : ''}`}
-            onClick={() => setState(prev => ({ ...prev, activeTab: 'admin' }))}
+            className={`profile-tabs__button ${activeTab === "admin" ? "active" : ""}`}
+            onClick={() =>
+              setState((prev) => ({ ...prev, activeTab: "admin" }))
+            }
           >
             Admin Panel
           </button>
@@ -895,28 +1090,28 @@ export default function Profile({ categories: initialCategories = [] }) {
 
       {/* Main Content */}
       <main className="profile-content">
-        {activeTab === 'profile' && (
+        {activeTab === "profile" && (
           <ProfileTab
             user={user}
             editMode={editMode}
             formData={formData}
             onInputChange={handleInputChange}
             onSave={handleSave}
-            onEditToggle={() => setState(prev => ({ ...prev, editMode: !prev.editMode }))}
+            onEditToggle={() =>
+              setState((prev) => ({ ...prev, editMode: !prev.editMode }))
+            }
           />
         )}
 
-        {activeTab === 'settings' && (
-          <SettingsTab />
-        )}
+        {activeTab === "settings" && <SettingsTab />}
 
-        {activeTab === 'admin' && isAdmin && (
+        {activeTab === "admin" && isAdmin && (
           <AdminTab
             carouselItems={carouselItems}
             carouselLoading={carouselLoading}
             carouselPagination={carouselPagination}
             onRefreshCarousel={fetchCarousel}
-            onOpenCarouselModal={(item) => handleOpenModal('Carousel', item)}
+            onOpenCarouselModal={(item) => handleOpenModal("Carousel", item)}
             onDeleteCarousel={handleDeleteCarousel}
             onToggleCarousel={handleToggleCarousel}
             allOrders={allOrders}
@@ -970,7 +1165,7 @@ export default function Profile({ categories: initialCategories = [] }) {
       {isModalOpen && modalConfig && (
         <AddItemModal
           config={modalConfig}
-          onClose={() => setState(prev => ({ ...prev, isModalOpen: false }))}
+          onClose={() => setState((prev) => ({ ...prev, isModalOpen: false }))}
           onSuccess={handleModalSuccess}
         />
       )}
@@ -979,7 +1174,14 @@ export default function Profile({ categories: initialCategories = [] }) {
 }
 
 // Sub-components
-const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditToggle }) => (
+const ProfileTab = ({
+  user,
+  editMode,
+  formData,
+  onInputChange,
+  onSave,
+  onEditToggle,
+}) => (
   <section className="profile-content__section">
     <div className="profile-content__header">
       <h3>Personal Information</h3>
@@ -1015,10 +1217,18 @@ const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditTog
           </div>
         </div>
         <div className="form-actions">
-          <button type="button" className="button button--text" onClick={onEditToggle}>
+          <button
+            type="button"
+            className="button button--text"
+            onClick={onEditToggle}
+          >
             Cancel
           </button>
-          <button type="button" className="button button--primary" onClick={onSave}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={onSave}
+          >
             Save Changes
           </button>
         </div>
@@ -1027,11 +1237,11 @@ const ProfileTab = ({ user, editMode, formData, onInputChange, onSave, onEditTog
       <div className="info-grid">
         <div className="info-grid__item">
           <label>First Name</label>
-          <p>{user.first_name || 'N/A'}</p>
+          <p>{user.first_name || "N/A"}</p>
         </div>
         <div className="info-grid__item">
           <label>Last Name</label>
-          <p>{user.last_name || 'N/A'}</p>
+          <p>{user.last_name || "N/A"}</p>
         </div>
         <div className="info-grid__item">
           <label>Username</label>
@@ -1088,22 +1298,22 @@ const AdminTab = ({
   onOrderStatusChange,
   isSuperuser,
   user,
-  myProducts = [],              // ✅ Add default
+  myProducts = [], // ✅ Add default
   productsLoading,
   productsPagination,
-  allProducts = [],             // ✅ Add default for all products
+  allProducts = [], // ✅ Add default for all products
   allProductsLoading,
   allProductsPagination,
-  allCategories = [],           // ✅ Add default
+  allCategories = [], // ✅ Add default
   categoriesLoading,
   categoriesPagination,
-  allContacts = [],             // ✅ Add default
+  allContacts = [], // ✅ Add default
   contactsLoading,
   contactsPagination,
-  allTags = [],                 // ✅ Add default
+  allTags = [], // ✅ Add default
   tagsLoading,
   tagsPagination,
-  allUsers = [],                // ✅ Add default
+  allUsers = [], // ✅ Add default
   adminLoading,
   usersPagination,
   onRefreshProducts,
@@ -1123,22 +1333,24 @@ const AdminTab = ({
   onDeleteContact,
   onDeleteTag,
   onDeleteUser,
-  onOpenModal
+  onOpenModal,
 }) => (
   <section className="profile-content__section">
     <div className="profile-content__header">
       <h3>Admin Panel</h3>
     </div>
-    <CarouselManagementSection
-      carouselItems={carouselItems}
-      carouselLoading={carouselLoading}
-      carouselPagination={carouselPagination}
-      onRefreshCarousel={onRefreshCarousel}
-      onOpenCarouselModal={onOpenCarouselModal}
-      onDeleteCarousel={onDeleteCarousel}
-      onToggleCarousel={onToggleCarousel}
-    />
-    {/* My Products Section */}
+    {isSuperuser && (
+  <CarouselManagementSection
+    carouselItems={carouselItems}
+    carouselLoading={carouselLoading}
+    carouselPagination={carouselPagination}
+    onRefreshCarousel={onRefreshCarousel}
+    onOpenCarouselModal={onOpenCarouselModal}
+    onDeleteCarousel={onDeleteCarousel}
+    onToggleCarousel={onToggleCarousel}
+  />
+)}
+    {/* My Products Section
     <div className="my-products-section">
       <div className="profile-content__header">
         <h4>My Products</h4>
@@ -1147,7 +1359,7 @@ const AdminTab = ({
           className="button button--secondary"
           disabled={productsLoading}
         >
-          {productsLoading ? 'Refreshing...' : 'Refresh'}
+          {productsLoading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -1170,7 +1382,7 @@ const AdminTab = ({
       ) : (
         <p>You have not created any products yet.</p>
       )}
-    </div>
+    </div> */}
 
     {/* All Products Section (Superuser Only) */}
     {isSuperuser && (
@@ -1182,7 +1394,7 @@ const AdminTab = ({
             className="button button--secondary"
             disabled={allProductsLoading}
           >
-            {allProductsLoading ? 'Refreshing...' : 'Refresh'}
+            {allProductsLoading ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 
@@ -1192,7 +1404,7 @@ const AdminTab = ({
           <>
             <AllProductsTable
               products={allProducts}
-              allUsers={allUsers}          // ← add this
+              allUsers={allUsers} // ← add this
               onStatusToggle={onAllProductsStatusToggle}
               onDelete={onDeleteAllProduct}
             />
@@ -1217,7 +1429,7 @@ const AdminTab = ({
           className="button button--secondary"
           disabled={categoriesLoading}
         >
-          {categoriesLoading ? 'Refreshing...' : 'Refresh'}
+          {categoriesLoading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -1251,7 +1463,7 @@ const AdminTab = ({
           className="button button--secondary"
           disabled={contactsLoading}
         >
-          {contactsLoading ? 'Refreshing...' : 'Refresh'}
+          {contactsLoading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -1285,7 +1497,7 @@ const AdminTab = ({
           className="button button--secondary"
           disabled={tagsLoading}
         >
-          {tagsLoading ? 'Refreshing...' : 'Refresh'}
+          {tagsLoading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -1349,7 +1561,7 @@ const AdminTab = ({
           className="button button--secondary"
           disabled={ordersLoading}
         >
-          {ordersLoading ? 'Refreshing...' : 'Refresh'}
+          {ordersLoading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -1380,25 +1592,25 @@ const AdminTab = ({
       <div className="management-actions">
         <button
           className="button button--primary"
-          onClick={() => onOpenModal('Product')}
+          onClick={() => onOpenModal("Product")}
         >
           Add New Product
         </button>
         <button
           className="button button--primary"
-          onClick={() => onOpenModal('Category')}
+          onClick={() => onOpenModal("Category")}
         >
           Add New Category
         </button>
         <button
           className="button button--primary"
-          onClick={() => onOpenModal('Contact')}
+          onClick={() => onOpenModal("Contact")}
         >
           Add New Contact
         </button>
         <button
           className="button button--primary"
-          onClick={() => onOpenModal('Tag')}
+          onClick={() => onOpenModal("Tag")}
         >
           Add New Tag
         </button>
@@ -1420,12 +1632,14 @@ const OrderTable = ({ users = [], orders, onStatusChange }) => (
       <span>Actions</span>
     </div>
 
-    {orders.map(order => (
+    {orders.map((order) => (
       <div key={order.id} className="orders-table__row table__row">
         <span>#{order.id}</span>
         <span>{order.owner_detail?.username || `User #${order.owner}`}</span>
 
-        <span>{order.items?.length ?? 0} item{order.items?.length !== 1 ? 's' : ''}</span>
+        <span>
+          {order.items?.length ?? 0} item{order.items?.length !== 1 ? "s" : ""}
+        </span>
         <span>{parseFloat(order.total_price || 0).toFixed(2)} EGP</span>
         <span className={`status-pill status-pill--${order.status}`}>
           {order.status}
@@ -1437,7 +1651,7 @@ const OrderTable = ({ users = [], orders, onStatusChange }) => (
             onChange={(e) => onStatusChange(order.id, e.target.value)}
             className="form-input form-input--small"
           >
-            {ORDER_STATUSES.map(s => (
+            {ORDER_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </option>
@@ -1456,14 +1670,14 @@ const TagTable = ({ tags, onEdit, onDelete }) => (
       <span>Actions</span>
     </div>
 
-    {tags.map(tag => (
+    {tags.map((tag) => (
       <div key={tag.id} className="tags-table__row table__row">
         <span>{tag.name}</span>
-        <span className="tag-slug">{tag.slug || 'N/A'}</span>
+        <span className="tag-slug">{tag.slug || "N/A"}</span>
         <div className="actions">
           <button
             className="button button--small button--primary"
-            onClick={() => onEdit('Tag', tag)}
+            onClick={() => onEdit("Tag", tag)}
           >
             Edit
           </button>
@@ -1487,22 +1701,24 @@ const ProductTable = ({ products, onStatusToggle, onEdit, onDelete }) => (
       <span>Actions</span>
     </div>
 
-    {products.map(product => (
+    {products.map((product) => (
       <div key={product.id} className="products-table__row table__row">
         <span>{product.name}</span>
-        <span className={`status-pill status-pill--${product.is_active ? 'active' : 'inactive'}`}>
-          {product.is_active ? 'Active' : 'Inactive'}
+        <span
+          className={`status-pill status-pill--${product.is_active ? "active" : "inactive"}`}
+        >
+          {product.is_active ? "Active" : "Inactive"}
         </span>
         <div className="actions">
           <button
             className="button button--small button--secondary"
             onClick={() => onStatusToggle(product.id, product.is_active)}
           >
-            {product.is_active ? 'Deactivate' : 'Activate'}
+            {product.is_active ? "Deactivate" : "Activate"}
           </button>
           <button
             className="button button--small button--primary"
-            onClick={() => onEdit('Product', product)}
+            onClick={() => onEdit("Product", product)}
           >
             Edit
           </button>
@@ -1518,9 +1734,14 @@ const ProductTable = ({ products, onStatusToggle, onEdit, onDelete }) => (
   </div>
 );
 
-const AllProductsTable = ({ products, allUsers = [], onStatusToggle, onDelete }) => {
+const AllProductsTable = ({
+  products,
+  allUsers = [],
+  onStatusToggle,
+  onDelete,
+}) => {
   const getUserName = (ownerId) => {
-    const user = allUsers.find(u => u.id === ownerId);
+    const user = allUsers.find((u) => u.id === ownerId);
     return user?.username || user?.email || `User #${ownerId}`;
   };
 
@@ -1533,19 +1754,21 @@ const AllProductsTable = ({ products, allUsers = [], onStatusToggle, onDelete })
         <span>Actions</span>
       </div>
 
-      {products.map(product => (
+      {products.map((product) => (
         <div key={product.id} className="all-products-table__row table__row">
           <span>{product.name}</span>
           <span className="product-owner">{getUserName(product.owner)}</span>
-          <span className={`status-pill status-pill--${product.is_active ? 'active' : 'inactive'}`}>
-            {product.is_active ? 'Active' : 'Inactive'}
+          <span
+            className={`status-pill status-pill--${product.is_active ? "active" : "inactive"}`}
+          >
+            {product.is_active ? "Active" : "Inactive"}
           </span>
           <div className="actions">
             <button
               className="button button--small button--secondary"
               onClick={() => onStatusToggle(product.id, product.is_active)}
             >
-              {product.is_active ? 'Deactivate' : 'Activate'}
+              {product.is_active ? "Deactivate" : "Activate"}
             </button>
             <button
               className="button button--small button--danger"
@@ -1567,22 +1790,24 @@ const CategoryTable = ({ categories, onStatusToggle, onEdit, onDelete }) => (
       <span>Actions</span>
     </div>
 
-    {categories.map(category => (
+    {categories.map((category) => (
       <div key={category.id} className="categories-table__row table__row">
         <span>{category.name}</span>
-        <span className={`status-pill status-pill--${category.is_active ? 'active' : 'inactive'}`}>
-          {category.is_active ? 'Active' : 'Inactive'}
+        <span
+          className={`status-pill status-pill--${category.is_active ? "active" : "inactive"}`}
+        >
+          {category.is_active ? "Active" : "Inactive"}
         </span>
         <div className="actions">
           <button
             className="button button--small button--secondary"
             onClick={() => onStatusToggle(category.id, category.is_active)}
           >
-            {category.is_active ? 'Deactivate' : 'Activate'}
+            {category.is_active ? "Deactivate" : "Activate"}
           </button>
           <button
             className="button button--small button--primary"
-            onClick={() => onEdit('Category', category)}
+            onClick={() => onEdit("Category", category)}
           >
             Edit
           </button>
@@ -1608,26 +1833,29 @@ const ContactTable = ({ contacts, onStatusToggle, onEdit, onDelete }) => (
       <span>Actions</span>
     </div>
 
-    {contacts.map(contact => (
+    {contacts.map((contact) => (
       <div key={contact.id} className="contacts-table__row table__row">
         <span>{contact.name}</span>
         <span className="contact-type-badge">
-          {contact.contact_type?.charAt(0).toUpperCase() + contact.contact_type?.slice(1)}
+          {contact.contact_type?.charAt(0).toUpperCase() +
+            contact.contact_type?.slice(1)}
         </span>
         <span className="contact-value">{contact.value}</span>
-        <span className={`status-pill status-pill--${contact.is_active ? 'active' : 'inactive'}`}>
-          {contact.is_active ? 'Active' : 'Inactive'}
+        <span
+          className={`status-pill status-pill--${contact.is_active ? "active" : "inactive"}`}
+        >
+          {contact.is_active ? "Active" : "Inactive"}
         </span>
         <div className="actions">
           <button
             className="button button--small button--secondary"
             onClick={() => onStatusToggle(contact.id, contact.is_active)}
           >
-            {contact.is_active ? 'Deactivate' : 'Activate'}
+            {contact.is_active ? "Deactivate" : "Activate"}
           </button>
           <button
             className="button button--small button--primary"
-            onClick={() => onEdit('Contact', contact)}
+            onClick={() => onEdit("Contact", contact)}
           >
             Edit
           </button>
@@ -1653,20 +1881,28 @@ const UserTable = ({ users, currentUserId, onStatusToggle, onDelete }) => (
       <span>Actions</span>
     </div>
 
-    {users.map(userItem => (
+    {users.map((userItem) => (
       <div key={userItem.id} className="users-table__row table__row">
         <div className="users-table__user-info table__user-info">
           <div className="users-table__avatar table__avatar">
-            {userItem.first_name ? userItem.first_name.charAt(0) : userItem.username.charAt(0)}
+            {userItem.first_name
+              ? userItem.first_name.charAt(0)
+              : userItem.username.charAt(0)}
           </div>
           <p>{userItem.username}</p>
         </div>
         <span>{userItem.email}</span>
-        <span className={`status-pill status-pill--${userItem.is_active ? 'active' : 'inactive'}`}>
-          {userItem.is_active ? 'Active' : 'Inactive'}
+        <span
+          className={`status-pill status-pill--${userItem.is_active ? "active" : "inactive"}`}
+        >
+          {userItem.is_active ? "Active" : "Inactive"}
         </span>
         <span>
-          {userItem.is_superuser ? "Super Admin" : userItem.is_staff ? "Admin" : "User"}
+          {userItem.is_superuser
+            ? "Super Admin"
+            : userItem.is_staff
+              ? "Admin"
+              : "User"}
         </span>
         <div className="actions">
           {userItem.id !== currentUserId && (
@@ -1675,7 +1911,7 @@ const UserTable = ({ users, currentUserId, onStatusToggle, onDelete }) => (
                 className="button button--small button--secondary"
                 onClick={() => onStatusToggle(userItem.id, userItem.is_active)}
               >
-                {userItem.is_active ? 'Deactivate' : 'Activate'}
+                {userItem.is_active ? "Deactivate" : "Activate"}
               </button>
               <button
                 className="button button--small button--danger"

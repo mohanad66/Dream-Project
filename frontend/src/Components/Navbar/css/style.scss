@@ -10,7 +10,9 @@ $text-color: #333;
 $text-light: #666;
 
 // Minimal transitions
-$transition-fast: transform 0.2s ease, opacity 0.2s ease;
+$transition-fast:
+  transform 0.2s ease,
+  opacity 0.2s ease;
 
 // Navbar Container
 .performant-navbar {
@@ -32,7 +34,7 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   background: $background-color;
   border-radius: 25px;
   padding: 12px;
-  box-shadow: 
+  box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(67, 97, 238, 0.1);
   pointer-events: auto;
@@ -40,7 +42,7 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   width: 100%;
   border: 1px solid rgba(67, 97, 238, 0.1);
   backdrop-filter: blur(8px); // Minimal blur for glass effect
-  
+
   // Will-change for better performance
   will-change: transform, box-shadow;
 }
@@ -66,30 +68,30 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   border-radius: 12px;
   transition: $transition-fast;
   min-width: 60px;
-  
+
   // Optimize for animation
   will-change: transform, background-color;
-  
+
   &:hover {
     color: $primary-color;
     background: rgba(67, 97, 238, 0.08);
     transform: translateY(-2px);
-    
+
     .nav-icon {
       color: $primary-color;
       transform: scale(1.1);
     }
   }
-  
+
   &.active {
     color: $primary-color;
     background: rgba(67, 97, 238, 0.12);
-    
+
     .nav-icon {
       color: $primary-color;
       transform: scale(1.1);
     }
-    
+
     .nav-label {
       font-weight: 600;
     }
@@ -125,7 +127,7 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   border-radius: 1px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
-  
+
   // Optimize transform animation
   will-change: transform;
 }
@@ -144,18 +146,18 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   cursor: pointer;
   min-width: 60px;
   will-change: transform, background-color;
-  
+
   &:hover {
     color: $accent-color;
     background: rgba(247, 37, 133, 0.08);
     transform: translateY(-2px);
-    
+
     .logout-icon {
       color: $accent-color;
       transform: scale(1.1);
     }
   }
-  
+
   .logout-icon {
     font-size: 1.2rem;
     margin-bottom: 4px;
@@ -175,29 +177,29 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   transition: $transition-fast;
   min-width: 65px;
   will-change: transform, background-color;
-  
+
   &.nav-login {
     color: $primary-color;
     background: rgba(67, 97, 238, 0.08);
     border: 1px solid rgba(67, 97, 238, 0.2);
-    
+
     &:hover {
       background: rgba(67, 97, 238, 0.15);
       transform: translateY(-2px);
     }
   }
-  
+
   &.nav-register {
     color: $secondary-color;
     background: rgba(114, 9, 183, 0.08);
     border: 1px solid rgba(114, 9, 183, 0.2);
-    
+
     &:hover {
       background: rgba(114, 9, 183, 0.15);
       transform: translateY(-2px);
     }
   }
-  
+
   .auth-icon {
     font-size: 1.2rem;
     margin-bottom: 4px;
@@ -211,25 +213,25 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   .performant-navbar {
     padding: 0 15px;
   }
-  
+
   .navbar-disc {
     padding: 10px;
     border-radius: 20px;
   }
-  
+
   .nav-link,
   .nav-logout,
   .nav-auth {
     padding: 6px 10px;
     min-width: 55px;
   }
-  
+
   .nav-icon,
   .logout-icon,
   .auth-icon {
     font-size: 1.1rem;
   }
-  
+
   .nav-label {
     font-size: 0.7rem;
   }
@@ -239,22 +241,22 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
   .performant-navbar {
     padding: 0 10px;
   }
-  
+
   .navbar-disc {
     padding: 8px;
   }
-  
+
   .nav-items {
     gap: 2px;
   }
-  
+
   .nav-link,
   .nav-logout,
   .nav-auth {
     padding: 6px 8px;
     min-width: 50px;
   }
-  
+
   .nav-label {
     font-size: 0.65rem;
   }
@@ -280,7 +282,7 @@ $transition-fast: transform 0.2s ease, opacity 0.2s ease;
     transition: none !important;
     animation: none !important;
   }
-  
+
   .navbar-disc {
     backdrop-filter: none;
   }

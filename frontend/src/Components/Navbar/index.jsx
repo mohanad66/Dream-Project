@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaShoppingCart, FaUserCircle, FaBoxOpen, FaChartBar } from 'react-icons/fa';
+import {
+  FaHome,
+  FaShoppingCart,
+  FaUserCircle,
+  FaBoxOpen,
+  FaChartBar,
+} from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
-import { FaStore } from "react-icons/fa";
-import { ACCESS_TOKEN } from '../../services/constants';
-import { useAuth } from '../../services/auth';
+import { FaStore, FaStoreAlt, FaUserTie } from "react-icons/fa";
+import { ACCESS_TOKEN } from "../../services/constants";
+import { useAuth } from "../../services/auth";
 import "./css/style.scss";
 
 export default function Navbar({ onLogout }) {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("");
-  const { data, isSuperuser } = useAuth();
+  const { data, isSuperuser, isSeller } = useAuth();
 
   useEffect(() => {
     setActiveLink(location.pathname);
@@ -25,13 +31,21 @@ export default function Navbar({ onLogout }) {
     { to: "/", icon: <FaHome />, label: "Home" },
     { to: "/products", icon: <FaStore />, label: "Shop" },
     { to: "/cart", icon: <FaShoppingCart />, label: "Cart" },
-    ...(isLoggedIn ? [
-      { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
-      { to: "/orders", icon: <FaBoxOpen />, label: "My Orders" }
-    ] : []),
-    ...(isAdmin ? [
-      { to: "/admin/analytics", icon: <FaChartBar />, label: "Analytics" }
-    ] : []),
+    ...(isLoggedIn
+      ? [
+          { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
+          { to: "/orders", icon: <FaBoxOpen />, label: "My Orders" },
+        ]
+      : []),
+    ...(isLoggedIn && !isSeller
+      ? [{ to: "/seller-register", icon: <FaUserTie />, label: "Sell" }]
+      : []),
+    ...(isLoggedIn && isSeller
+      ? [{ to: "/seller/dashboard", icon: <FaStoreAlt />, label: "Dashboard" }]
+      : []),
+    ...(isAdmin
+      ? [{ to: "/admin/analytics", icon: <FaChartBar />, label: "Analytics" }]
+      : []),
   ];
 
   return (
@@ -42,7 +56,7 @@ export default function Navbar({ onLogout }) {
             <Link
               key={item.to}
               to={item.to}
-              className={`nav-link ${activeLink === item.to ? 'active' : ''}`}
+              className={`nav-link ${activeLink === item.to ? "active" : ""}`}
             >
               <div className="nav-icon">{item.icon}</div>
               <span className="nav-label">{item.label}</span>
@@ -52,7 +66,10 @@ export default function Navbar({ onLogout }) {
           {isLoggedIn ? (
             <button
               className="nav-logout"
-              onClick={() => { onLogout(); window.location.reload() }}
+              onClick={() => {
+                onLogout();
+                window.location.reload();
+              }}
             >
               <IoLogOut className="logout-icon" />
               <span className="nav-label">Logout</span>
