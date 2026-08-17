@@ -1,0 +1,38 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "cd frontend && npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/api/:path*"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/admin/:path*"
+    },
+    {
+      "source": "/media/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/media/:path*"
+    },
+    {
+      "source": "/static/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/static/:path*"
+    },
+    {
+      "source": "/((?!api|admin|media|static|assets).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}
