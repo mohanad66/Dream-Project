@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // State for handling concurrent token refreshes
 let isRefreshing = false;
