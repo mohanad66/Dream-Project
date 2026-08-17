@@ -12,7 +12,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
-    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies from backend folder

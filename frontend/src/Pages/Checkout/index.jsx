@@ -7,7 +7,7 @@ import CheckoutForm from "../../Components/CheckoutForm";
 import "./css/style.scss";
 import { useNavigate } from "react-router-dom";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_51Ru3ONENPWvMQNVEdYlHECS2IB6bzT5mgHZF8UrVK7Hap8ym6xuREawCwGm4LS68ya8MEHQJy5HRIghXf17MMdbA00Au90db2g");
 
 export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);

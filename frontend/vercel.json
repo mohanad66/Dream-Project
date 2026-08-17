@@ -1,0 +1,30 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/api/:path*"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/admin/:path*"
+    },
+    {
+      "source": "/media/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/media/:path*"
+    },
+    {
+      "source": "/static/:path*",
+      "destination": "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/static/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

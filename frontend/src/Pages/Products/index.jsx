@@ -5,7 +5,7 @@ import Card from "../../Components/Card";
 import { fetchAllCategories, fetchAllTags } from "../../services/auth";
 import { Helmet } from "react-helmet-async";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 export default function Products() {
   const location = useLocation();
@@ -49,8 +49,8 @@ export default function Products() {
   useEffect(() => {
     const loadMeta = async () => {
       const [allTags, allCategories] = await Promise.all([
-        fetchAllTags(`${API_URL}/api/tags/`),
-        fetchAllCategories(`${API_URL}/api/categories/`),
+        fetchAllTags(`${API_URL}/tags/`),
+        fetchAllCategories(`${API_URL}/categories/`),
       ]);
       setTags(allTags);
       setCategories(allCategories);
@@ -71,7 +71,7 @@ export default function Products() {
       if (priceRange.max < actualPriceRange.max)
         params.set("maxPrice", priceRange.max);
 
-      const res = await fetch(`${API_URL}/api/products/?${params.toString()}`);
+      const res = await fetch(`${API_URL}/products/?${params.toString()}`);
       const data = await res.json();
 
       setProducts(data.results || []);

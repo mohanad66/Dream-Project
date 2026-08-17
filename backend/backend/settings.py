@@ -132,9 +132,10 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
-    "https://unique-piranha-idk1321-8a1bb675.koyeb.app",
-    "http://localhost:3000",  # Common for React
-    "http://127.0.0.1:3000",
+    "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app",
+    "https://dream-project-roan.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
