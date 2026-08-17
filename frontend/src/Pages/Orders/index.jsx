@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api";
 import "./css/style.scss";
 
 export default function OrdersPage() {
@@ -20,17 +20,7 @@ export default function OrdersPage() {
 
   const fetchOrders = async (url = "/api/orders/mine/") => {
     try {
-      const token = localStorage.getItem("access");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(url);
 
       console.log("API Response:", response.data); // Debug log
 
@@ -63,10 +53,8 @@ export default function OrdersPage() {
           navigate("/login");
         }, 2000);
       } else {
-        setError(
-          err.response?.data?.error ||
-            "Failed to load orders. Please try again.",
-        );
+        const msg = err.response?.data?.error || err.response?.data?.detail;
+        setError(typeof msg === "string" ? msg : "Failed to load orders. Please try again.");
       }
       setIsLoading(false);
     }

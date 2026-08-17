@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api";
 import "./css/style.scss";
 
 export default function OrderDetailsPage() {
@@ -17,17 +17,7 @@ export default function OrderDetailsPage() {
 
   const fetchOrderDetails = async () => {
     try {
-      const token = localStorage.getItem("access");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      const response = await axios.get(`/api/orders/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`/api/orders/${id}/`);
 
       setOrder(response.data);
       setIsLoading(false);
