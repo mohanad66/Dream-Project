@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import condition
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 
@@ -35,7 +36,11 @@ def cache_api_response(timeout=300):
             if getattr(settings, "ENABLE_CACHING", True):
                 cached_response = cache.get(cache_key)
                 if cached_response is not None:
-                    return Response(cached_response)
+                    resp = Response(cached_response)
+                    resp.accepted_renderer = JSONRenderer()
+                    resp.accepted_media_type = "application/json"
+                    resp.renderer_context = {}
+                    return resp
 
             # Call the view
             response = view_func(request, *args, **kwargs)
