@@ -141,6 +141,14 @@ export default function Profile({ categories: initialCategories = [] }) {
       previous: null,
       currentPage: 1,
     },
+    allSellers: [],
+    sellersLoading: false,
+    sellersPagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      currentPage: 1,
+    },
   });
 
   const {
@@ -174,6 +182,9 @@ export default function Profile({ categories: initialCategories = [] }) {
     allOrders,
     ordersLoading,
     ordersPagination,
+    allSellers,
+    sellersLoading,
+    sellersPagination,
     carouselItems,
     carouselLoading,
     carouselPagination,
@@ -258,6 +269,36 @@ export default function Profile({ categories: initialCategories = [] }) {
     },
     [isAdmin, fetchData],
   );
+
+  const fetchAllSellers = useCallback(
+    async (page = 1) => {
+      if (!isAdmin) return;
+      setState((prev) => ({ ...prev, sellersLoading: true }));
+      try {
+        const response = await fetchData(`/api/admins/sellers/?page=${page}`);
+        setState((prev) => ({
+          ...prev,
+          allSellers: response.data.results ?? response.data ?? [],
+          sellersPagination: {
+            count: response.data.count ?? 0,
+            next: response.data.next ?? null,
+            previous: response.data.previous ?? null,
+            currentPage: page,
+          },
+          sellersLoading: false,
+        }));
+      } catch (err) {
+        console.error("Error fetching sellers:", err);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to load sellers.",
+          sellersLoading: false,
+        }));
+      }
+    },
+    [isAdmin, fetchData],
+  );
+
   const fetchMyProducts = useCallback(
     async (page = 1) => {
       if (!isAdmin) return;
@@ -807,6 +848,78 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   };
 
+  const handleProductApproval = async (id, newStatus) => {
+    let rejection_reason = "";
+    if (newStatus === "rejected") {
+      rejection_reason =
+        window.prompt("Rejection reason (required):")?.trim() || "";
+      if (!rejection_reason) {
+        setState((prev) => ({
+          ...prev,
+          error: "A rejection reason is required.",
+        }));
+        return;
+      }
+    }
+
+    try {
+      await updateData(`/api/admins/products/${id}/review/`, {
+        approval_status: newStatus,
+        rejection_reason,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        allProducts: prev.allProducts.map((product) =>
+          product.id === id
+            ? { ...product, approval_status: newStatus, rejection_reason }
+            : product,
+        ),
+      }));
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        error: "Failed to update product approval status.",
+      }));
+    }
+  };
+
+  const handleSellerApproval = async (id, newStatus) => {
+    let rejection_reason = "";
+    if (newStatus === "rejected") {
+      rejection_reason =
+        window.prompt("Rejection reason (required):")?.trim() || "";
+      if (!rejection_reason) {
+        setState((prev) => ({
+          ...prev,
+          error: "A rejection reason is required.",
+        }));
+        return;
+      }
+    }
+
+    try {
+      await updateData(`/api/admins/sellers/${id}/`, {
+        verification_status: newStatus,
+        rejection_reason,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        allSellers: prev.allSellers.map((seller) =>
+          seller.id === id
+            ? { ...seller, verification_status: newStatus, rejection_reason }
+            : seller,
+        ),
+      }));
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        error: "Failed to update seller verification status.",
+      }));
+    }
+  };
+
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
       await updateData(`/api/user/${userId}/`, { is_active: !currentStatus });
@@ -1147,6 +1260,7 @@ export default function Profile({ categories: initialCategories = [] }) {
             onRefreshUsers={fetchAllUsers}
             onProductStatusToggle={handleProductStatusToggle}
             onAllProductsStatusToggle={handleAllProductsStatusToggle}
+            onProductApproval={handleProductApproval}
             onCategoryStatusToggle={handleCategoryStatusToggle}
             onContactStatusToggle={handleContactStatusToggle}
             onUserStatusToggle={handleUserStatusToggle}
@@ -1157,6 +1271,11 @@ export default function Profile({ categories: initialCategories = [] }) {
             onDeleteTag={handleDeleteTag}
             onDeleteUser={handleDeleteUser}
             onOpenModal={handleOpenModal}
+            allSellers={allSellers}
+            sellersLoading={sellersLoading}
+            sellersPagination={sellersPagination}
+            onRefreshSellers={fetchAllSellers}
+            onSellerApproval={handleSellerApproval}
           />
         )}
       </main>
@@ -1324,6 +1443,7 @@ const AdminTab = ({
   onRefreshUsers,
   onProductStatusToggle,
   onAllProductsStatusToggle,
+  onProductApproval,
   onCategoryStatusToggle,
   onContactStatusToggle,
   onUserStatusToggle,
@@ -1334,6 +1454,11 @@ const AdminTab = ({
   onDeleteTag,
   onDeleteUser,
   onOpenModal,
+  allSellers = [],
+  sellersLoading,
+  sellersPagination,
+  onRefreshSellers,
+  onSellerApproval,
 }) => (
   <section className="profile-content__section">
     <div className="profile-content__header">
@@ -1407,6 +1532,7 @@ const AdminTab = ({
               allUsers={allUsers} // ← add this
               onStatusToggle={onAllProductsStatusToggle}
               onDelete={onDeleteAllProduct}
+              onReview={onProductApproval}
             />
             <PaginationControls
               pagination={allProductsPagination}
@@ -1416,6 +1542,40 @@ const AdminTab = ({
           </>
         ) : (
           <p>No products found.</p>
+        )}
+      </div>
+    )}
+
+    {/* Seller Approvals Section (Superuser Only) */}
+    {isSuperuser && (
+      <div className="seller-approvals-section management-section">
+        <div className="profile-content__header">
+          <h4>Seller Approvals ({sellersPagination.count})</h4>
+          <button
+            onClick={() => onRefreshSellers(1)}
+            className="button button--secondary"
+            disabled={sellersLoading}
+          >
+            {sellersLoading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+
+        {sellersLoading ? (
+          <div className="loading-spinner" />
+        ) : allSellers.length > 0 ? (
+          <>
+            <AdminSellersTable
+              sellers={allSellers}
+              onSellerApproval={onSellerApproval}
+            />
+            <PaginationControls
+              pagination={sellersPagination}
+              onPageChange={onRefreshSellers}
+              loading={sellersLoading}
+            />
+          </>
+        ) : (
+          <p>No sellers found.</p>
         )}
       </div>
     )}
@@ -1739,6 +1899,7 @@ const AllProductsTable = ({
   allUsers = [],
   onStatusToggle,
   onDelete,
+  onReview,
 }) => {
   const getUserName = (ownerId) => {
     const user = allUsers.find((u) => u.id === ownerId);
@@ -1751,6 +1912,7 @@ const AllProductsTable = ({
         <span>Product Name</span>
         <span>Owner</span>
         <span>Status</span>
+        <span>Approval</span>
         <span>Actions</span>
       </div>
 
@@ -1763,7 +1925,29 @@ const AllProductsTable = ({
           >
             {product.is_active ? "Active" : "Inactive"}
           </span>
+          <span
+            className={`status-pill status-pill--${product.approval_status || "pending"}`}
+          >
+            {(product.approval_status || "pending").toUpperCase()}
+          </span>
           <div className="actions">
+            {(product.approval_status === "pending" ||
+              product.approval_status === "rejected") && (
+              <button
+                className="button button--small button--primary"
+                onClick={() => onReview(product.id, "approved")}
+              >
+                Approve
+              </button>
+            )}
+            {product.approval_status === "pending" && (
+              <button
+                className="button button--small button--danger"
+                onClick={() => onReview(product.id, "rejected")}
+              >
+                Reject
+              </button>
+            )}
             <button
               className="button button--small button--secondary"
               onClick={() => onStatusToggle(product.id, product.is_active)}
@@ -1782,6 +1966,63 @@ const AllProductsTable = ({
     </div>
   );
 };
+
+const AdminSellersTable = ({ sellers, onSellerApproval }) => {
+  return (
+    <div className="seller-table table">
+      <div className="seller-table__header table__header">
+        <span>Business</span>
+        <span>Email</span>
+        <span>Phone</span>
+        <span>Status</span>
+        <span>Products</span>
+        <span>Actions</span>
+      </div>
+
+      {sellers.map((seller) => (
+        <div key={seller.id} className="seller-table__row table__row">
+          <span className="seller-table__name">{seller.business_name}</span>
+          <span className="seller-table__email">{seller.contact_email}</span>
+          <span>{seller.contact_phone}</span>
+          <span
+            className={`status-pill status-pill--${seller.verification_status || "pending"}`}
+          >
+            {(seller.verification_status || "pending").toUpperCase()}
+          </span>
+          <span>{seller.product_count}</span>
+          <div className="actions">
+            {(seller.verification_status === "pending" ||
+              seller.verification_status === "rejected") && (
+              <button
+                className="button button--small button--primary"
+                onClick={() => onSellerApproval(seller.id, "approved")}
+              >
+                Approve
+              </button>
+            )}
+            {seller.verification_status !== "rejected" && (
+              <button
+                className="button button--small button--danger"
+                onClick={() => onSellerApproval(seller.id, "rejected")}
+              >
+                Reject
+              </button>
+            )}
+            {seller.verification_status === "approved" && (
+              <button
+                className="button button--small button--danger"
+                onClick={() => onSellerApproval(seller.id, "rejected")}
+              >
+                Revoke
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const CategoryTable = ({ categories, onStatusToggle, onEdit, onDelete }) => (
   <div className="categories-table table">
     <div className="categories-table__header table__header">

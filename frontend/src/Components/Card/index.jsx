@@ -121,6 +121,7 @@ export default function Card({ card, categories, tags }) {
             </>
           )}
         </div>
+        {card.seller_name && <span className="card-brand">{card.seller_name}</span>}
         <h2>{card.name}</h2>
         <span className="price">{card.price} L.E</span>
         <p className="card-content">{getDescriptionPreview()}</p>
@@ -140,16 +141,13 @@ export default function Card({ card, categories, tags }) {
           )}
         </div>
 
-        <div className="card-actions">
+        <div className="card-actions-streamlined">
           <button
-            className="add-to-cart-btn"
+            className="quick-add-btn"
             onClick={handleAddToCart}
             disabled={isAddedToCart}
           >
-            <FaShoppingCart /> {isAddedToCart ? "Added!" : "Add to Cart"}
-          </button>
-          <button className="buy-now-btn" onClick={handleBuyNow}>
-            <FaBolt /> Buy Now
+            <FaPlus /> {isAddedToCart ? "Added" : "Quick Add"}
           </button>
         </div>
       </div>
@@ -188,6 +186,7 @@ export default function Card({ card, categories, tags }) {
               </div>
               <div className="popup-left">
                 <div className="popup-header">
+                  {card.seller_name && <span className="card-brand popup-brand">{card.seller_name}</span>}
                   <h2>{card.name}</h2>
                   {card.price && (
                     <p className="card-price">Price: {card.price} L.E</p>

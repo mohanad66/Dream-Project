@@ -1,261 +1,131 @@
-import { useState, useEffect } from "react";
-import { BsArrowLeftCircleFill, BsArrowRightCircleFill } from "react-icons/bs";
+import { useEffect, useRef, useState } from "react";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
-import { FiMail, FiPhone, FiInfo, FiLink } from "react-icons/fi";
-import {
-  FaFacebook,
-  FaWhatsapp,
-  FaGithub,
-  FaLinkedin,
-  FaInstagram,
-  FaTwitter,
-} from "react-icons/fa";
-import React from "react"; // ✅ add this
 
-const Carousel = ({ images = [], contacts = [] }) => {
-  // ✅ Add safety checks at the top
-  const safeImages = Array.isArray(images) ? images : [];
-  const safeContacts = Array.isArray(contacts) ? contacts : [];
+const INTERVAL_MS = 5000;
 
-  const [currentImage, setCurrentImage] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [fancyboxRef] = useFancybox({
-    // Your custom options
-  });
+const Carousel = ({ images = [] }) => {
+  const slides = Array.isArray(images)
+    ? images.filter((item) => item && item.image)
+    : [];
 
-  // Auto-advance carousel every 5 seconds
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const [fancyboxRef] = useFancybox({});
+
   useEffect(() => {
-    // ✅ Check if we have images before setting interval
-    if (safeImages.length === 0) return;
+    if (slides.length <= 1) return;
 
-    const interval = setInterval(() => {
-      if (!isAnimating) {
-        handleNext();
+    const timer = setInterval(() => {
+      if (!pausedRef.current) {
+        setCurrent((prev) => (prev + 1) % slides.length);
       }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [currentImage, isAnimating, safeImages.length]); // ✅ Add safeImages.length to dependencies
+    }, INTERVAL_MS);
 
-  const handlePrevious = () => {
-    if (isAnimating || safeImages.length === 0) return; // ✅ Add length check
-    setIsAnimating(true);
-    setCurrentImage((prev) => (prev === 0 ? safeImages.length - 1 : prev - 1));
-    setTimeout(() => setIsAnimating(false), 500);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (current >= slides.length && slides.length > 0) {
+      setCurrent(0);
+    }
+  }, [slides.length, current]);
+
+  if (slides.length === 0) return null;
+
+  const goTo = (index) => {
+    setCurrent((index + slides.length) % slides.length);
   };
 
-  const handleNext = () => {
-    if (isAnimating || safeImages.length === 0) return; // ✅ Add length check
-    setIsAnimating(true);
-    setCurrentImage((prev) => (prev === safeImages.length - 1 ? 0 : prev + 1));
-    setTimeout(() => setIsAnimating(false), 500);
+  const handleMouseEnter = () => {
+    pausedRef.current = true;
+    setPaused(true);
   };
 
-  // ✅ Show empty state with contacts if no images
-  if (safeImages.length === 0) {
-    return (
-      <div className="carousel">
-        <div className="main-carousel no-images">
-          <p>No images available</p>
-        </div>
+  const handleMouseLeave = () => {
+    pausedRef.current = false;
+    setPaused(false);
+  };
 
-        <div className="contact-panel">
-          <div className="panel-content">
-            <h3>Contact Us</h3>
-            <p>Get in touch for special orders or device repairs</p>
+  return (
+    <section
+      className="showcase-carousel"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      data-paused={paused}
+    >
+      <div className="section-heading">
+        <p className="section-eyebrow">The Showcase</p>
+        <h2 className="title">Curated Moments</h2>
+      </div>
 
-            {safeContacts.length > 0 ? (
-              <div className="contact-columns">
-                {safeContacts.map(
-                  (contact) =>
-                    contact.is_active && (
-                      <ContactItem key={contact.id} contact={contact} />
-                    ),
-                )}
+      <div className="showcase-stage" ref={fancyboxRef}>
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id ?? `slide-${index}`}
+            className={`showcase-slide ${index === current ? "active" : ""}`}
+          >
+            <a
+              data-fancybox="showcase"
+              href={slide.image}
+              className="showcase-link"
+            >
+              <img
+                src={slide.image}
+                alt={slide.name || `Showcase ${index + 1}`}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            </a>
+
+            <div className="showcase-shade" aria-hidden="true" />
+
+            {slide.name && (
+              <div className="showcase-caption">
+                <span className="caption-index">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <h3>{slide.name}</h3>
               </div>
-            ) : (
-              <a href="#contact" className="cta-button">
-                Contact us
-              </a>
             )}
           </div>
-        </div>
-      </div>
-    );
-  }
+        ))}
 
-  return (
-    <div className="carousel">
-      {/* Main Carousel Area - Left Side */}
-      <div className="main-carousel">
-        <BsArrowLeftCircleFill
-          onClick={handlePrevious}
-          className="arrow arrowLeft"
-          aria-label="Previous image"
-          size={32}
-        />
-
-        <div ref={fancyboxRef} className="slider-container">
-          {safeImages.map((imageItem, index) => (
-            <div
-              key={imageItem.id || `image-${index}`}
-              className={`slide ${currentImage === index ? "active" : ""} ${index < currentImage ? "left" : "right"}`}
-            >
-              <div className="image-container">
-                <a
-                  data-fancybox={`gallery${index}`}
-                  href={`${imageItem.image}`}
-                >
-                  <img
-                    src={` ${imageItem.image}`}
-                    alt={imageItem.altText || `Showcase ${index + 1}`}
-                    loading="lazy"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/path/to/fallback-image.jpg";
-                    }}
-                  />
-                </a>
-              </div>
-              {imageItem.name && <h4 className="title1">{imageItem.name}</h4>}
-            </div>
-          ))}
-        </div>
-
-        <BsArrowRightCircleFill
-          onClick={handleNext}
-          className="arrow arrowRight"
-          aria-label="Next image"
-          size={32}
-        />
-
-        <div className="circle-indicator">
-          {safeImages.map((_, index) => (
+        {slides.length > 1 && (
+          <>
             <button
-              key={`indicator-${index}`}
-              className={`indicator-dot ${currentImage === index ? "active" : ""}`}
-              onClick={() => {
-                if (!isAnimating) {
-                  setCurrentImage(index);
-                  setIsAnimating(true);
-                  setTimeout(() => setIsAnimating(false), 500);
-                }
-              }}
-              aria-label={`Go to image ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
+              className="showcase-arrow prev"
+              onClick={() => goTo(current - 1)}
+              aria-label="Previous showcase image"
+            >
+              <FaChevronLeft />
+            </button>
+            <button
+              className="showcase-arrow next"
+              onClick={() => goTo(current + 1)}
+              aria-label="Next showcase image"
+            >
+              <FaChevronRight />
+            </button>
+          </>
+        )}
 
-      <div className="contact-panel">
-        <div className="panel-content">
-          <h3>Contact Us</h3>
-          <p>Get in touch for special orders or device repairs</p>
-
-          {safeContacts.length > 0 ? (
-            <div className="contact-columns">
-              {/* Split contacts into two columns */}
-              {safeContacts
-                .slice(0, Math.ceil(safeContacts.length / 2))
-                .map(
-                  (contact) =>
-                    contact.is_active && (
-                      <ContactItem key={contact.id} contact={contact} />
-                    ),
-                )}
-              {safeContacts
-                .slice(Math.ceil(safeContacts.length / 2))
-                .map(
-                  (contact) =>
-                    contact.is_active && (
-                      <ContactItem key={contact.id} contact={contact} />
-                    ),
-                )}
-            </div>
-          ) : (
-            <p>No contact information available</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-function ContactItem({ contact }) {
-  const getIconComponent = () => {
-    switch (contact.contact_type) {
-      case "email":
-        return <FiMail className="contact-icon" />;
-      case "phone":
-        return <FiPhone className="contact-icon" />;
-      case "social":
-        if (contact.value.includes("facebook"))
-          return <FaFacebook className="contact-icon" />;
-        if (contact.value.includes("twitter"))
-          return <FaTwitter className="contact-icon" />;
-        if (contact.value.includes("instagram"))
-          return <FaInstagram className="contact-icon" />;
-        if (contact.value.includes("linkedin"))
-          return <FaLinkedin className="contact-icon" />;
-        if (contact.value.includes("github"))
-          return <FaGithub className="contact-icon" />;
-        if (contact.value.includes("whatsapp"))
-          return <FaWhatsapp className="contact-icon" />;
-        return <FiLink className="contact-icon" />;
-      default:
-        return contact.icon ? (
-          <img
-            src={` ${contact.icon}`}
-            alt={contact.name}
-            className="contact-icon-img"
-          />
-        ) : (
-          <FiInfo className="contact-icon" />
-        );
-    }
-  };
-
-  return (
-    <div className={`contact-method ${contact.contact_type}`}>
-      <div className="contact-icon-container">{getIconComponent()}</div>
-      <div className="contact-details">
-        <span className="contact-name">{contact.name}</span>
-        <br />
-        {contact.contact_type === "email" ? (
-          <a href={`mailto:${contact.value}`} className="contact-value">
-            {contact.value}
-          </a>
-        ) : contact.contact_type === "phone" ? (
-          <a href={`tel:${contact.value}`} className="contact-value">
-            {formatPhoneNumber(contact.value)}
-          </a>
-        ) : contact.contact_type === "social" ? (
-          <a
-            href={contact.value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="contact-value"
-          >
-            {getSocialDisplayName(contact.value)}
-          </a>
-        ) : (
-          <span className="contact-value">{contact.value}</span>
+        {slides.length > 1 && (
+          <div className="showcase-dots">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.id ?? `dot-${index}`}
+                className={`showcase-dot ${index === current ? "active" : ""}`}
+                onClick={() => goTo(index)}
+                aria-label={`Go to showcase image ${index + 1}`}
+              />
+            ))}
+          </div>
         )}
       </div>
-    </div>
+    </section>
   );
-}
-
-// Helper functions
-function formatPhoneNumber(phoneNumber) {
-  // Format phone numbers for better readability
-  return phoneNumber.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
-}
-
-function getSocialDisplayName(url) {
-  // Extract cleaner display names from social URLs
-  const cleanUrl = url.replace(/^https?:\/\/(www\.)?/, "");
-  return cleanUrl.split("/")[0];
-}
+};
 
 export default Carousel;

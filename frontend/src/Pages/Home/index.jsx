@@ -5,149 +5,298 @@ import "./css/style.scss";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import React from "react";
+import {
+  FaGem,
+  FaTruckFast,
+  FaShieldHalved,
+  FaHeadset,
+  FaStar,
+} from "react-icons/fa6";
+
+const FEATURES = [
+  {
+    icon: <FaGem />,
+    title: "Curated Quality",
+    text: "Every product is vetted by our team — only the finest brands and artisans make the cut.",
+  },
+  {
+    icon: <FaTruckFast />,
+    title: "Fast Delivery",
+    text: "Reliable nationwide fulfilment with real-time tracking on every order.",
+  },
+  {
+    icon: <FaShieldHalved />,
+    title: "Secure Payments",
+    text: "Bank-grade Stripe checkout protects every transaction from click to delivery.",
+  },
+  {
+    icon: <FaHeadset />,
+    title: "Dedicated Support",
+    text: "A real team of specialists ready to assist you at every step of your journey.",
+  },
+];
 
 export default function Home({
-  contacts = [],
-  img = [],
   categories = [],
   products = [],
-  services = [],
   tags = [],
+  img = [],
 }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const latestProducts = Array.isArray(products)
-    ? [...products].slice(0, 6)
+    ? [...products].slice(0, 8)
     : [];
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
 
+  const activeProducts = (Array.isArray(products) ? products : []).filter(
+    (p) => p.is_active === true,
+  );
+
+  const featuredProducts = [...activeProducts].sort(() => 0.5 - Math.random()).slice(0, 8);
+
+  const uniqueBrands = [
+    ...new Set(activeProducts.filter((p) => p.seller_name).map((p) => p.seller_name)),
+  ].slice(0, 8);
+
+  const sellerCount = new Set(
+    (Array.isArray(products) ? products : []).map((p) => p.seller_name),
+  ).size;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 900);
     return () => clearTimeout(timer);
-  }, [contacts, img, categories, products, services]);
+  }, []);
 
   useEffect(() => {
     if (categories.length > 0 || products.length > 0) {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
-
-      return () => clearTimeout(timer);
+      setIsLoading(false);
     }
   }, [categories, products]);
+
+  if (isLoading) {
+    return (
+      <div className="home-loading">
+        <div className="home-loading-mark">
+          <FaGem />
+        </div>
+        <p>Curating your experience…</p>
+      </div>
+    );
+  }
 
   return (
     <>
       <Helmet>
-        <title>Home - Dream Store | Quality Products Online</title>
+        <title>DreamStore — Curated Marketplace for Premium & Local Brands</title>
         <meta
           name="description"
-          content="Welcome to Dream Store. Browse our latest products, categories, and services. Shop electronics, fashion, and home goods with fast delivery."
-        />
-        <meta
-          name="keywords"
-          content="online store, home page, products, categories, services, shopping"
+          content="DreamStore is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators."
         />
         <link rel="canonical" href="https://dreamstore.com/" />
         <meta
           property="og:title"
-          content="Home - Dream Store | Quality Products Online"
+          content="DreamStore — Curated Marketplace for Premium & Local Brands"
         />
         <meta
           property="og:description"
-          content="Welcome to Dream Store. Browse our latest products, categories, and services."
+          content="Discover a curated marketplace of premium local brands, artisans and independent creators."
         />
         <meta property="og:url" content="https://dreamstore.com/" />
         <meta property="og:type" content="website" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "Dream Store",
-            url: "https://dreamstore.com",
-            description: "Online market store for quality products",
-            potentialAction: {
-              "@type": "SearchAction",
-              target:
-                "https://dreamstore.com/products?search={search_term_string}",
-              "query-input": "required name=search_term_string",
-            },
-          })}
-        </script>
       </Helmet>
-      <div className="home">
-        <Carousel contacts={contacts} images={img} />
 
-        <div className="categories">
-          <h2 className="title">Categories</h2>
-          <div className="categories-grid">
-            {Array.isArray(categories) && categories.length > 0 ? (
-              categories.map((category) => (
+      <div className="home">
+        {/* ============ HERO ============ */}
+        <section className="hero-section">
+          <div className="hero-bg" aria-hidden="true">
+            <div className="hero-glow hero-glow--one" />
+            <div className="hero-glow hero-glow--two" />
+            <div className="hero-grid" />
+          </div>
+
+          <div className="hero-content">
+            <p className="hero-eyebrow">
+              <span className="eyebrow-line" />
+              The Marketplace of Tomorrow
+              <span className="eyebrow-line" />
+            </p>
+            <h1 className="hero-title">
+              Discover <em className="gold-text">Exceptional</em> Local Brands
+            </h1>
+            <p className="hero-subtitle">
+              A curated marketplace connecting discerning shoppers with the
+              region's most promising artisans, designers and independent
+              creators.
+            </p>
+
+            <div className="hero-actions">
+              <Link to="/products" className="btn-primary">
+                Explore the Collection
+              </Link>
+              <Link to="/seller-register" className="btn-secondary">
+                Sell With Us
+              </Link>
+            </div>
+
+            <div className="hero-proof">
+              <div className="proof-stat">
+                <strong>{(Array.isArray(products) ? products.length : 0) || "100"}+</strong>
+                <span>Products</span>
+              </div>
+              <div className="proof-stat">
+                <strong>{categories.length || "24"}+</strong>
+                <span>Categories</span>
+              </div>
+              <div className="proof-stat">
+                <strong>{sellerCount || "50"}+</strong>
+                <span>Partner Brands</span>
+              </div>
+              <div className="proof-stat">
+                <strong>4.9/5</strong>
+                <span>Customer Rating</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ============ SHOWCASE CAROUSEL ============ */}
+        {Array.isArray(img) && img.length > 0 && <Carousel images={img} />}
+
+        {/* ============ BRAND STRIP ============ */}
+        {uniqueBrands.length > 0 && (
+          <section className="featured-brands">
+            <p className="brands-label">Trusted by leading local brands</p>
+            <div className="brands-list">
+              {uniqueBrands.map((brand, idx) => (
+                <span key={idx} className="brand-badge">
+                  {brand}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============ WHY DREAMSTORE ============ */}
+        <section className="features">
+          <div className="section-heading">
+            <p className="section-eyebrow">Why DreamStore</p>
+            <h2 className="title">Built for the Next Generation of Commerce</h2>
+          </div>
+          <div className="features-grid">
+            {FEATURES.map((f, i) => (
+              <div className="feature-card" key={i}>
+                <div className="feature-icon">{f.icon}</div>
+                <h3>{f.title}</h3>
+                <p>{f.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ CATEGORIES ============ */}
+        <section className="categories">
+          <div className="section-heading">
+            <p className="section-eyebrow">Browse by Category</p>
+            <h2 className="title">Shop the Finest Selection</h2>
+          </div>
+          {Array.isArray(categories) && categories.length > 0 ? (
+            <div className="categories-grid">
+              {categories.map((category) => (
                 <Link
                   to={`/products?category=${category.id}`}
                   key={category.id}
                   className="category"
                 >
                   <h3>{category.name}</h3>
+                  <span className="category-arrow">→</span>
                 </Link>
-              ))
-            ) : (
-              <div className="empty">
-                <h2>There isn't any Categories</h2>
-              </div>
-            )}
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              <h2>Categories are coming soon</h2>
+            </div>
+          )}
+        </section>
+
+        {/* ============ FEATURED PRODUCTS ============ */}
+        <section className="cards-container">
+          <div className="section-heading">
+            <p className="section-eyebrow">Handpicked for You</p>
+            <h2 className="title">Featured Products</h2>
           </div>
-        </div>
-
-        <div className="randomProducts cards-container">
-          <h2 className="title">Some of Our Products</h2>
-          {Array.isArray(products) && products.length > 0 ? (
-            [...products]
-              .filter((product) => product.is_active === true)
-              .sort(() => 0.5 - Math.random())
-              .slice(0, 6)
-              .map((product) => (
+          {featuredProducts.length > 0 ? (
+            <div className="cards-grid">
+              {featuredProducts.map((product) => (
                 <Card
                   key={product.id}
                   card={product}
                   categories={categories}
                   tags={tags}
                 />
-              ))
+              ))}
+            </div>
           ) : (
             <div className="empty">
               <h2>There isn't any Products</h2>
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="latestProducts cards-container">
-          <h2 className="title">Our Latest Products</h2>
-          {latestProducts.length != 0 ? (
-            latestProducts
-              .filter((product) => product.is_active == true)
-              .map((product) => (
-                <Card
-                  key={product.id}
-                  card={product}
-                  categories={categories}
-                  tags={tags}
-                />
-              ))
+        {/* ============ LATEST PRODUCTS ============ */}
+        <section className="cards-container">
+          <div className="section-heading">
+            <p className="section-eyebrow">Fresh Arrivals</p>
+            <h2 className="title">Our Latest Products</h2>
+          </div>
+          {latestProducts.length > 0 ? (
+            <div className="cards-grid">
+              {latestProducts
+                .filter((product) => product.is_active === true)
+                .map((product) => (
+                  <Card
+                    key={product.id}
+                    card={product}
+                    categories={categories}
+                    tags={tags}
+                  />
+                ))}
+            </div>
           ) : (
             <div className="empty">
               <h2>There isn't any Products</h2>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* <div className="services cards-container">
-        <h2 className="title">our Services</h2>
-        {services.length != 0 ? services.map(service => (
-          <ServiceCard key={service.id} card={service} />
-        )) : <div className='empty'><h2>There isn't any Services</h2></div>}
-      </div> */}
+        {/* ============ CTA BANNER ============ */}
+        <section className="cta-banner">
+          <div className="cta-banner-bg" aria-hidden="true">
+            <div className="hero-glow hero-glow--one" />
+          </div>
+          <div className="cta-content">
+            <div className="cta-stars">
+              <FaStar />
+              <FaStar />
+              <FaStar />
+              <FaStar />
+              <FaStar />
+            </div>
+            <h2>Become a Part of the DreamStore Story</h2>
+            <p>
+              Join a fast-growing marketplace loved by shoppers and backed by a
+              team obsessed with quality and trust.
+            </p>
+            <div className="cta-actions">
+              <Link to="/products" className="btn-primary">
+                Start Shopping
+              </Link>
+              <Link to="/seller-register" className="btn-ghost">
+                Become a Seller
+              </Link>
+            </div>
+          </div>
+        </section>
       </div>
     </>
   );

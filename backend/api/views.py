@@ -58,7 +58,7 @@ class IsProductOwner(BasePermission):
     """Object-level check: seller can only touch their own products."""
  
     def has_object_permission(self, request, view, obj):
-        return obj.seller.user_id == request.user.id
+        return obj.seller and obj.seller.user_id == request.user.id
  
 
 
@@ -463,7 +463,7 @@ get_product = create_public_list_view(
 )
 get_category = create_public_list_view(Category, CategorySerializer, filter_active=True)
 get_services = create_public_list_view(Service, ServiceSerializer, order_by="price")
-get_contact = create_public_list_view(Contact, ContactSerializer)
+get_contact = create_public_list_view(Contact, ContactSerializer, filter_active=True)
 
 get_tags = create_public_list_view(Tag, TagsSerializer)
 
@@ -1198,10 +1198,35 @@ class PendingProductsAdminView(ListAPIView):
             .order_by("created_at")
         )
 
+
+class AdminSellerViewSet(viewsets.ModelViewSet):
+    """
+    GET /api/admins/sellers/ — list all sellers.
+    PATCH /api/admins/sellers/<pk>/ — approve / reject / toggle active.
+    """
+
+    queryset = SellerProfile.objects.select_related("user").prefetch_related("products").order_by("-created_at")
+    serializer_class = AdminSellerSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = StandardResultsSetPagination
+
+    def get_serializer_class(self):
+        if self.action in ("partial_update", "update"):
+            return SellerApprovalSerializer
+        return AdminSellerSerializer
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        if getattr(settings, "ENABLE_CACHING", True):
+            cache.clear()
+
+
 class SellerStripeOnboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        if not hasattr(request.user, 'seller_profile'):
+            return Response({"error": "No seller profile found."}, status=status.HTTP_403_FORBIDDEN)
         try:
             seller = request.user.seller_profile
             if not seller.stripe_account_id:
@@ -1217,12 +1242,15 @@ class SellerStripeReturnView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
+        if not hasattr(request.user, 'seller_profile'):
+            return Response({"error": "No seller profile found."}, status=status.HTTP_403_FORBIDDEN)
         try:
             seller = request.user.seller_profile
             if seller.stripe_account_id:
                 account = stripe.Account.retrieve(seller.stripe_account_id)
                 if account.payouts_enabled:
                     seller.stripe_payouts_enabled = True
+                    seller.stripe_onboarding_complete = True
                     seller.save()
             return Response({"status": "success"})
         except Exception as e:

@@ -125,7 +125,13 @@ export default function Form({ route, method, onLogin, successRedirect }) {
   return (
     <div className="form-wrapper">
       <form onSubmit={handleSubmit} className="form-container">
+        <div className="form-brand-mark" aria-hidden="true">◆</div>
         <h1>{formTitle}</h1>
+        <p className="form-subtitle">
+          {isLogin
+            ? "Welcome back — continue your journey with DreamStore"
+            : "Create your account and join a curated marketplace"}
+        </p>
 
         {error && (
           <div className="error" style={{ whiteSpace: "pre-line" }}>

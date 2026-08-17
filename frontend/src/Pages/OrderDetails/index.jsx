@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { AlertTriangle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./css/style.scss";
@@ -233,7 +234,10 @@ export default function OrderDetailsPage() {
 
         {order.status === "cancelled" && (
           <div className="cancelled-notice">
-            <p>⚠️ This order has been cancelled.</p>
+            <p>
+              <AlertTriangle className="cancelled-icon" size={18} /> This order
+              has been cancelled.
+            </p>
           </div>
         )}
 

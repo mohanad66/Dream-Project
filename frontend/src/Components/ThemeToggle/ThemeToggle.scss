@@ -11,39 +11,26 @@
   margin-bottom: 1.5rem;
 
   h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(
-      135deg,
-      var(--color-secondary) 30%,
-      var(--color-primary) 20%
-    );
+    font-family: var(--font-family-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
-
-    .dark-theme & {
-      background: linear-gradient(
-        135deg,
-        var(--color-secondary) 30%,
-        var(--color-primary) 70%
-      );
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+    -webkit-text-fill-color: transparent;
   }
 }
 
 .theme-toggle-badge {
   .theme-badge {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1.1rem;
     border-radius: 50px;
     font-size: 0.875rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 
     &.light {
       background: linear-gradient(
@@ -52,19 +39,17 @@
         var(--color-primary-light) 100%
       );
       color: var(--color-warning-hover);
-      border: 1px solid var(--color-warning-hover);
-      box-shadow: 0 4px 12px var(--color-warning-alpha);
+      border-color: rgba(217, 185, 104, 0.4);
+      box-shadow: 0 4px 14px var(--color-primary-alpha);
     }
 
     &.dark {
-      background: linear-gradient(
-        135deg,
-        var(--color-secondary) 0.2,
-        var(--color-primary) 0.2
-      );
-      color: var(--text-on-primary);
-      border: 1px solid var(--color-secondary);
-      box-shadow: 0 4px 20px var(--color-secondary-alpha);
+      background: var(--gradient-primary);
+      color: var(--bg-body);
+      border-color: rgba(217, 185, 104, 0.35);
+      box-shadow:
+        0 4px 20px var(--color-primary-alpha),
+        0 0 16px rgba(201, 162, 75, 0.2);
     }
   }
 }
@@ -76,19 +61,42 @@
     var(--bg-surface) 100%
   );
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 2rem;
-  box-shadow:
-    0 16px 32px rgba(0, 0, 0, 0.1),
-    0 8px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-gold),
+      transparent
+    );
+    opacity: 0.55;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
 
   &:hover {
     transform: translateY(-2px);
     box-shadow:
-      0 24px 48px rgba(0, 0, 0, 0.15),
-      0 12px 24px rgba(0, 0, 0, 0.1);
+      var(--shadow-xl),
+      0 0 28px var(--color-primary-alpha);
+
+    &::before {
+      opacity: 1;
+    }
   }
 }
 
@@ -110,9 +118,9 @@
   overflow: hidden;
 
   &.active {
-    border-color: var(--color-secondary);
+    border-color: var(--color-gold);
     box-shadow:
-      0 8px 24px var(--color-secondary-alpha),
+      0 8px 28px var(--color-primary-alpha),
       0 4px 12px rgba(0, 0, 0, 0.1);
 
     &::before {
@@ -122,10 +130,11 @@
       right: 8px;
       width: 20px;
       height: 20px;
-      background: var(--color-success);
+      background: var(--gradient-primary);
       border-radius: 50%;
       border: 3px solid var(--bg-surface);
       z-index: 2;
+      box-shadow: 0 0 10px var(--color-primary-alpha);
     }
 
     &::after {
@@ -133,7 +142,7 @@
       position: absolute;
       top: 11px;
       right: 15px;
-      color: var(--text-on-primary);
+      color: var(--bg-body);
       font-size: 0.75rem;
       font-weight: bold;
       z-index: 3;
@@ -156,15 +165,18 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 
   &.light-theme {
     background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
     box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8);
 
     .sun-icon {
-      font-size: 2rem;
+      width: 2rem;
+      height: 2rem;
+      color: #f59e0b;
       animation: sunGlow 3s ease-in-out infinite;
-      filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.4));
+      filter: drop-shadow(0 4px 8px rgba(217, 160, 63, 0.4));
     }
 
     .theme-dots span {
@@ -195,15 +207,17 @@
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 
     .moon-icon {
-      font-size: 2rem;
+      width: 2rem;
+      height: 2rem;
+      color: var(--color-gold);
       animation: moonFloat 3s ease-in-out infinite;
-      filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.4));
+      filter: drop-shadow(0 4px 8px rgba(217, 185, 104, 0.4));
     }
 
     .theme-stars span {
       position: absolute;
       font-size: 0.75rem;
-      color: var(--color-secondary);
+      color: var(--color-gold);
       opacity: 0.7;
       animation: starTwinkle 2s ease-in-out infinite;
 
@@ -228,7 +242,8 @@
 
 .theme-option__label {
   h4 {
-    font-size: 1rem;
+    font-family: var(--font-family-display);
+    font-size: 1.05rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
@@ -261,11 +276,10 @@
     height: 0;
 
     &:checked + .theme-switch__slider {
-      background: linear-gradient(
-        135deg,
-        var(--color-secondary) 0%,
-        var(--color-primary) 100%
-      );
+      background: var(--gradient-primary);
+      box-shadow:
+        0 0 16px var(--color-primary-alpha),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
 
       &::before {
         transform: translateX(36px);
@@ -282,6 +296,10 @@
         transform: translateX(0);
       }
     }
+
+    &:focus-visible + .theme-switch__slider {
+      box-shadow: var(--shadow-focus), 0 0 16px var(--color-primary-alpha);
+    }
   }
 }
 
@@ -294,8 +312,8 @@
   bottom: 0;
   background: linear-gradient(
     135deg,
-    var(--color-primary) 0%,
-    var(--color-warning) 100%
+    var(--color-gold-deep) 0%,
+    var(--color-primary) 100%
   );
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50px;
@@ -340,7 +358,7 @@
   &:hover {
     box-shadow:
       0 6px 20px rgba(0, 0, 0, 0.2),
-      inset 0 2px 4px rgba(255, 255, 255, 0.3);
+      0 0 16px var(--color-primary-alpha);
 
     &::before {
       box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);

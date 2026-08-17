@@ -136,6 +136,17 @@ urlpatterns = [
         OrderAdminViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),
         name="admin-order-detail",
     ),
+    # Sellers (admin moderation)
+    path(
+        "admins/sellers/",
+        AdminSellerViewSet.as_view({"get": "list"}),
+        name="admin-seller-list",
+    ),
+    path(
+        "admins/sellers/<int:pk>/",
+        AdminSellerViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),
+        name="admin-seller-detail",
+    ),
     # Authentication endpoints
     path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

@@ -394,13 +394,7 @@ class Product(models.Model, ImageHandlingMixin):
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.00"))],
-        help_text="Price in USD (min $0.01)",
-    )
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(0.01)],
+        validators=[MinValueValidator(Decimal("0.01"))],
         help_text="Price in USD (min $0.01)",
     )
     is_active = models.BooleanField(

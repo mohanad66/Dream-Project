@@ -29,11 +29,47 @@ class ProductImageInline(StackedInline):
 @admin.register(Product)
 class ProductAdmin(ModelAdmin):
     inlines = [ProductImageInline]
-    list_display = ["name", "price", "is_active", "category", "created_at"]
-    list_filter = ["is_active", "category"]
+    list_display = ["name", "price", "is_active", "approval_status", "category", "created_at"]
+    list_filter = ["is_active", "approval_status", "category"]
     search_fields = ["name"]
+    actions = ["approve_products", "reject_products"]
 
+    @admin.action(description="Approve selected products")
+    def approve_products(self, request, queryset):
+        updated = queryset.update(
+            approval_status=Product.ApprovalStatus.APPROVED, rejection_reason=""
+        )
+        self.message_user(request, f"{updated} product(s) approved.")
 
+    @admin.action(description="Reject selected products")
+    def reject_products(self, request, queryset):
+        updated = queryset.update(
+            approval_status=Product.ApprovalStatus.REJECTED,
+            rejection_reason="Rejected by admin.",
+        )
+        self.message_user(request, f"{updated} product(s) rejected.")
+@admin.register(SellerProfile)
+class SellerProfileAdmin(ModelAdmin):
+    list_display = ["business_name", "user", "verification_status", "is_active", "created_at"]
+    list_filter = ["verification_status", "is_active"]
+    search_fields = ["business_name", "contact_email"]
+    actions = ["approve_sellers", "reject_sellers"]
+
+    @admin.action(description="Approve selected sellers")
+    def approve_sellers(self, request, queryset):
+        updated = queryset.update(
+            verification_status=SellerProfile.VerificationStatus.APPROVED,
+            rejection_reason="",
+        )
+        self.message_user(request, f"{updated} seller(s) approved.")
+
+    @admin.action(description="Reject selected sellers")
+    def reject_sellers(self, request, queryset):
+        updated = queryset.update(
+            verification_status=SellerProfile.VerificationStatus.REJECTED,
+            rejection_reason="Rejected by admin.",
+        )
+        self.message_user(request, f"{updated} seller(s) rejected.")
 @admin.register(ProductImage)
 class ProductImageAdmin(ModelAdmin):
     pass
@@ -51,26 +87,29 @@ class ServiceAdmin(ModelAdmin):
 
 @admin.register(Contact)
 class ContactAdmin(ModelAdmin):
-    pass
+    list_display = ["name", "contact_type", "value", "display_order", "is_active"]
+    list_filter = ["contact_type", "is_active"]
+    list_editable = ["display_order", "is_active"]
+    search_fields = ["name", "value"]
 
 
 @admin.register(Tag)
-class ContactAdmin(ModelAdmin):
+class TagAdmin(ModelAdmin):
     pass
 
 
 @admin.register(Payment)
-class ContactAdmin(ModelAdmin):
+class PaymentAdmin(ModelAdmin):
     pass
 
 
 @admin.register(Order)
-class ContactAdmin(ModelAdmin):
+class OrderAdmin(ModelAdmin):
     pass
 
 
 @admin.register(OrderItem)
-class ContactAdmin(ModelAdmin):
+class OrderItemAdmin(ModelAdmin):
     pass
 
 

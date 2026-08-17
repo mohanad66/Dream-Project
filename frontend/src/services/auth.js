@@ -124,6 +124,7 @@ export const useAuth = () => {
               data: cachedData,
               isLoading: false,
               isSuperuser: cachedData.user?.is_superuser || false,
+              isSeller: !!cachedData.sellerProfile,
             });
             return true;
           }
@@ -269,6 +270,7 @@ export const useAuth = () => {
       login,
       logout,
       fetchAllData,
+      refetchUser: () => fetchAllData(true),
       sendOTP: async () => (await api.post("/api/otp/send/")).data,
       verifyOTP: async (otp_code) =>
         (await api.post("/api/otp/verify/", { otp_code })).data,

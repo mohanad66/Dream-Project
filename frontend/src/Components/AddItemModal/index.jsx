@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Image as ImageIcon } from "lucide-react";
 import api from "../../services/api";
 import "./css/style.scss";
 import { persistentCache } from "../../utils/persistentCache";
@@ -401,7 +402,7 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
               onDrop={handleGalleryDrop}
               onClick={() => galleryInputRef.current?.click()}
             >
-              <div className="gallery-dropzone-icon">🖼️</div>
+              <ImageIcon className="gallery-dropzone-icon" size={32} />
               <p className="gallery-dropzone-text">
                 {isDragging ? "Drop images here" : "Click or drag &amp; drop images"}
               </p>

@@ -48,6 +48,7 @@ import {
   PackageCheck,
   Clock,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 import "../css/Analytics.scss";
@@ -577,7 +578,7 @@ const AdminAnalytics = () => {
     return (
       <div className="analytics-error">
         <div className="analytics-error-card">
-          <div className="error-icon">⚠</div>
+          <AlertTriangle className="error-icon" size={28} />
           <div className="error-title">Failed to load</div>
           <div className="error-message">{error}</div>
           <button className="retry-btn" onClick={fetchAnalyticsData}>

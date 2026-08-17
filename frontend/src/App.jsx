@@ -13,7 +13,9 @@ import { useAuth } from "./services/auth";
 // 1. EAGER LOADING CORE UI COMPONENTS
 // To prevent CLS, the Navbar and main layout containers should never be lazy-loaded.
 import Navbar from "./Components/Navbar/index.jsx";
+import Footer from "./Components/Footer/index.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute.jsx";
+import ToastProvider from "./Components/Toast/ToastProvider.jsx";
 
 // Lazy load page-level components
 const Home = lazy(() => import("./Pages/Home/index.jsx"));
@@ -92,108 +94,116 @@ export default function App() {
   }
 
   return (
-    <div
-      className="app-wrapper"
-      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
-    >
-      {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
+    <ToastProvider>
+      <div
+        className="app-wrapper"
+        style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+      >
+        {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
 
-      <main style={{ flex: 1 }}>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/seller-register" element={<SellerRegister />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+        <main style={{ flex: 1 }}>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/login" element={<Login onLogin={handleLogin} />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/seller-register" element={<SellerRegister />} />
+              <Route path="/verify-otp" element={<VerifyOtp />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            <Route
-              path="/"
-              element={
-                <Home
-                  contacts={commonData.contacts || []}
-                  img={commonData.imgs || []}
-                  services={commonData.services || []}
-                  categories={commonData.categories || []}
-                  products={commonData.products || []}
-                  tags={commonData.tags || []}
-                />
-              }
-            />
-
-            <Route
-              path="/products"
-              element={
-                <Products
-                  products={commonData.products || []}
-                  categories={commonData.categories || []}
-                  tags={commonData.tags || []}
-                />
-              }
-            />
-
-            <Route
-              path="/cart"
-              element={<Cart categories={commonData.categories || []} />}
-            />
-
-            <Route
-              path="/checkout"
-              element={
-                <ProtectedRoute>
-                  <CheckoutPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage
-                    categories={commonData.categories}
-                    tags={commonData.tags}
+              <Route
+                path="/"
+                element={
+                  <Home
+                    contacts={commonData.contacts || []}
+                    img={commonData.imgs || []}
+                    services={commonData.services || []}
+                    categories={commonData.categories || []}
+                    products={commonData.products || []}
+                    tags={commonData.tags || []}
                   />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/seller/dashboard"
-              element={
-                <ProtectedRoute>
-                  <SellerDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute>
-                  <OrdersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders/:id"
-              element={
-                <ProtectedRoute>
-                  <OrderDetailsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/analytics"
-              element={
-                <ProtectedRoute>
-                  <AdminAnalytics />
-                </ProtectedRoute>
-              }
-            />
+                }
+              />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </main>
-    </div>
+              <Route
+                path="/products"
+                element={
+                  <Products
+                    products={commonData.products || []}
+                    categories={commonData.categories || []}
+                    tags={commonData.tags || []}
+                  />
+                }
+              />
+
+              <Route
+                path="/cart"
+                element={<Cart categories={commonData.categories || []} />}
+              />
+
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage
+                      categories={commonData.categories}
+                      tags={commonData.tags}
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/seller/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <SellerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <OrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <OrderDetailsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute>
+                    <AdminAnalytics />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+        {shouldShowNavbar && (
+          <Footer
+            contacts={commonData.contacts || []}
+            categories={commonData.categories || []}
+          />
+        )}
+      </div>
+    </ToastProvider>
   );
 }

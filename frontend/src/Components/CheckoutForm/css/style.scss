@@ -1,4 +1,5 @@
-/* src/Components/CheckoutForm/css/style.scss */
+/* src/Components/CheckoutForm/css/style.scss
+   Premium theme-aware checkout styles */
 
 #payment-form {
   display: flex;
@@ -7,15 +8,16 @@
 }
 
 .order-summary {
-  background: #f8f9fa;
+  background: var(--bg-card);
   padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
 
   h3 {
     margin: 0 0 1rem;
     font-size: 1.1rem;
-    color: #333;
+    color: var(--text-primary);
+    font-family: var(--font-family-display, "Playfair Display", serif);
   }
 
   .summary-item,
@@ -23,17 +25,17 @@
     display: flex;
     justify-content: space-between;
     font-size: 0.95rem;
-    color: #6c757d;
+    color: var(--text-secondary);
     margin-bottom: 0.5rem;
   }
 
   .summary-total {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--border-color);
     font-weight: 700;
     font-size: 1.1rem;
-    color: #1d1d1f;
+    color: var(--color-primary);
   }
 }
 
@@ -45,26 +47,28 @@
   label {
     font-weight: 600;
     font-size: 0.9rem;
-    color: #333;
+    color: var(--text-primary);
   }
 
   input,
   textarea {
     padding: 12px;
-    border: 1px solid #ced4da;
-    border-radius: 8px !important;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
     font-size: 1rem;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
     transition:
       border-color 0.2s,
       box-shadow 0.2s;
-    -webkit-border-radius: 8px !important;
-    -moz-border-radius: 8px !important;
-    -ms-border-radius: 8px !important;
-    -o-border-radius: 8px !important;
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
 
     &:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      border-color: var(--color-gold);
+      box-shadow: 0 0 0 2px var(--color-gold-alpha);
       outline: none;
     }
   }
@@ -72,34 +76,39 @@
 
 #card-element {
   padding: 14px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-elevated);
 }
 
 #submit-btn {
-  background-color: #007bff;
-  color: white;
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-deep));
+  color: #13150c;
   border: none;
   padding: 14px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  box-shadow: 0 8px 22px var(--color-gold-alpha);
+  transition:
+    filter 0.2s,
+    transform 0.15s ease,
+    box-shadow 0.2s;
 
   &:hover:not(:disabled) {
-    background-color: #0056b3;
+    filter: brightness(1.06);
+    transform: translateY(-1px);
   }
 
   &:disabled {
-    background-color: #aab7c4;
+    opacity: 0.6;
     cursor: not-allowed;
   }
 }
 
 #payment-message {
-  color: #fa755a;
+  color: #e06a5d;
   text-align: center;
   margin-top: 1rem;
   font-size: 0.9rem;
@@ -111,15 +120,16 @@
   padding: 2rem;
 
   h2 {
-    color: #28a745;
+    color: var(--color-success);
     margin-bottom: 1rem;
+    font-family: var(--font-family-display, "Playfair Display", serif);
   }
 
   p {
-    color: #6c757d;
+    color: var(--text-secondary);
   }
 }
 
 .empty-checkout h2 {
-  color: #dc3545;
+  color: var(--color-danger);
 }

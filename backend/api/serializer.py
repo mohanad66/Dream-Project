@@ -346,6 +346,48 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError("New passwords do not match.")
         return attrs
 
+
+class AdminSellerSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    product_count = serializers.IntegerField(source="products.count", read_only=True)
+
+    class Meta:
+        model = SellerProfile
+        fields = [
+            "id",
+            "username",
+            "email",
+            "business_name",
+            "business_description",
+            "contact_phone",
+            "contact_email",
+            "verification_status",
+            "verification_document",
+            "rejection_reason",
+            "commission_rate",
+            "stripe_onboarding_complete",
+            "is_active",
+            "product_count",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class SellerApprovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SellerProfile
+        fields = ["verification_status", "rejection_reason"]
+
+    def validate(self, attrs):
+        if attrs.get("verification_status") == SellerProfile.VerificationStatus.REJECTED and not attrs.get(
+            "rejection_reason"
+        ):
+            raise serializers.ValidationError(
+                {"rejection_reason": "Required when rejecting a seller."}
+            )
+        return attrs
+
     def validate_old_password(self, value):
         user = self.context["request"].user
         if not user.check_password(value):

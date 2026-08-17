@@ -1,5 +1,6 @@
 // src/Components/ThemeToggle/index.jsx
 import React from "react";
+import { Sun, Moon, Sparkles } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import "./ThemeToggle.scss";
 
@@ -23,7 +24,7 @@ const ThemeToggle = () => {
         <div className="theme-preview">
           <div className={`theme-option ${theme === "light" ? "active" : ""}`}>
             <div className="theme-option__visual light-theme">
-              <div className="sun-icon">☀️</div>
+              <Sun className="sun-icon" size={32} strokeWidth={1.5} />
               <div className="theme-dots">
                 <span></span>
                 <span></span>
@@ -38,11 +39,17 @@ const ThemeToggle = () => {
 
           <div className={`theme-option ${theme === "dark" ? "active" : ""}`}>
             <div className="theme-option__visual dark-theme">
-              <div className="moon-icon">🌙</div>
+              <Moon className="moon-icon" size={32} strokeWidth={1.5} />
               <div className="theme-stars">
-                <span>✦</span>
-                <span>✦</span>
-                <span>✦</span>
+                <span>
+                  <Sparkles size={14} strokeWidth={1.75} />
+                </span>
+                <span>
+                  <Sparkles size={14} strokeWidth={1.75} />
+                </span>
+                <span>
+                  <Sparkles size={14} strokeWidth={1.75} />
+                </span>
               </div>
             </div>
             <div className="theme-option__label">

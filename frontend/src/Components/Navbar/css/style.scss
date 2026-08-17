@@ -1,18 +1,7 @@
-// Performance-optimized styles
-// Using minimal animations and optimized properties
-
-// Variables
-$primary-color: #4361ee;
-$secondary-color: #7209b7;
-$accent-color: #f72585;
-$background-color: rgba(255, 255, 255, 0.95);
-$text-color: #333;
-$text-light: #666;
-
-// Minimal transitions
-$transition-fast:
-  transform 0.2s ease,
-  opacity 0.2s ease;
+// ============================================
+// DreamStore Premium Floating Navbar (bottom pill)
+// Dark-glass luxury bar with gold accents.
+// ============================================
 
 // Navbar Container
 .performant-navbar {
@@ -28,23 +17,32 @@ $transition-fast:
   pointer-events: none;
 }
 
-// Navbar Disc - Using simple box-shadow instead of complex gradients
+// Navbar Disc — premium dark glass
 .navbar-disc {
   position: relative;
-  background: $background-color;
-  border-radius: 25px;
-  padding: 12px;
+  background: rgba(11, 15, 23, 0.82);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-radius: 28px;
+  padding: 12px 16px;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(67, 97, 238, 0.1);
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(201, 162, 75, 0.22);
   pointer-events: auto;
-  max-width: 550px;
+  max-width: 700px;
   width: 100%;
-  border: 1px solid rgba(67, 97, 238, 0.1);
-  backdrop-filter: blur(8px); // Minimal blur for glass effect
-
-  // Will-change for better performance
   will-change: transform, box-shadow;
+
+  :root.light-theme & {
+    background: rgba(255, 255, 255, 0.86);
+    border-color: rgba(162, 124, 40, 0.25);
+    box-shadow:
+      0 12px 40px rgba(23, 24, 26, 0.18),
+      0 4px 12px rgba(23, 24, 26, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
 }
 
 // Navigation Items
@@ -55,6 +53,7 @@ $transition-fast:
   width: 100%;
   position: relative;
   z-index: 2;
+  gap: 2px;
 }
 
 // Navigation Links
@@ -63,32 +62,38 @@ $transition-fast:
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  color: $text-light;
-  padding: 8px 12px;
-  border-radius: 12px;
-  transition: $transition-fast;
-  min-width: 60px;
-
-  // Optimize for animation
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+  min-width: 64px;
   will-change: transform, background-color;
 
   &:hover {
-    color: $primary-color;
-    background: rgba(67, 97, 238, 0.08);
+    color: var(--text-primary);
+    background: rgba(201, 162, 75, 0.08);
     transform: translateY(-2px);
 
     .nav-icon {
-      color: $primary-color;
+      color: var(--color-gold);
       transform: scale(1.1);
     }
   }
 
   &.active {
-    color: $primary-color;
-    background: rgba(67, 97, 238, 0.12);
+    color: var(--text-primary);
+    background: linear-gradient(
+      135deg,
+      rgba(201, 162, 75, 0.18),
+      rgba(201, 162, 75, 0.08)
+    );
 
     .nav-icon {
-      color: $primary-color;
+      color: var(--color-gold);
+      filter: drop-shadow(0 0 6px rgba(201, 162, 75, 0.5));
       transform: scale(1.1);
     }
 
@@ -98,37 +103,39 @@ $transition-fast:
   }
 }
 
-// Navigation Icon - Using transform for performance
+// Navigation Icon
 .nav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   margin-bottom: 4px;
-  transition: $transition-fast;
-  color: $text-light;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+  color: var(--text-muted);
   will-change: transform, color;
 }
 
 // Navigation Label
 .nav-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
   text-align: center;
   white-space: nowrap;
+  color: inherit;
 }
 
-// Active Indicator - Simple element
+// Active Indicator — gold gradient bar
 .active-indicator {
   position: absolute;
-  bottom: 8px;
+  bottom: 6px;
   height: 2px;
-  background: $primary-color;
+  background: linear-gradient(90deg, var(--color-gold-deep), var(--color-gold));
   border-radius: 1px;
+  box-shadow: 0 0 8px rgba(201, 162, 75, 0.5);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
-
-  // Optimize transform animation
   will-change: transform;
 }
 
@@ -139,29 +146,34 @@ $transition-fast:
   align-items: center;
   background: none;
   border: none;
-  color: $text-light;
-  padding: 8px 12px;
-  border-radius: 12px;
-  transition: $transition-fast;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
   cursor: pointer;
-  min-width: 60px;
+  min-width: 64px;
   will-change: transform, background-color;
 
   &:hover {
-    color: $accent-color;
-    background: rgba(247, 37, 133, 0.08);
+    color: var(--color-danger);
+    background: rgba(224, 106, 93, 0.1);
     transform: translateY(-2px);
 
     .logout-icon {
-      color: $accent-color;
+      color: var(--color-danger);
       transform: scale(1.1);
     }
   }
 
   .logout-icon {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     margin-bottom: 4px;
-    transition: $transition-fast;
+    transition:
+      transform 0.2s ease,
+      color 0.2s ease;
     will-change: transform, color;
   }
 }
@@ -172,43 +184,53 @@ $transition-fast:
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  padding: 8px 12px;
-  border-radius: 12px;
-  transition: $transition-fast;
-  min-width: 65px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+  min-width: 68px;
   will-change: transform, background-color;
 
   &.nav-login {
-    color: $primary-color;
-    background: rgba(67, 97, 238, 0.08);
-    border: 1px solid rgba(67, 97, 238, 0.2);
+    color: var(--text-primary);
+    background: rgba(201, 162, 75, 0.08);
+    border: 1px solid rgba(201, 162, 75, 0.2);
 
     &:hover {
-      background: rgba(67, 97, 238, 0.15);
+      background: rgba(201, 162, 75, 0.16);
+      border-color: rgba(201, 162, 75, 0.4);
       transform: translateY(-2px);
     }
   }
 
   &.nav-register {
-    color: $secondary-color;
-    background: rgba(114, 9, 183, 0.08);
-    border: 1px solid rgba(114, 9, 183, 0.2);
+    color: #17180c;
+    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
+    border: 1px solid rgba(217, 185, 104, 0.6);
+    box-shadow: 0 4px 16px rgba(201, 162, 75, 0.3);
 
     &:hover {
-      background: rgba(114, 9, 183, 0.15);
+      filter: brightness(1.06);
       transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(201, 162, 75, 0.4);
+    }
+
+    :root.light-theme & {
+      color: #ffffff;
     }
   }
 
   .auth-icon {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     margin-bottom: 4px;
-    transition: $transition-fast;
+    transition: transform 0.2s ease;
     will-change: transform;
   }
 }
 
-// Responsive Design - Media queries last
+// Responsive Design
 @media (max-width: 768px) {
   .performant-navbar {
     padding: 0 15px;
@@ -216,24 +238,24 @@ $transition-fast:
 
   .navbar-disc {
     padding: 10px;
-    border-radius: 20px;
+    border-radius: 24px;
   }
 
   .nav-link,
   .nav-logout,
   .nav-auth {
     padding: 6px 10px;
-    min-width: 55px;
+    min-width: 58px;
   }
 
   .nav-icon,
   .logout-icon,
   .auth-icon {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
 
   .nav-label {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
   }
 }
 
@@ -246,19 +268,15 @@ $transition-fast:
     padding: 8px;
   }
 
-  .nav-items {
-    gap: 2px;
-  }
-
   .nav-link,
   .nav-logout,
   .nav-auth {
     padding: 6px 8px;
-    min-width: 50px;
+    min-width: 52px;
   }
 
   .nav-label {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
   }
 }
 
@@ -266,7 +284,7 @@ $transition-fast:
 .nav-link:focus,
 .nav-logout:focus,
 .nav-auth:focus {
-  outline: 2px solid $primary-color;
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
@@ -281,9 +299,5 @@ $transition-fast:
   .active-indicator {
     transition: none !important;
     animation: none !important;
-  }
-
-  .navbar-disc {
-    backdrop-filter: none;
   }
 }
