@@ -383,7 +383,6 @@ def create_public_list_view(
 ):
     @api_view(["GET"])
     @permission_classes([AllowAny])
-    @cache_api_response(timeout=600)  # Cache for 10 minutes
     def view_func(request):
         try:
             queryset = model.objects.all()

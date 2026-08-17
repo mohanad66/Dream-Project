@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "./constants";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = (import.meta.env.VITE_API_URL || "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app").replace(/\/api\/?$/, "");
 
 // State for handling concurrent token refreshes
 let isRefreshing = false;
@@ -96,7 +96,7 @@ api.interceptors.response.use(
         if (import.meta.env.DEV) console.log("🔑 [API] Refreshing token...");
 
         // Use a clean axios instance for the refresh call to avoid interceptor loops
-        const { data } = await axios.post(`${API_URL}/token/refresh/`, {
+        const { data } = await axios.post(`${API_URL}/api/token/refresh/`, {
           refresh: refreshToken,
         });
 
