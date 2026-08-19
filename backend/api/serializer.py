@@ -183,16 +183,24 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_effective_price(self, obj):
         from django.utils import timezone
+        from django.db.models import Q
+        now = timezone.now()
+        time_filter = Q(starts_at__isnull=True) | Q(starts_at__lte=now)
+        expiry_filter = Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        # 1) Product-specific active offer
         offer = SellerOffer.objects.filter(
             product=obj, is_active=True,
-            starts_at__lte=timezone.now(),
-            expires_at__gte=timezone.now(),
-        ).first()
+        ).filter(time_filter, expiry_filter).first()
+        # 2) Seller-wide offer (no product = applies to ALL seller products)
+        if not offer and obj.seller_id:
+            offer = SellerOffer.objects.filter(
+                seller_id=obj.seller_id,
+                product__isnull=True,
+                is_active=True,
+            ).filter(time_filter, expiry_filter).first()
         if offer and offer.discount_percent:
             discount = offer.discount_percent / 100
             return str(obj.price * (1 - discount))
-        if offer and offer.original_price and offer.original_price > 0:
-            return str(offer.original_price)
         return None
 
     def create(self, validated_data):

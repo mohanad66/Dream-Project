@@ -874,7 +874,8 @@ export default function SellerDashboard() {
                 type="number"
                 min="0"
                 max="100"
-                placeholder="e.g. 15"
+                placeholder="e.g. 20"
+                hint="Leave product empty above to apply to ALL your products"
                 value={offerForm.discount_percent}
                 onChange={(e) =>
                   setOfferForm({ ...offerForm, discount_percent: e.target.value })
