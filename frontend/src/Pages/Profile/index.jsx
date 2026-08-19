@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import SimpleThemeToggle from "../../Components/ThemeToggle/SimpleThemeToggle";
 import ThemeToggle from "../../Components/ThemeToggle/SimpleThemeToggle";
 import CarouselManagementSection from "./CarouselAdminTable/index.jsx";
+import { LayoutDashboard, Package, Users, Tags, MessageSquare, ShoppingCart, Store, ChevronRight } from "lucide-react";
 // Constants for better maintainability
 const USER_ROLES = {
   SUPER_ADMIN: "Super Admin",
@@ -530,6 +531,7 @@ export default function Profile({ categories: initialCategories = [] }) {
       fetchAllContacts();
       fetchAllTags();
       fetchAllOrders();
+      fetchAllSellers(1);
 
       if (isSuperuser) {
         fetchCarousel();
@@ -546,6 +548,7 @@ export default function Profile({ categories: initialCategories = [] }) {
     fetchAllContacts,
     fetchAllTags,
     fetchAllOrders,
+    fetchAllSellers,
     fetchCarousel,
     fetchAllUsers,
     fetchAllProducts,
@@ -920,6 +923,28 @@ export default function Profile({ categories: initialCategories = [] }) {
     }
   };
 
+  const handleSellerCommissionChange = async (id, commissionRate) => {
+    try {
+      await updateData(`/api/admins/sellers/${id}/`, {
+        commission_rate: commissionRate,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        allSellers: prev.allSellers.map((seller) =>
+          seller.id === id
+            ? { ...seller, commission_rate: commissionRate }
+            : seller,
+        ),
+      }));
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        error: "Failed to update seller commission rate.",
+      }));
+    }
+  };
+
   const handleUserStatusToggle = async (userId, currentStatus) => {
     try {
       await updateData(`/api/user/${userId}/`, { is_active: !currentStatus });
@@ -1276,6 +1301,7 @@ export default function Profile({ categories: initialCategories = [] }) {
             sellersPagination={sellersPagination}
             onRefreshSellers={fetchAllSellers}
             onSellerApproval={handleSellerApproval}
+            onCommissionChange={handleSellerCommissionChange}
           />
         )}
       </main>
@@ -1459,325 +1485,310 @@ const AdminTab = ({
   sellersPagination,
   onRefreshSellers,
   onSellerApproval,
-}) => (
+  onCommissionChange,
+}) => {
+  const [adminTab, setAdminTab] = useState("products");
+  const [adminSearch, setAdminSearch] = useState("");
+
+  const adminTabs = [
+    { id: "products", label: "Products", Icon: Package, count: allProductsPagination.count },
+    { id: "sellers", label: "Sellers", Icon: Store, count: sellersPagination.count },
+    { id: "orders", label: "Orders", Icon: ShoppingCart, count: ordersPagination?.count ?? 0 },
+    { id: "carousel", label: "Carousel", Icon: LayoutDashboard, count: carouselPagination?.count ?? 0 },
+    { id: "categories", label: "Categories", Icon: Tags, count: categoriesPagination.count },
+    { id: "contacts", label: "Contacts", Icon: MessageSquare, count: contactsPagination.count },
+    { id: "users", label: "Users", Icon: Users, count: usersPagination?.count ?? 0 },
+  ];
+
+  return (
   <section className="profile-content__section">
-    <div className="profile-content__header">
-      <h3>Admin Panel</h3>
-    </div>
-    {isSuperuser && (
-  <CarouselManagementSection
-    carouselItems={carouselItems}
-    carouselLoading={carouselLoading}
-    carouselPagination={carouselPagination}
-    onRefreshCarousel={onRefreshCarousel}
-    onOpenCarouselModal={onOpenCarouselModal}
-    onDeleteCarousel={onDeleteCarousel}
-    onToggleCarousel={onToggleCarousel}
-  />
-)}
-    {/* My Products Section
-    <div className="my-products-section">
-      <div className="profile-content__header">
-        <h4>My Products</h4>
-        <button
-          onClick={() => onRefreshProducts(1)}
-          className="button button--secondary"
-          disabled={productsLoading}
-        >
-          {productsLoading ? "Refreshing..." : "Refresh"}
-        </button>
+    <div className="admin-dashboard">
+      <div className="admin-dashboard__header">
+        <div className="admin-dashboard__title">
+          <LayoutDashboard size={24} />
+          <h3>Admin Dashboard</h3>
+        </div>
       </div>
 
-      {productsLoading ? (
-        <div className="loading-spinner" />
-      ) : myProducts.length > 0 ? (
-        <>
-          <ProductTable
-            products={myProducts}
-            onStatusToggle={onProductStatusToggle}
-            onEdit={onOpenModal}
-            onDelete={onDeleteProduct}
-          />
-          <PaginationControls
-            pagination={productsPagination}
-            onPageChange={onRefreshProducts}
-            loading={productsLoading}
-          />
-        </>
-      ) : (
-        <p>You have not created any products yet.</p>
+      {/* Quick Stats Row */}
+      {isSuperuser && (
+        <div className="admin-stats-row">
+          <div className="admin-stat-card">
+            <div className="admin-stat-card__icon"><Package size={20} /></div>
+            <div className="admin-stat-card__info">
+              <span className="admin-stat-card__value">{allProductsPagination.count}</span>
+              <span className="admin-stat-card__label">Products</span>
+            </div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-card__icon"><Store size={20} /></div>
+            <div className="admin-stat-card__info">
+              <span className="admin-stat-card__value">{sellersPagination.count}</span>
+              <span className="admin-stat-card__label">Sellers</span>
+            </div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-card__icon"><ShoppingCart size={20} /></div>
+            <div className="admin-stat-card__info">
+              <span className="admin-stat-card__value">{ordersPagination?.count ?? 0}</span>
+              <span className="admin-stat-card__label">Orders</span>
+            </div>
+          </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-card__icon"><Users size={20} /></div>
+            <div className="admin-stat-card__info">
+              <span className="admin-stat-card__value">{usersPagination?.count ?? 0}</span>
+              <span className="admin-stat-card__label">Users</span>
+            </div>
+          </div>
+        </div>
       )}
-    </div> */}
 
-    {/* All Products Section (Superuser Only) */}
-    {isSuperuser && (
-      <div className="all-products-section management-section">
-        <div className="profile-content__header">
-          <h4>All Products ({allProductsPagination.count})</h4>
+      {/* Tab Navigation */}
+      <div className="admin-tabs">
+        {adminTabs.filter(t => t.id !== "users" || isSuperuser).map((tab) => (
           <button
-            onClick={() => onRefreshAllProducts(1)}
-            className="button button--secondary"
-            disabled={allProductsLoading}
+            key={tab.id}
+            className={`admin-tabs__btn ${adminTab === tab.id ? "admin-tabs__btn--active" : ""}`}
+            onClick={() => { setAdminTab(tab.id); setAdminSearch(""); }}
           >
-            {allProductsLoading ? "Refreshing..." : "Refresh"}
+            <tab.Icon size={16} />
+            <span>{tab.label}</span>
+            {tab.count > 0 && <span className="admin-tabs__badge">{tab.count}</span>}
           </button>
-        </div>
+        ))}
+      </div>
 
-        {allProductsLoading ? (
-          <div className="loading-spinner" />
-        ) : allProducts.length > 0 ? (
-          <>
-            <AllProductsTable
-              products={allProducts}
-              allUsers={allUsers} // ← add this
-              onStatusToggle={onAllProductsStatusToggle}
-              onDelete={onDeleteAllProduct}
-              onReview={onProductApproval}
+      {/* Tab Content */}
+      <div className="admin-tab-content">
+
+        {/* Search Bar */}
+        {adminTab !== "carousel" && (
+          <div className="admin-search-bar">
+            <input
+              type="text"
+              className="admin-search-bar__input"
+              placeholder={`Search ${adminTab}...`}
+              value={adminSearch}
+              onChange={(e) => setAdminSearch(e.target.value)}
             />
-            <PaginationControls
-              pagination={allProductsPagination}
-              onPageChange={onRefreshAllProducts}
-              loading={allProductsLoading}
-            />
-          </>
-        ) : (
-          <p>No products found.</p>
+          </div>
         )}
-      </div>
-    )}
 
-    {/* Seller Approvals Section (Superuser Only) */}
-    {isSuperuser && (
-      <div className="seller-approvals-section management-section">
-        <div className="profile-content__header">
-          <h4>Seller Approvals ({sellersPagination.count})</h4>
-          <button
-            onClick={() => onRefreshSellers(1)}
-            className="button button--secondary"
-            disabled={sellersLoading}
-          >
-            {sellersLoading ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
-
-        {sellersLoading ? (
-          <div className="loading-spinner" />
-        ) : allSellers.length > 0 ? (
-          <>
-            <AdminSellersTable
-              sellers={allSellers}
-              onSellerApproval={onSellerApproval}
-            />
-            <PaginationControls
-              pagination={sellersPagination}
-              onPageChange={onRefreshSellers}
-              loading={sellersLoading}
-            />
-          </>
-        ) : (
-          <p>No sellers found.</p>
-        )}
-      </div>
-    )}
-
-    {/* Categories Section */}
-    <div className="category-management-section management-section">
-      <div className="profile-content__header">
-        <h4>Category Management ({categoriesPagination.count})</h4>
-        <button
-          onClick={() => onRefreshCategories(1)}
-          className="button button--secondary"
-          disabled={categoriesLoading}
-        >
-          {categoriesLoading ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
-
-      {categoriesLoading ? (
-        <div className="loading-spinner" />
-      ) : allCategories.length > 0 ? (
-        <>
-          <CategoryTable
-            categories={allCategories}
-            onStatusToggle={onCategoryStatusToggle}
-            onEdit={onOpenModal}
-            onDelete={onDeleteCategory}
-          />
-          <PaginationControls
-            pagination={categoriesPagination}
-            onPageChange={onRefreshCategories}
-            loading={categoriesLoading}
-          />
-        </>
-      ) : (
-        <p>No categories found.</p>
-      )}
-    </div>
-
-    {/* Contacts Section */}
-    <div className="contact-management-section management-section">
-      <div className="profile-content__header">
-        <h4>Contact Management ({contactsPagination.count})</h4>
-        <button
-          onClick={() => onRefreshContacts(1)}
-          className="button button--secondary"
-          disabled={contactsLoading}
-        >
-          {contactsLoading ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
-
-      {contactsLoading ? (
-        <div className="loading-spinner" />
-      ) : allContacts.length > 0 ? (
-        <>
-          <ContactTable
-            contacts={allContacts}
-            onStatusToggle={onContactStatusToggle}
-            onEdit={onOpenModal}
-            onDelete={onDeleteContact}
-          />
-          <PaginationControls
-            pagination={contactsPagination}
-            onPageChange={onRefreshContacts}
-            loading={contactsLoading}
-          />
-        </>
-      ) : (
-        <p>No contacts found.</p>
-      )}
-    </div>
-
-    {/* Tags Section */}
-    <div className="tag-management-section management-section">
-      <div className="profile-content__header">
-        <h4>Tag Management ({tagsPagination?.count ?? 0})</h4>
-        <button
-          onClick={() => onRefreshTags(1)}
-          className="button button--secondary"
-          disabled={tagsLoading}
-        >
-          {tagsLoading ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
-
-      {tagsLoading ? (
-        <div className="loading-spinner" />
-      ) : (allTags?.length ?? 0) > 0 ? (
-        <>
-          <TagTable
-            tags={allTags}
-            onEdit={onOpenModal}
-            onDelete={onDeleteTag}
-          />
-          {tagsPagination && (
-            <PaginationControls
-              pagination={tagsPagination}
-              onPageChange={onRefreshTags}
-              loading={tagsLoading}
-            />
-          )}
-        </>
-      ) : (
-        <p>No tags found.</p>
-      )}
-    </div>
-
-    {/* User Management (Super Admin only) */}
-    {isSuperuser && (
-      <div className="user-management-section management-section">
-        <div className="profile-content__header">
-          <h4>User Management ({usersPagination?.count || 0})</h4>
-        </div>
-
-        {adminLoading ? (
-          <div className="loading-spinner" />
-        ) : allUsers.length > 0 ? (
-          <>
-            <UserTable
-              users={allUsers}
-              currentUserId={user.id}
-              onStatusToggle={onUserStatusToggle}
-              onDelete={onDeleteUser}
-            />
-            {usersPagination && (
-              <PaginationControls
-                pagination={usersPagination}
-                onPageChange={onRefreshUsers}
-                loading={adminLoading}
-              />
+        {/* === PRODUCTS TAB === */}
+        {adminTab === "products" && isSuperuser && (() => {
+          const q = adminSearch.toLowerCase();
+          const filtered = q ? allProducts.filter(p => (p.name || "").toLowerCase().includes(q) || (p.seller_name || "").toLowerCase().includes(q)) : allProducts;
+          return (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <Package size={18} />
+                <h4>All Products</h4>
+                <span className="admin-section-header__count">{filtered.length}</span>
+              </div>
+              <div className="admin-section-header__right">
+                <button onClick={() => onRefreshAllProducts(1)} className="button button--small button--secondary" disabled={allProductsLoading}>
+                  {allProductsLoading ? "Refreshing..." : "Refresh"}
+                </button>
+                <button className="button button--small button--primary" onClick={() => onOpenModal("Product")}>Add Product</button>
+              </div>
+            </div>
+            {allProductsLoading ? (
+              <div className="loading-spinner" />
+            ) : filtered.length > 0 ? (
+              <>
+                <AllProductsTable products={filtered} allUsers={allUsers} onStatusToggle={onAllProductsStatusToggle} onDelete={onDeleteAllProduct} onReview={onProductApproval} />
+                {!q && <PaginationControls pagination={allProductsPagination} onPageChange={onRefreshAllProducts} loading={allProductsLoading} />}
+              </>
+            ) : (
+              <div className="admin-empty-state">No products found.</div>
             )}
-          </>
-        ) : (
-          <p>No users found.</p>
-        )}
-      </div>
-    )}
-    <div className="orders-management-section management-section">
-      <div className="profile-content__header">
-        <h4>Order Management ({ordersPagination?.count ?? 0})</h4>
-        <button
-          onClick={() => onRefreshOrders(1)}
-          className="button button--secondary"
-          disabled={ordersLoading}
-        >
-          {ordersLoading ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
+          </div>
+          );
+        })()}
 
-      {ordersLoading ? (
-        <div className="loading-spinner" />
-      ) : allOrders.length > 0 ? (
-        <>
-          <OrderTable
-            orders={allOrders}
-            users={allUsers}
-            onStatusChange={onOrderStatusChange}
-          />
-          <PaginationControls
-            pagination={ordersPagination}
-            onPageChange={onRefreshOrders}
-            loading={ordersLoading}
-          />
-        </>
-      ) : (
-        <p>No orders found.</p>
-      )}
-    </div>
-    {/* Content Management Actions */}
-    <div className="management-section">
-      <div className="profile-content__header">
-        <h4>Content Management</h4>
-      </div>
-      <div className="management-actions">
-        <button
-          className="button button--primary"
-          onClick={() => onOpenModal("Product")}
-        >
-          Add New Product
-        </button>
-        <button
-          className="button button--primary"
-          onClick={() => onOpenModal("Category")}
-        >
-          Add New Category
-        </button>
-        <button
-          className="button button--primary"
-          onClick={() => onOpenModal("Contact")}
-        >
-          Add New Contact
-        </button>
-        <button
-          className="button button--primary"
-          onClick={() => onOpenModal("Tag")}
-        >
-          Add New Tag
-        </button>
+        {/* === SELLERS TAB === */}
+        {adminTab === "sellers" && isSuperuser && (() => {
+          const q = adminSearch.toLowerCase();
+          const filtered = q ? allSellers.filter(s => (s.business_name || "").toLowerCase().includes(q) || (s.contact_email || "").toLowerCase().includes(q)) : allSellers;
+          return (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <Store size={18} />
+                <h4>Seller Approvals</h4>
+                <span className="admin-section-header__count">{filtered.length}</span>
+              </div>
+              <button onClick={() => onRefreshSellers(1)} className="button button--small button--secondary" disabled={sellersLoading}>
+                {sellersLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+            {sellersLoading ? (
+              <div className="loading-spinner" />
+            ) : filtered.length > 0 ? (
+              <>
+                <AdminSellersTable sellers={filtered} onSellerApproval={onSellerApproval} onCommissionChange={onCommissionChange} />
+                {!q && <PaginationControls pagination={sellersPagination} onPageChange={onRefreshSellers} loading={sellersLoading} />}
+              </>
+            ) : (
+              <div className="admin-empty-state">No sellers found.</div>
+            )}
+          </div>
+          );
+        })()}
+
+        {/* === ORDERS TAB === */}
+        {adminTab === "orders" && (() => {
+          const q = adminSearch.toLowerCase();
+          const filtered = q ? allOrders.filter(o => String(o.id).includes(q) || (o.owner_detail?.username || "").toLowerCase().includes(q) || (o.status || "").toLowerCase().includes(q)) : allOrders;
+          return (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <ShoppingCart size={18} />
+                <h4>Order Management</h4>
+                <span className="admin-section-header__count">{filtered.length}</span>
+              </div>
+              <button onClick={() => onRefreshOrders(1)} className="button button--small button--secondary" disabled={ordersLoading}>
+                {ordersLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+            {ordersLoading ? (
+              <div className="loading-spinner" />
+            ) : filtered.length > 0 ? (
+              <>
+                <OrderTable orders={filtered} users={allUsers} onStatusChange={onOrderStatusChange} />
+                {!q && <PaginationControls pagination={ordersPagination} onPageChange={onRefreshOrders} loading={ordersLoading} />}
+              </>
+            ) : (
+              <div className="admin-empty-state">No orders found.</div>
+            )}
+          </div>
+          );
+        })()}
+
+        {/* === CAROUSEL TAB === */}
+        {adminTab === "carousel" && isSuperuser && (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <LayoutDashboard size={18} />
+                <h4>Carousel Management</h4>
+              </div>
+            </div>
+            <CarouselManagementSection
+              carouselItems={carouselItems}
+              carouselLoading={carouselLoading}
+              carouselPagination={carouselPagination}
+              onRefreshCarousel={onRefreshCarousel}
+              onOpenCarouselModal={onOpenCarouselModal}
+              onDeleteCarousel={onDeleteCarousel}
+              onToggleCarousel={onToggleCarousel}
+            />
+          </div>
+        )}
+
+        {/* === CATEGORIES TAB === */}
+        {adminTab === "categories" && (() => {
+          const q = adminSearch.toLowerCase();
+          const filtered = q ? allCategories.filter(c => (c.name || "").toLowerCase().includes(q)) : allCategories;
+          return (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <Tags size={18} />
+                <h4>Category Management</h4>
+                <span className="admin-section-header__count">{filtered.length}</span>
+              </div>
+              <div className="admin-section-header__right">
+                <button onClick={() => onRefreshCategories(1)} className="button button--small button--secondary" disabled={categoriesLoading}>
+                  {categoriesLoading ? "Refreshing..." : "Refresh"}
+                </button>
+                <button className="button button--small button--primary" onClick={() => onOpenModal("Category")}>Add Category</button>
+              </div>
+            </div>
+            {categoriesLoading ? (
+              <div className="loading-spinner" />
+            ) : filtered.length > 0 ? (
+              <>
+                <CategoryTable categories={filtered} onStatusToggle={onCategoryStatusToggle} onEdit={onOpenModal} onDelete={onDeleteCategory} />
+                {!q && <PaginationControls pagination={categoriesPagination} onPageChange={onRefreshCategories} loading={categoriesLoading} />}
+              </>
+            ) : (
+              <div className="admin-empty-state">No categories found.</div>
+            )}
+          </div>
+          );
+        })()}
+
+        {/* === CONTACTS TAB === */}
+        {adminTab === "contacts" && (() => {
+          const q = adminSearch.toLowerCase();
+          const filtered = q ? allContacts.filter(c => (c.name || "").toLowerCase().includes(q) || (c.value || "").toLowerCase().includes(q)) : allContacts;
+          return (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <MessageSquare size={18} />
+                <h4>Contact Management</h4>
+                <span className="admin-section-header__count">{filtered.length}</span>
+              </div>
+              <div className="admin-section-header__right">
+                <button onClick={() => onRefreshContacts(1)} className="button button--small button--secondary" disabled={contactsLoading}>
+                  {contactsLoading ? "Refreshing..." : "Refresh"}
+                </button>
+                <button className="button button--small button--primary" onClick={() => onOpenModal("Contact")}>Add Contact</button>
+              </div>
+            </div>
+            {contactsLoading ? (
+              <div className="loading-spinner" />
+            ) : filtered.length > 0 ? (
+              <>
+                <ContactTable contacts={filtered} onStatusToggle={onContactStatusToggle} onEdit={onOpenModal} onDelete={onDeleteContact} />
+                {!q && <PaginationControls pagination={contactsPagination} onPageChange={onRefreshContacts} loading={contactsLoading} />}
+              </>
+            ) : (
+              <div className="admin-empty-state">No contacts found.</div>
+            )}
+          </div>
+          );
+        })()}
+
+        {/* === USERS TAB (Super Admin only) === */}
+        {adminTab === "users" && isSuperuser && (() => {
+          const q = adminSearch.toLowerCase();
+          const filtered = q ? allUsers.filter(u => (u.username || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q) || (u.first_name || "").toLowerCase().includes(q)) : allUsers;
+          return (
+          <div className="management-section admin-panel-section">
+            <div className="admin-section-header">
+              <div className="admin-section-header__left">
+                <Users size={18} />
+                <h4>User Management</h4>
+                <span className="admin-section-header__count">{filtered.length}</span>
+              </div>
+            </div>
+            {adminLoading ? (
+              <div className="loading-spinner" />
+            ) : filtered.length > 0 ? (
+              <>
+                <UserTable users={filtered} currentUserId={user.id} onStatusToggle={onUserStatusToggle} onDelete={onDeleteUser} />
+                {!q && usersPagination && (
+                  <PaginationControls pagination={usersPagination} onPageChange={onRefreshUsers} loading={adminLoading} />
+                )}
+              </>
+            ) : (
+              <div className="admin-empty-state">No users found.</div>
+            )}
+          </div>
+          );
+        })()}
+
       </div>
     </div>
   </section>
-);
+  );
+};
 
 // Table Components
 const OrderTable = ({ users = [], orders, onStatusChange }) => (
@@ -1800,7 +1811,7 @@ const OrderTable = ({ users = [], orders, onStatusChange }) => (
         <span>
           {order.items?.length ?? 0} item{order.items?.length !== 1 ? "s" : ""}
         </span>
-        <span>{parseFloat(order.total_price || 0).toFixed(2)} EGP</span>
+        <span>{parseFloat(order.total_price || 0).toFixed(2)} L.E</span>
         <span className={`status-pill status-pill--${order.status}`}>
           {order.status}
         </span>
@@ -1967,7 +1978,24 @@ const AllProductsTable = ({
   );
 };
 
-const AdminSellersTable = ({ sellers, onSellerApproval }) => {
+const AdminSellersTable = ({ sellers, onSellerApproval, onCommissionChange }) => {
+  const [editingCommission, setEditingCommission] = useState(null);
+  const [commissionValue, setCommissionValue] = useState("");
+
+  const startEditCommission = (seller) => {
+    setEditingCommission(seller.id);
+    setCommissionValue(seller.commission_rate ?? "");
+  };
+
+  const saveCommission = async (sellerId) => {
+    const val = parseFloat(commissionValue);
+    if (isNaN(val) || val < 0 || val > 100) {
+      return;
+    }
+    await onCommissionChange(sellerId, val);
+    setEditingCommission(null);
+  };
+
   return (
     <div className="seller-table table">
       <div className="seller-table__header table__header">
@@ -1975,6 +2003,7 @@ const AdminSellersTable = ({ sellers, onSellerApproval }) => {
         <span>Email</span>
         <span>Phone</span>
         <span>Status</span>
+        <span>Commission %</span>
         <span>Products</span>
         <span>Actions</span>
       </div>
@@ -1988,6 +2017,46 @@ const AdminSellersTable = ({ sellers, onSellerApproval }) => {
             className={`status-pill status-pill--${seller.verification_status || "pending"}`}
           >
             {(seller.verification_status || "pending").toUpperCase()}
+          </span>
+          <span>
+            {editingCommission === seller.id ? (
+              <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={commissionValue}
+                  onChange={(e) => setCommissionValue(e.target.value)}
+                  style={{ width: 64, padding: "2px 4px", fontSize: 12 }}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveCommission(seller.id);
+                    if (e.key === "Escape") setEditingCommission(null);
+                  }}
+                />
+                <button
+                  className="button button--small button--primary"
+                  onClick={() => saveCommission(seller.id)}
+                >
+                  Save
+                </button>
+                <button
+                  className="button button--small button--secondary"
+                  onClick={() => setEditingCommission(null)}
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <span
+                style={{ cursor: "pointer", textDecoration: "underline dotted" }}
+                onClick={() => startEditCommission(seller)}
+                title="Click to edit commission rate"
+              >
+                {seller.commission_rate != null ? `${parseFloat(seller.commission_rate).toFixed(2)}%` : "Default"}
+              </span>
+            )}
           </span>
           <span>{seller.product_count}</span>
           <div className="actions">

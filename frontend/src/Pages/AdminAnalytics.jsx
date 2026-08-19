@@ -49,6 +49,8 @@ import {
   Clock,
   XCircle,
   AlertTriangle,
+  Tag,
+  Users2,
 } from "lucide-react";
 
 import "../css/Analytics.scss";
@@ -235,6 +237,11 @@ const AdminAnalytics = () => {
   const [days, setDays] = useState(30);
   const [activeTab, setActiveTab] = useState("overview");
   const [theme, setTheme] = useState(getSiteTheme);
+  const [sellerEarnings, setSellerEarnings] = useState({ earnings: [], summary: {} });
+  const [coupons, setCoupons] = useState([]);
+  const [couponForm, setCouponForm] = useState({ code: "", discount_type: "percentage", discount_value: "", min_order_amount: "", max_discount_amount: "", max_uses_total: "", expires_at: "" });
+  const [globalCommissionRate, setGlobalCommissionRate] = useState("");
+  const [savingCommission, setSavingCommission] = useState(false);
 
   useEffect(() => {
     const obs = new MutationObserver(() => setTheme(getSiteTheme()));
@@ -329,6 +336,115 @@ const AdminAnalytics = () => {
   useEffect(() => {
     fetchAnalyticsData();
   }, [fetchAnalyticsData]);
+
+  const fetchSellerEarnings = async () => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      const res = await fetch("/api/admins/sellers/earnings/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setSellerEarnings(await res.json());
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchCoupons = async () => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      const res = await fetch("/api/admins/coupons/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setCoupons(data.results || data);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleCreateCoupon = async () => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      const res = await fetch("/api/admins/coupons/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          code: couponForm.code,
+          discount_type: couponForm.discount_type,
+          discount_value: parseFloat(couponForm.discount_value),
+          min_order_amount: couponForm.min_order_amount ? parseFloat(couponForm.min_order_amount) : null,
+          max_discount_amount: couponForm.max_discount_amount ? parseFloat(couponForm.max_discount_amount) : null,
+          max_uses_total: couponForm.max_uses_total ? parseInt(couponForm.max_uses_total) : null,
+          expires_at: couponForm.expires_at || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Coupon create error:", err);
+        alert("Failed to create coupon: " + JSON.stringify(err));
+        return;
+      }
+      setCouponForm({ code: "", discount_type: "percentage", discount_value: "", min_order_amount: "", max_discount_amount: "", max_uses_total: "", expires_at: "" });
+      fetchCoupons();
+    } catch (e) { console.error(e); }
+  };
+
+  const toggleCouponActive = async (id, isActive) => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      await fetch(`/api/admins/coupons/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ is_active: !isActive }),
+      });
+      fetchCoupons();
+    } catch (e) { console.error(e); }
+  };
+
+  const deleteCoupon = async (id) => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      await fetch(`/api/admins/coupons/${id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchCoupons();
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchPlatformSettings = async () => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      const res = await fetch("/api/admins/commission/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGlobalCommissionRate(data.default_commission_rate ?? "");
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleSaveGlobalCommission = async () => {
+    const val = parseFloat(globalCommissionRate);
+    if (isNaN(val) || val < 0 || val > 100) return;
+    setSavingCommission(true);
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      const res = await fetch("/api/admins/commission/", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ default_commission_rate: val }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGlobalCommissionRate(data.default_commission_rate ?? val);
+      }
+    } catch (e) { console.error(e); }
+    setSavingCommission(false);
+  };
+
+  useEffect(() => {
+    fetchSellerEarnings();
+    fetchCoupons();
+    fetchPlatformSettings();
+  }, []);
 
   /* ── Derived metrics ── */
   const totalRevenue = useMemo(
@@ -532,6 +648,8 @@ const AdminAnalytics = () => {
     { id: "revenue", label: "Revenue", Icon: TrendingUp },
     { id: "products", label: "Products", Icon: Package },
     { id: "customers", label: "Customers", Icon: Users },
+    { id: "commission", label: "Commission & Sellers", Icon: DollarSign },
+    { id: "coupons", label: "Coupons", Icon: Tag },
     { id: "operations", label: "Operations", Icon: Settings2 },
     { id: "tables", label: "Raw Data", Icon: Table2 },
   ];
@@ -654,7 +772,7 @@ const AdminAnalytics = () => {
             >
               <KPICard
                 label="Gross Revenue"
-                value={`$${totalRevenue.toFixed(2)}`}
+                value={`L.E ${totalRevenue.toFixed(2)}`}
                 sub="Before costs"
                 accent={TOKEN.primary}
                 icon={<DollarSign size={18} color="#22c55e" />}
@@ -668,7 +786,7 @@ const AdminAnalytics = () => {
               />
               <KPICard
                 label="Avg Order Value"
-                value={`$${avgOrderValue.toFixed(2)}`}
+                value={`L.E ${avgOrderValue.toFixed(2)}`}
                 sub="Per transaction"
                 accent={TOKEN.warning}
                 icon={<TrendingUp size={18} color="#f59e0b" />}
@@ -717,10 +835,10 @@ const AdminAnalytics = () => {
                       tick={{ fill: t.text, fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => `L.E ${v}`}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <Area
                       type="monotone"
@@ -842,10 +960,10 @@ const AdminAnalytics = () => {
                       tick={{ fill: t.text, fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => `L.E ${v}`}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <Bar dataKey="revenue" name="Revenue" radius={[6, 6, 0, 0]}>
                       {revenueByDow.map((_, i) => (
@@ -873,7 +991,7 @@ const AdminAnalytics = () => {
             >
               <KPICard
                 label="Gross Revenue"
-                value={`$${totalRevenue.toFixed(2)}`}
+                value={`L.E ${totalRevenue.toFixed(2)}`}
                 sub="Before costs"
                 accent={TOKEN.primary}
                 icon={<DollarSign size={18} color="#22c55e" />}
@@ -887,7 +1005,7 @@ const AdminAnalytics = () => {
               />
               <KPICard
                 label="Avg Order Value"
-                value={`$${avgOrderValue.toFixed(2)}`}
+                value={`L.E ${avgOrderValue.toFixed(2)}`}
                 sub="Per transaction"
                 accent={TOKEN.warning}
                 icon={<TrendingUp size={18} color="#f59e0b" />}
@@ -919,7 +1037,7 @@ const AdminAnalytics = () => {
                     tick={{ fill: t.text, fontSize: 10 }}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => `$${v}`}
+                    tickFormatter={(v) => `L.E ${v}`}
                   />
                   <YAxis
                     yAxisId="right"
@@ -927,10 +1045,10 @@ const AdminAnalytics = () => {
                     tick={{ fill: t.text, fontSize: 10 }}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => `$${v}`}
+                    tickFormatter={(v) => `L.E ${v}`}
                   />
                   <Tooltip
-                    content={<CustomTooltip prefix="$" theme={theme} />}
+                    content={<CustomTooltip prefix="L.E " theme={theme} />}
                   />
                   <Legend />
                   <Bar
@@ -976,10 +1094,10 @@ const AdminAnalytics = () => {
                       tick={{ fill: t.text, fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => `L.E ${v}`}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <ReferenceLine
                       y={avgOrderValue}
@@ -1015,10 +1133,10 @@ const AdminAnalytics = () => {
                       tick={{ fill: t.text, fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => `L.E ${v}`}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <Legend />
                     <Bar
@@ -1114,7 +1232,7 @@ const AdminAnalytics = () => {
                       tick={{ fill: t.text, fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => `L.E ${v}`}
                     />
                     <YAxis
                       type="category"
@@ -1125,7 +1243,7 @@ const AdminAnalytics = () => {
                       axisLine={false}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <Legend />
                     <Bar
@@ -1165,7 +1283,7 @@ const AdminAnalytics = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -1189,7 +1307,7 @@ const AdminAnalytics = () => {
                     tick={{ fill: t.text, fontSize: 10 }}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => `$${v}`}
+                    tickFormatter={(v) => `L.E ${v}`}
                   />
                   <YAxis
                     yAxisId="right"
@@ -1200,7 +1318,7 @@ const AdminAnalytics = () => {
                     tickFormatter={(v) => `${v}%`}
                   />
                   <Tooltip
-                    content={<CustomTooltip prefix="$" theme={theme} />}
+                    content={<CustomTooltip prefix="L.E " theme={theme} />}
                   />
                   <Legend />
                   <Bar
@@ -1266,7 +1384,7 @@ const AdminAnalytics = () => {
                     tickLine={false}
                     axisLine={false}
                     label={{
-                      value: "Price ($)",
+                      value: "Price (L.E)",
                       angle: -90,
                       position: "insideLeft",
                       fill: t.text,
@@ -1275,7 +1393,7 @@ const AdminAnalytics = () => {
                   />
                   <Tooltip
                     cursor={{ strokeDasharray: "3 3" }}
-                    content={<CustomTooltip prefix="$" theme={theme} />}
+                    content={<CustomTooltip prefix="L.E " theme={theme} />}
                   />
                   <Scatter
                     data={productRevenue}
@@ -1306,7 +1424,7 @@ const AdminAnalytics = () => {
               />
               <KPICard
                 label="Top Buyer Spend"
-                value={`$${topBuyers[0]?.totalSpent?.toFixed(2) || 0}`}
+                value={`L.E ${topBuyers[0]?.totalSpent?.toFixed(2) || 0}`}
                 sub={topBuyers[0]?.username || "—"}
                 accent={TOKEN.primary}
                 icon={<Trophy size={18} color="#eab308" />}
@@ -1343,7 +1461,7 @@ const AdminAnalytics = () => {
                       tick={{ fill: t.text, fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(v) => `$${v}`}
+                      tickFormatter={(v) => `L.E ${v}`}
                     />
                     <YAxis
                       type="category"
@@ -1354,7 +1472,7 @@ const AdminAnalytics = () => {
                       axisLine={false}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <Bar
                       dataKey="spent"
@@ -1399,7 +1517,7 @@ const AdminAnalytics = () => {
                       tickLine={false}
                       axisLine={false}
                       label={{
-                        value: "Spent ($)",
+                        value: "Spent (L.E)",
                         angle: -90,
                         position: "insideLeft",
                         fill: t.text,
@@ -1407,7 +1525,7 @@ const AdminAnalytics = () => {
                       }}
                     />
                     <Tooltip
-                      content={<CustomTooltip prefix="$" theme={theme} />}
+                      content={<CustomTooltip prefix="L.E " theme={theme} />}
                     />
                     <Scatter
                       data={buyerSpend}
@@ -1698,10 +1816,10 @@ const AdminAnalytics = () => {
                           </td>
                           <td className="cell-strong">{b.username}</td>
                           <td className="cell-green">
-                            ${b.totalSpent.toFixed(2)}
+                            L.E {b.totalSpent.toFixed(2)}
                           </td>
                           <td className="cell-center">{b.orderCount}</td>
-                          <td>${(b.totalSpent / b.orderCount).toFixed(2)}</td>
+                          <td>L.E {(b.totalSpent / b.orderCount).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1740,11 +1858,11 @@ const AdminAnalytics = () => {
                           </td>
                           <td className="cell-strong">{s.name}</td>
                           <td className="cell-green">
-                            ${s.totalRevenue.toFixed(2)}
+                            L.E {s.totalRevenue.toFixed(2)}
                           </td>
                           <td className="cell-center">{s.itemsSold}</td>
                           <td className="cell-center">{s.ordersCount}</td>
-                          <td>${(s.totalRevenue / s.itemsSold).toFixed(2)}</td>
+                          <td>L.E {(s.totalRevenue / s.itemsSold).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1790,7 +1908,7 @@ const AdminAnalytics = () => {
                                 "N/A"}
                             </td>
                             <td className="cell-green">
-                              ${parseFloat(order.total || 0).toFixed(2)}
+                              L.E {parseFloat(order.total || 0).toFixed(2)}
                             </td>
                             <td>
                               <span
@@ -1899,9 +2017,9 @@ const AdminAnalytics = () => {
                               <span className="rank-number">{i + 1}</span>
                             </td>
                             <td className="cell-strong">{p.name}</td>
-                            <td>${parseFloat(p.price).toFixed(2)}</td>
+                            <td>L.E {parseFloat(p.price).toFixed(2)}</td>
                             <td className="cell-center">{p.total_sold}</td>
-                            <td className="cell-green">${rev.toFixed(2)}</td>
+                            <td className="cell-green">L.E {rev.toFixed(2)}</td>
                             <td className="cell-accent">
                               {margin !== "—" ? `${margin}%` : "—"}
                             </td>
@@ -1945,9 +2063,9 @@ const AdminAnalytics = () => {
                           <td className="cell-strong">{p.username}</td>
                           <td>{p.product_name}</td>
                           <td className="cell-center">{p.quantity}</td>
-                          <td>${parseFloat(p.unit_price).toFixed(2)}</td>
+                          <td>L.E {parseFloat(p.unit_price).toFixed(2)}</td>
                           <td className="cell-green">
-                            ${parseFloat(p.subtotal).toFixed(2)}
+                            L.E {parseFloat(p.subtotal).toFixed(2)}
                           </td>
                           <td className="cell-date">
                             {new Date(p.order_date).toLocaleDateString()}
@@ -1959,6 +2077,345 @@ const AdminAnalytics = () => {
                 </div>
               ) : (
                 <p className="empty-state">No purchases in this period</p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════
+            COMMISSION & SELLERS TAB
+        ══════════════════════════════════════════ */}
+        {activeTab === "commission" && (
+          <>
+            {/* KPI Row */}
+            <div
+              className="analytics-stats-row"
+              style={{ gridTemplateColumns: "repeat(3,1fr)" }}
+            >
+              <KPICard
+                label="Total Revenue (30d)"
+                value={`L.E ${parseFloat(sellerEarnings.summary?.total_revenue_30d || 0).toFixed(2)}`}
+                sub="All seller revenue"
+                accent={TOKEN.primary}
+                icon={<DollarSign size={18} color="var(--color-success, #22c55e)" />}
+              />
+              <KPICard
+                label="Platform Commission (30d)"
+                value={`L.E ${parseFloat(sellerEarnings.summary?.total_commission_30d || 0).toFixed(2)}`}
+                sub="Commission earned"
+                accent={TOKEN.warning}
+                icon={<DollarSign size={18} color="var(--color-gold, #c9a24b)" />}
+              />
+              <KPICard
+                label="Active Sellers"
+                value={sellerEarnings.earnings?.length || 0}
+                sub="Registered sellers"
+                accent={TOKEN.success}
+                icon={<Users2 size={18} color="var(--color-info, #3b82f6)" />}
+              />
+            </div>
+
+            {/* Summary bar */}
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                padding: "14px 20px",
+                borderRadius: 10,
+                background: "var(--bg-card, rgba(255,255,255,0.04))",
+                border: "1px solid var(--border-color)",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                Total Revenue: <span style={{ color: TOKEN.primary }}>L.E {parseFloat(sellerEarnings.summary?.total_revenue_30d || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                Platform Commission: <span style={{ color: TOKEN.warning }}>L.E {parseFloat(sellerEarnings.summary?.total_commission_30d || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                Total Payouts: <span style={{ color: TOKEN.success }}>L.E {(parseFloat(sellerEarnings.summary?.total_revenue_30d || 0) - parseFloat(sellerEarnings.summary?.total_commission_30d || 0)).toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Global Commission Rate Editor */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "14px 20px",
+                borderRadius: 10,
+                background: "var(--bg-card, rgba(255,255,255,0.04))",
+                border: "1px solid var(--border-color)",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Default Commission Rate:</span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={globalCommissionRate}
+                onChange={(e) => setGlobalCommissionRate(e.target.value)}
+                style={{ width: 80, padding: "4px 8px", fontSize: 13 }}
+              />
+              <span style={{ fontSize: 13 }}>%</span>
+              <button
+                className="button button--small button--primary"
+                onClick={handleSaveGlobalCommission}
+                disabled={savingCommission}
+              >
+                {savingCommission ? "Saving..." : "Save"}
+              </button>
+            </div>
+
+            {/* Sellers Table */}
+            <div className="analytics-section">
+              <div className="section-header">
+                <h2>
+                  Seller Earnings{" "}
+                  <span className="badge">{sellerEarnings.earnings?.length || 0}</span>
+                </h2>
+              </div>
+              {sellerEarnings.earnings?.length > 0 ? (
+                <div className="table-wrapper">
+                  <table className="analytics-table">
+                    <thead>
+                      <tr>
+                        <th>Seller</th>
+                        <th>Delivery Type</th>
+                        <th>Commission Rate</th>
+                        <th>Revenue (30d)</th>
+                        <th>Commission (30d)</th>
+                        <th>Payout Amount</th>
+                        <th>Orders</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sellerEarnings.earnings.map((s, i) => (
+                        <tr key={s.seller_id || i}>
+                          <td className="cell-strong">{s.business_name || s.name || "—"}</td>
+                          <td className="cell-center">{s.delivery_type || "—"}</td>
+                          <td className="cell-accent">{s.commission_rate != null ? `${parseFloat(s.commission_rate).toFixed(1)}%` : "—"}</td>
+                          <td className="cell-green">L.E {parseFloat(s.total_revenue_30d || 0).toFixed(2)}</td>
+                          <td className="cell-green">L.E {parseFloat(s.total_commission_30d || 0).toFixed(2)}</td>
+                          <td>L.E {parseFloat(s.seller_payout_30d || 0).toFixed(2)}</td>
+                          <td className="cell-center">{s.total_orders_30d || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="empty-state">No seller earnings data available</p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════
+            COUPONS TAB
+        ══════════════════════════════════════════ */}
+        {activeTab === "coupons" && (
+          <>
+            {/* Create Coupon Form */}
+            <div className="analytics-section">
+              <div className="section-header">
+                <h2>Create Coupon</h2>
+              </div>
+              <div style={{ padding: "20px 20px 12px" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: 12,
+                    marginBottom: 16,
+                  }}
+                >
+                  {[
+                    { label: "Code", key: "code", type: "text", placeholder: "e.g. SUMMER25" },
+                    { label: "Discount Type", key: "discount_type", type: "select", options: [
+                      { value: "percentage", label: "Percentage (%)" },
+                      { value: "fixed", label: "Fixed Amount" },
+                    ]},
+                    { label: "Discount Value", key: "discount_value", type: "number", placeholder: "e.g. 25" },
+                    { label: "Min Order Amount", key: "min_order_amount", type: "number", placeholder: "Optional" },
+                    { label: "Max Discount Amount", key: "max_discount_amount", type: "number", placeholder: "Optional" },
+                    { label: "Max Total Uses", key: "max_uses_total", type: "number", placeholder: "Unlimited" },
+                    { label: "Expiry Date", key: "expires_at", type: "datetime-local" },
+                  ].map((field) => (
+                    <div key={field.key}>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--text-muted)",
+                          marginBottom: 4,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        {field.label}
+                      </label>
+                      {field.type === "select" ? (
+                        <select
+                          value={couponForm[field.key]}
+                          onChange={(e) =>
+                            setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(255,255,255,0.06)",
+                            color: "var(--text-color)",
+                            fontSize: 13,
+                            outline: "none",
+                          }}
+                        >
+                          {field.options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type}
+                          value={couponForm[field.key]}
+                          placeholder={field.placeholder}
+                          onChange={(e) =>
+                            setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))
+                          }
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(255,255,255,0.06)",
+                            color: "var(--text-color)",
+                            fontSize: 13,
+                            outline: "none",
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={handleCreateCoupon}
+                  disabled={!couponForm.code || !couponForm.discount_value}
+                  style={{
+                    padding: "8px 20px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: TOKEN.warning,
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: couponForm.code && couponForm.discount_value ? "pointer" : "not-allowed",
+                    opacity: couponForm.code && couponForm.discount_value ? 1 : 0.5,
+                  }}
+                >
+                  Create Coupon
+                </button>
+              </div>
+            </div>
+
+            {/* Coupons Table */}
+            <div className="analytics-section">
+              <div className="section-header">
+                <h2>
+                  Existing Coupons{" "}
+                  <span className="badge">{coupons.length}</span>
+                </h2>
+              </div>
+              {coupons.length > 0 ? (
+                <div className="table-wrapper">
+                  <table className="analytics-table">
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Uses / Max</th>
+                        <th>Active</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {coupons.map((c) => (
+                        <tr key={c.id}>
+                          <td className="cell-accent" style={{ fontWeight: 700, letterSpacing: "0.04em" }}>
+                            {c.code}
+                          </td>
+                          <td className="cell-center">
+                            <span
+                              style={{
+                                padding: "2px 10px",
+                                borderRadius: 20,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                background: c.discount_type === "percentage" ? "rgba(59,130,246,0.12)" : "rgba(16,185,129,0.12)",
+                                color: c.discount_type === "percentage" ? TOKEN.primary : TOKEN.success,
+                              }}
+                            >
+                              {c.discount_type === "percentage" ? "Percentage" : "Fixed"}
+                            </span>
+                          </td>
+                          <td className="cell-green">
+                            {c.discount_type === "percentage" ? `${c.discount_value}%` : `L.E ${parseFloat(c.discount_value).toFixed(2)}`}
+                          </td>
+                          <td className="cell-center">
+                            {c.times_used || 0} / {c.max_uses_total ?? "∞"}
+                          </td>
+                          <td>
+                            <button
+                              onClick={() => toggleCouponActive(c.id, c.is_active)}
+                              style={{
+                                padding: "4px 12px",
+                                borderRadius: 20,
+                                border: "none",
+                                fontSize: 11,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                background: c.is_active ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
+                                color: c.is_active ? TOKEN.success : TOKEN.danger,
+                              }}
+                            >
+                              {c.is_active ? "Active" : "Inactive"}
+                            </button>
+                          </td>
+                          <td className="cell-date">
+                            {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
+                          </td>
+                          <td>
+                            <button
+                              onClick={() => deleteCoupon(c.id)}
+                              style={{
+                                padding: "4px 12px",
+                                borderRadius: 8,
+                                border: "1px solid rgba(239,68,68,0.3)",
+                                background: "rgba(239,68,68,0.08)",
+                                color: TOKEN.danger,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="empty-state">No coupons created yet</p>
               )}
             </div>
           </>

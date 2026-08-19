@@ -76,18 +76,25 @@ class SellerUpgradeSerializer(serializers.ModelSerializer):
 
 class SellerProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
+    user_username = serializers.CharField(source="user.username", read_only=True)
  
     class Meta:
         model = SellerProfile
         fields = [
             "id",
             "email",
+            "user_username",
             "business_name",
             "business_description",
             "contact_phone",
             "contact_email",
             "verification_status",
             "rejection_reason",
+            "avatar",
+            "cover_image",
+            "bio",
+            "delivery_type",
+            "commission_rate",
             "stripe_onboarding_complete",
             "stripe_payouts_enabled",
             "is_active",
@@ -149,6 +156,8 @@ class ProductSerializer(serializers.ModelSerializer):
         required=False
     )
     seller_name = serializers.CharField(source="seller.business_name", read_only=True)
+    seller_avatar = serializers.ImageField(source="seller.avatar", read_only=True, default="")
+    effective_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -157,6 +166,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "price",
+            "effective_price",
             "image",
             "gallery_images",
             "uploaded_images",
@@ -165,10 +175,25 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_active",
             "seller",
             "seller_name",
-            "approval_status",   # <-- add
-            "rejection_reason"
+            "seller_avatar",
+            "approval_status",
+            "rejection_reason",
         ]
-        read_only_fields = ["seller", "seller_name", "approval_status", "rejection_reason"]  # <-- add the last two
+        read_only_fields = ["seller", "seller_name", "seller_avatar", "approval_status", "rejection_reason"]
+
+    def get_effective_price(self, obj):
+        from django.utils import timezone
+        offer = SellerOffer.objects.filter(
+            product=obj, is_active=True,
+            starts_at__lte=timezone.now(),
+            expires_at__gte=timezone.now(),
+        ).first()
+        if offer and offer.discount_percent:
+            discount = offer.discount_percent / 100
+            return str(obj.price * (1 - discount))
+        if offer and offer.original_price and offer.original_price > 0:
+            return str(offer.original_price)
+        return None
 
     def create(self, validated_data):
         # Extract extra data
@@ -347,6 +372,148 @@ class PasswordChangeSerializer(serializers.Serializer):
         return attrs
 
 
+class CouponSerializer(serializers.ModelSerializer):
+    is_valid_coupon = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Coupon
+        fields = [
+            "id", "code", "discount_type", "discount_value",
+            "min_order_amount", "max_discount_amount",
+            "max_uses_total", "max_uses_per_user", "times_used",
+            "is_active", "starts_at", "expires_at", "created_at",
+            "is_valid_coupon",
+        ]
+        read_only_fields = ["times_used", "created_at"]
+
+    def get_is_valid_coupon(self, obj):
+        user = self.context.get("request", None)
+        user_obj = user.user if user else None
+        valid, _ = obj.is_valid(user=user_obj)
+        return valid
+
+
+class CouponValidateSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=32)
+    order_total = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+
+    def validate_code(self, value):
+        try:
+            coupon = Coupon.objects.get(code__iexact=value)
+        except Coupon.DoesNotExist:
+            raise serializers.ValidationError("Invalid coupon code.")
+        return coupon
+
+
+class SellerOfferSerializer(serializers.ModelSerializer):
+    seller_name = serializers.CharField(source="seller.business_name", read_only=True)
+    seller_avatar = serializers.ImageField(source="seller.avatar", read_only=True)
+
+    class Meta:
+        model = SellerOffer
+        fields = [
+            "id", "seller", "seller_name", "seller_avatar",
+            "title", "description", "offer_type", "product",
+            "discount_percent", "original_price", "image",
+            "is_active", "starts_at", "expires_at", "created_at",
+        ]
+        read_only_fields = ["seller", "created_at"]
+
+    def validate(self, attrs):
+        offer_type = attrs.get("offer_type", self.instance and self.instance.offer_type)
+        if offer_type in ("product", "promotion") and not attrs.get("product") and not (self.instance and self.instance.product):
+            pass  # Allow product to be optional for promotions
+        return attrs
+
+
+class SellerPublicProfileSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    product_count = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SellerProfile
+        fields = [
+            "id", "user_username", "business_name", "business_description",
+            "avatar", "cover_image", "bio", "delivery_type",
+            "created_at", "product_count", "average_rating",
+        ]
+
+    def get_product_count(self, obj):
+        return obj.products.filter(is_active=True, approval_status="approved").count()
+
+    def get_average_rating(self, obj):
+        return None
+
+
+class SellerDeliveryUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SellerProfile
+        fields = ["delivery_type"]
+
+    def validate_delivery_type(self, value):
+        if value not in ("platform", "seller"):
+            raise serializers.ValidationError("Must be 'platform' or 'seller'.")
+        return value
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField()
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    owner_name = serializers.CharField(read_only=True)
+    coupons_applied = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = [
+            "id", "owner", "status", "shipping_address", "note",
+            "delivery_type", "subtotal_before_discount", "discount_amount",
+            "total_commission", "total_price", "owner_name",
+            "items", "coupons_applied", "created_at", "updated_at",
+        ]
+        read_only_fields = ["owner", "subtotal_before_discount", "discount_amount", "total_commission"]
+
+    def get_items(self, obj):
+        from .models import OrderItem
+        items = OrderItem.objects.filter(order=obj).select_related("product")
+        return OrderItemSerializer(items, many=True).data
+
+    def get_coupons_applied(self, obj):
+        from .models import OrderCoupon
+        order_coupons = OrderCoupon.objects.filter(order=obj).select_related("coupon")
+        return [
+            {
+                "code": oc.coupon.code,
+                "discount_amount": str(oc.discount_amount),
+            }
+            for oc in order_coupons
+        ]
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = [
+            "id", "product", "product_name", "quantity",
+            "unit_price", "subtotal", "platform_fee", "seller_payout",
+        ]
+
+
+class SellerPayoutSerializer(serializers.ModelSerializer):
+    seller_name = serializers.CharField(source="seller.business_name", read_only=True)
+
+    class Meta:
+        model = SellerPayoutRecord
+        fields = [
+            "id", "seller", "seller_name", "order",
+            "gross_amount", "commission_amount", "net_amount",
+            "delivery_type", "status", "created_at", "paid_at",
+        ]
+        read_only_fields = ["created_at"]
+
+
 class AdminSellerSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     email = serializers.EmailField(source="user.email", read_only=True)
@@ -375,9 +542,11 @@ class AdminSellerSerializer(serializers.ModelSerializer):
 
 
 class SellerApprovalSerializer(serializers.ModelSerializer):
+    commission_rate = serializers.DecimalField(max_digits=5, decimal_places=2, required=False)
+
     class Meta:
         model = SellerProfile
-        fields = ["verification_status", "rejection_reason"]
+        fields = ["verification_status", "rejection_reason", "commission_rate"]
 
     def validate(self, attrs):
         if attrs.get("verification_status") == SellerProfile.VerificationStatus.REJECTED and not attrs.get(

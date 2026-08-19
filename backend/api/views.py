@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from datetime import timedelta
 import stripe
 from django.conf import settings
@@ -684,66 +685,80 @@ get_product = ProductSearchView.as_view()
 
 class CreateOrderView(APIView):
     """
-    Called by frontend after stripe.confirmCardPayment succeeds.
-    Receives the stripe payment_intent_id, looks up the Payment record,
-    and creates the Order + OrderItems.
+    Creates an Order + OrderItems.
+    - Stripe card: receives payment_intent_id to link existing Payment.
+    - Paymob / Fawry / COD: creates order directly, payment handled separately.
     """
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         payment_intent_id = request.data.get("payment_intent_id")
+        payment_method = request.data.get("payment_method", "card")
         order_items = request.data.get(
             "order_items", []
         )  # [{id, name, price, quantity}]
         shipping_address = request.data.get("shipping_address", "")
         note = request.data.get("note", "")
+        coupon_code = request.data.get("coupon_code")
+        discount_amount = request.data.get("discount_amount", 0)
 
-        if not payment_intent_id:
-            return Response({"error": "payment_intent_id is required"}, status=400)
+        # Stripe card flow: require payment_intent_id
+        if payment_method == "card" and not payment_intent_id:
+            return Response({"error": "payment_intent_id required for card"}, status=400)
 
-        # Look up the payment
-        try:
-            payment = Payment.objects.get(
-                stripe_payment_id=payment_intent_id, owner=request.user
-            )
-        except Payment.DoesNotExist:
-            return Response({"error": "Payment not found"}, status=404)
-
-        # Prevent duplicate orders
-        if hasattr(payment, "order"):
-            return Response(
-                OrderSerializer(payment.order).data, status=status.HTTP_200_OK
-            )
-
-        # Verify payment succeeded with Stripe before creating order
-        try:
-            intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-            if intent["status"] != "succeeded":
-                return Response(
-                    {"error": f"Payment not completed. Status: {intent['status']}"},
-                    status=400,
+        # Look up payment if Stripe
+        payment = None
+        if payment_intent_id:
+            try:
+                payment = Payment.objects.get(
+                    stripe_payment_id=payment_intent_id, owner=request.user
                 )
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe retrieve error: {str(e)}")
-            return Response(
-                {"error": "Could not verify payment with Stripe"}, status=400
-            )
+            except Payment.DoesNotExist:
+                return Response({"error": "Payment not found"}, status=404)
 
-        # Update payment status
-        payment.status = Payment.Status.SUCCESS
-        payment.save(update_fields=["status"])
+            if hasattr(payment, "order"):
+                return Response(
+                    OrderSerializer(payment.order).data, status=status.HTTP_200_OK
+                )
 
-        # Create order
+            try:
+                intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+                if intent["status"] != "succeeded":
+                    return Response(
+                        {"error": f"Payment not completed. Status: {intent['status']}"},
+                        status=400,
+                    )
+            except stripe.error.StripeError as e:
+                logger.error(f"Stripe retrieve error: {str(e)}")
+                return Response(
+                    {"error": "Could not verify payment with Stripe"}, status=400
+                )
+
+        # Create the order
         order = Order.objects.create(
             owner=request.user,
-            payment=payment,
+            status="confirmed",
             shipping_address=shipping_address,
             note=note,
-            status=Order.Status.CONFIRMED,
+            discount_amount=Decimal(str(discount_amount or 0)),
         )
 
-        # Create order items — snapshot price at time of purchase
+        # Apply coupon if provided
+        if coupon_code and discount_amount:
+            try:
+                coupon = Coupon.objects.get(code__iexact=coupon_code)
+                OrderCoupon.objects.create(
+                    order=order,
+                    coupon=coupon,
+                    discount_amount=Decimal(str(discount_amount)),
+                )
+                coupon.times_used += 1
+                coupon.save(update_fields=["times_used"])
+            except Coupon.DoesNotExist:
+                pass
+
+        # Create order items
         for item_data in order_items:
             try:
                 product = Product.objects.get(pk=item_data["id"])
@@ -751,13 +766,29 @@ class CreateOrderView(APIView):
                     order=order,
                     product=product,
                     quantity=int(item_data.get("quantity", 1)),
-                    unit_price=product.price,  # Always use DB price, never trust frontend
+                    unit_price=product.price,
                 )
             except Product.DoesNotExist:
                 logger.warning(
                     f"Product {item_data.get('id')} not found during order creation"
                 )
                 continue
+
+        # Calculate commission
+        total_commission = Decimal("0")
+        for item in order.items.select_related("product__seller").all():
+            if item.product and item.product.seller:
+                total_commission += item.platform_fee
+        order.total_commission = total_commission
+        order.subtotal_before_discount = sum(i.subtotal for i in order.items.all())
+        order.save(update_fields=["total_commission", "subtotal_before_discount"])
+
+        # Link payment if Stripe
+        if payment:
+            payment.status = Payment.Status.SUCCESS
+            payment.save(update_fields=["status"])
+            order.payment = payment
+            order.save(update_fields=["payment"])
 
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -1254,3 +1285,287 @@ class SellerStripeReturnView(APIView):
             return Response({"status": "success"})
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+
+# ===============================================
+# COUPON VIEWS
+# ===============================================
+
+class CouponValidateView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        code = request.data.get("code", "").strip()
+        order_total = request.data.get("order_total")
+
+        if not code:
+            return Response({"error": "Coupon code is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            coupon = Coupon.objects.get(code__iexact=code)
+        except Coupon.DoesNotExist:
+            return Response({"error": "Invalid coupon code."}, status=status.HTTP_404_NOT_FOUND)
+
+        order_total_dec = None
+        if order_total:
+            try:
+                order_total_dec = Decimal(str(order_total))
+            except Exception:
+                return Response({"error": "Invalid order total."}, status=status.HTTP_400_BAD_REQUEST)
+
+        valid, message = coupon.is_valid(user=request.user, order_total=order_total_dec)
+        if not valid:
+            return Response({"error": message, "valid": False}, status=status.HTTP_400_BAD_REQUEST)
+
+        if order_total_dec:
+            discount = coupon.calculate_discount(order_total_dec)
+        else:
+            discount = None
+
+        return Response({
+            "valid": True,
+            "code": coupon.code,
+            "discount_type": coupon.discount_type,
+            "discount_value": str(coupon.discount_value),
+            "calculated_discount": str(discount) if discount else None,
+            "message": message,
+        })
+
+
+class CouponApplyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        code = request.data.get("code", "").strip()
+        order_id = request.data.get("order_id")
+
+        if not code or not order_id:
+            return Response({"error": "Code and order_id required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            coupon = Coupon.objects.get(code__iexact=code)
+            order = Order.objects.get(pk=order_id, owner=request.user)
+        except (Coupon.DoesNotExist, Order.DoesNotExist):
+            return Response({"error": "Invalid coupon or order."}, status=status.HTTP_404_NOT_FOUND)
+
+        valid, message = coupon.is_valid(user=request.user, order_total=order.total_before_discount)
+        if not valid:
+            return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+
+        discount = coupon.calculate_discount(order.total_before_discount)
+
+        OrderCoupon.objects.create(
+            order=order,
+            coupon=coupon,
+            discount_amount=discount,
+        )
+
+        order.discount_amount = sum(
+            oc.discount_amount for oc in order.coupons_applied.all()
+        )
+        order.subtotal_before_discount = order.total_before_discount
+        order.save()
+
+        coupon.times_used += 1
+        coupon.save(update_fields=["times_used"])
+
+        return Response({
+            "success": True,
+            "discount_amount": str(discount),
+            "new_total": str(order.total_price),
+        })
+
+
+# ===============================================
+# SELLER PUBLIC PROFILE (YouTube-style)
+# ===============================================
+
+class SellerPublicProfileView(generics.RetrieveAPIView):
+    queryset = SellerProfile.objects.select_related("user")
+    serializer_class = SellerPublicProfileSerializer
+    permission_classes = [AllowAny]
+    lookup_field = "pk"
+
+    def retrieve(self, request, *args, **kwargs):
+        seller = self.get_object()
+        serializer = self.get_serializer(seller)
+
+        products = Product.objects.filter(
+            seller=seller, is_active=True, approval_status="approved"
+        ).select_related("category").prefetch_related("tags", "gallery_images")
+
+        from django.core.paginator import Paginator
+        product_page = request.query_params.get("products_page", 1)
+        paginator = Paginator(products, 12)
+        product_data = ProductSerializer(
+            paginator.get_page(product_page), many=True, context={"is_admin": request.user.is_staff if request.user.is_authenticated else False}
+        ).data
+
+        offers = SellerOffer.objects.filter(
+            seller=seller, is_active=True
+        )
+        from django.utils import timezone
+        now = timezone.now()
+        offers = offers.filter(
+            Q(starts_at__isnull=True) | Q(starts_at__lte=now)
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        )
+
+        return Response({
+            "seller": serializer.data,
+            "products": product_data,
+            "products_count": paginator.count,
+            "products_pages": paginator.num_pages,
+            "offers": SellerOfferSerializer(offers[:20], many=True).data,
+        })
+
+
+# ===============================================
+# SELLER OFFERS CRUD
+# ===============================================
+
+class SellerOfferListCreateView(generics.ListCreateAPIView):
+    serializer_class = SellerOfferSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        seller = getattr(self.request.user, "seller_profile", None)
+        if not seller:
+            return SellerOffer.objects.none()
+        return SellerOffer.objects.filter(seller=seller).order_by("-created_at")
+
+    def perform_create(self, serializer):
+        seller = self.request.user.seller_profile
+        serializer.save(seller=seller)
+
+
+class SellerOfferDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SellerOfferSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        seller = getattr(self.request.user, "seller_profile", None)
+        if not seller:
+            return SellerOffer.objects.none()
+        return SellerOffer.objects.filter(seller=seller)
+
+
+# ===============================================
+# SELLER DELIVERY TYPE UPDATE
+# ===============================================
+
+class SellerDeliveryUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        seller = getattr(request.user, "seller_profile", None)
+        if not seller:
+            return Response({"error": "No seller profile found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SellerDeliveryUpdateSerializer(seller, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+# ===============================================
+# ADMIN COUPON MANAGEMENT
+# ===============================================
+
+class AdminCouponViewSet(viewsets.ModelViewSet):
+    queryset = Coupon.objects.all().order_by("-created_at")
+    serializer_class = CouponSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = StandardResultsSetPagination
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+# ===============================================
+# ADMIN COMMISSION & EARNINGS
+# ===============================================
+
+class PlatformSettingsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        ps = PlatformSettings.get_solo()
+        return Response({
+            "default_commission_rate": str(ps.default_commission_rate),
+            "auto_approve_products": ps.auto_approve_products,
+            "auto_approve_sellers": ps.auto_approve_sellers,
+        })
+
+    def patch(self, request):
+        ps = PlatformSettings.get_solo()
+        for field in ["default_commission_rate", "auto_approve_products", "auto_approve_sellers"]:
+            if field in request.data:
+                setattr(ps, field, request.data[field])
+        ps.save()
+        return Response({
+            "default_commission_rate": str(ps.default_commission_rate),
+            "auto_approve_products": ps.auto_approve_products,
+            "auto_approve_sellers": ps.auto_approve_sellers,
+        })
+
+
+class AdminSellerEarningsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        from django.db.models import Sum
+        from django.utils import timezone
+        from datetime import timedelta
+
+        now = timezone.now()
+        last_30_days = now - timedelta(days=30)
+        last_7_days = now - timedelta(days=7)
+
+        sellers = SellerProfile.objects.filter(
+            verification_status="approved"
+        ).select_related("user")
+
+        earnings = []
+        for seller in sellers:
+            items = OrderItem.objects.filter(
+                product__seller=seller,
+                order__created_at__gte=last_30_days,
+                order__status__in=["confirmed", "processing", "shipped", "delivered"],
+            )
+            weekly_items = items.filter(order__created_at__gte=last_7_days)
+
+            total_revenue_30d = items.aggregate(total=Sum("subtotal"))["total"] or 0
+            total_commission_30d = items.aggregate(total=Sum("platform_fee"))["total"] or 0
+            total_revenue_7d = weekly_items.aggregate(total=Sum("subtotal"))["total"] or 0
+            total_orders = items.values("order").distinct().count()
+
+            earnings.append({
+                "seller_id": seller.id,
+                "business_name": seller.business_name,
+                "username": seller.user.username,
+                "delivery_type": seller.delivery_type,
+                "commission_rate": str(seller.effective_commission_rate()),
+                "total_revenue_30d": str(total_revenue_30d),
+                "total_commission_30d": str(total_commission_30d),
+                "total_revenue_7d": str(total_revenue_7d),
+                "total_orders_30d": total_orders,
+                "seller_payout_30d": str(total_revenue_30d - total_commission_30d),
+            })
+
+        total_platform_commission = sum(
+            Decimal(e["total_commission_30d"]) for e in earnings
+        )
+        total_revenue = sum(
+            Decimal(e["total_revenue_30d"]) for e in earnings
+        )
+
+        return Response({
+            "earnings": earnings,
+            "summary": {
+                "total_revenue_30d": str(total_revenue),
+                "total_commission_30d": str(total_platform_commission),
+                "active_sellers": len(earnings),
+            },
+        })

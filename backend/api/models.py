@@ -20,6 +20,210 @@ class ApprovalStatus(models.TextChoices):
 
 
 
+class Coupon(models.Model):
+    class DiscountType(models.TextChoices):
+        FIXED = "fixed", "Fixed Amount"
+        PERCENTAGE = "percentage", "Percentage"
+
+    code = models.CharField(max_length=32, unique=True, db_index=True)
+    discount_type = models.CharField(
+        max_length=10,
+        choices=DiscountType.choices,
+        default=DiscountType.PERCENTAGE,
+    )
+    discount_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Fixed amount or percentage (max 100 for percentage)",
+    )
+    min_order_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Minimum order total to apply this coupon. Leave blank for no minimum.",
+    )
+    max_discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Max discount cap for percentage coupons. Leave blank for unlimited.",
+    )
+    max_uses_total = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Total number of times this coupon can be used. Leave blank for unlimited.",
+    )
+    max_uses_per_user = models.PositiveIntegerField(
+        default=1,
+        help_text="Max times a single user can use this coupon.",
+    )
+    times_used = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_coupons",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.code} ({self.get_discount_type_display()} {self.discount_value})"
+
+    def is_valid(self, user=None, order_total=None):
+        from django.utils import timezone
+        now = timezone.now()
+
+        if not self.is_active:
+            return False, "Coupon is inactive."
+        if self.starts_at and now < self.starts_at:
+            return False, "Coupon is not yet active."
+        if self.expires_at and now > self.expires_at:
+            return False, "Coupon has expired."
+        if self.max_uses_total is not None and self.times_used >= self.max_uses_total:
+            return False, "Coupon usage limit reached."
+        if user and user.is_authenticated:
+            from django.db.models import Count
+            uses = OrderCoupon.objects.filter(coupon=self, order__owner=user).count()
+            if uses >= self.max_uses_per_user:
+                return False, "You have already used this coupon."
+        if order_total is not None and self.min_order_amount is not None:
+            if order_total < self.min_order_amount:
+                return False, f"Minimum order amount is ${self.min_order_amount}."
+        return True, "Valid."
+
+    def calculate_discount(self, subtotal):
+        if self.discount_type == self.DiscountType.FIXED:
+            return min(self.discount_value, subtotal)
+        else:
+            discount = (subtotal * self.discount_value) / Decimal("100.00")
+            if self.max_discount_amount:
+                discount = min(discount, self.max_discount_amount)
+            return discount.quantize(Decimal("0.01"))
+
+
+class SellerOffer(models.Model):
+    class OfferType(models.TextChoices):
+        PRODUCT = "product", "Product Offer"
+        ANNOUNCEMENT = "announcement", "Announcement"
+        PROMOTION = "promotion", "Promotion"
+
+    seller = models.ForeignKey(
+        "SellerProfile",
+        on_delete=models.CASCADE,
+        related_name="offers",
+    )
+    title = models.CharField(max_length=150)
+    description = models.TextField(max_length=500, blank=True)
+    offer_type = models.CharField(
+        max_length=16,
+        choices=OfferType.choices,
+        default=OfferType.PROMOTION,
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="offers",
+        help_text="Link to a specific product (optional for announcements).",
+    )
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.01")), MaxValueValidator(Decimal("100"))],
+        help_text="Discount percentage (0-100). Optional.",
+    )
+    original_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Show original price struck-through. Optional.",
+    )
+    image = models.ImageField(upload_to="offers/", blank=True)
+    is_active = models.BooleanField(default=True)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_offer_type_display()}) - {self.seller}"
+
+
+class OrderCoupon(models.Model):
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="coupons_applied",
+    )
+    coupon = models.ForeignKey(
+        Coupon,
+        on_delete=models.CASCADE,
+    )
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["order", "coupon"]
+
+    def __str__(self):
+        return f"{self.coupon.code} on Order #{self.order_id} (-${self.discount_amount})"
+
+
+class SellerPayoutRecord(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        FAILED = "failed", "Failed"
+
+    seller = models.ForeignKey(
+        "SellerProfile",
+        on_delete=models.CASCADE,
+        related_name="payout_records",
+    )
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="seller_payouts",
+    )
+    gross_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    commission_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    net_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    delivery_type = models.CharField(
+        max_length=10,
+        choices=[("platform", "Platform"), ("seller", "Seller")],
+        default="platform",
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Payout for Order #{self.order_id} to {self.seller.business_name}"
+
+
 class SellerProfile(models.Model):
     """
     One-to-one extension of User for sellers. Chosen over a plain
@@ -78,6 +282,16 @@ class SellerProfile(models.Model):
         help_text="Platform admin can suspend a seller without deleting their account.",
     )
  
+    delivery_type = models.CharField(
+        max_length=10,
+        choices=[("platform", "Platform Delivery"), ("seller", "Self Delivery")],
+        default="platform",
+        help_text="Platform: platform handles delivery, takes commission per sale. Seller: seller delivers, pays commission upfront.",
+    )
+    avatar = models.ImageField(upload_to="seller_avatars/", blank=True)
+    cover_image = models.ImageField(upload_to="seller_covers/", blank=True)
+    bio = models.TextField(max_length=500, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
  
@@ -652,8 +866,16 @@ class Payment(models.Model):
         FAILED = "failed", "Failed"
         REFUNDED = "refunded", "Refunded"
 
+    class Method(models.TextChoices):
+        STRIPE = "stripe", "Stripe"
+        PAYMOB = "paymob", "Paymob"
+        FAWRY = "fawry", "Fawry"
+        CASH = "cash", "Cash on Delivery"
+
+    method = models.CharField(max_length=16, choices=Method.choices, default=Method.STRIPE)
+    provider_payment_id = models.CharField(max_length=255, blank=True, db_index=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=10, default="usd")
+    currency = models.CharField(max_length=10, default="EGP")
     stripe_payment_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     user_email = models.EmailField()
@@ -672,6 +894,9 @@ class Payment(models.Model):
         null=True,
         help_text="PaymentIntent client_secret — sent to frontend only, never logged",
     )
+    raw_response = models.JSONField(
+        blank=True, null=True, help_text="Raw response from payment provider"
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -680,10 +905,11 @@ class Payment(models.Model):
             models.Index(fields=["owner", "-created_at"]),
             models.Index(fields=["status"]),
             models.Index(fields=["stripe_payment_id"]),
+            models.Index(fields=["provider_payment_id"]),
         ]
 
     def __str__(self):
-        return f"Payment {self.stripe_payment_id} — {self.get_status_display()} — {self.amount} {self.currency.upper()}"
+        return f"Payment {self.provider_payment_id or self.stripe_payment_id} — {self.get_status_display()} — {self.amount} {self.currency.upper()}"
 
     @property
     def is_successful(self):
@@ -722,6 +948,23 @@ class Order(models.Model):
     )
     shipping_address = models.TextField(blank=True)
     note = models.TextField(blank=True)
+    delivery_type = models.CharField(
+        max_length=10,
+        choices=[("platform", "Platform"), ("seller", "Seller")],
+        default="platform",
+    )
+    subtotal_before_discount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Total before coupon discount.",
+    )
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Total coupon discount applied.",
+    )
+    total_commission = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Platform commission earned from this order.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -733,11 +976,15 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        # Use owner_name property to display string instead of ID
         return f"Order #{self.pk} — {self.owner_name()} — {self.get_status_display()}"
 
     @property
     def total_price(self):
+        items_total = sum(item.subtotal for item in self.items.all())
+        return items_total - self.discount_amount
+
+    @property
+    def total_before_discount(self):
         return sum(item.subtotal for item in self.items.all())
 
     def owner_name(self):
@@ -769,14 +1016,15 @@ class OrderItem(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        self.subtotal = self.unit_price * self.quantity  # Keep in sync on save
+        self.subtotal = self.unit_price * self.quantity
         
-        # Calculate commission if product is associated with a seller
         if self.product and self.product.seller:
-            commission_rate = self.product.seller.effective_commission_rate()
-            # Calculate fee as (subtotal * commission_rate / 100)
-            fee = (self.subtotal * commission_rate) / Decimal('100.00')
-            self.platform_fee = fee.quantize(Decimal('0.01'))
+            seller = self.product.seller
+            commission_rate = seller.effective_commission_rate()
+            if seller.delivery_type == "seller":
+                commission_rate = commission_rate * Decimal("0.5")
+            fee = (self.subtotal * commission_rate) / Decimal("100.00")
+            self.platform_fee = fee.quantize(Decimal("0.01"))
             self.seller_payout = self.subtotal - self.platform_fee
         else:
             self.platform_fee = self.subtotal

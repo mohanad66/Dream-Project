@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
 import { FaShoppingCart, FaBolt, FaPlus, FaMinus } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Card({ card, categories, tags }) {
   const [showPopup, setShowPopup] = useState(false);
@@ -121,9 +121,27 @@ export default function Card({ card, categories, tags }) {
             </>
           )}
         </div>
-        {card.seller_name && <span className="card-brand">{card.seller_name}</span>}
+        {card.seller_name && card.seller && (
+          <Link to={`/seller/${card.seller}`} className="card-brand card-seller-link" onClick={(e) => e.stopPropagation()}>
+            {card.seller_avatar && (
+              <img
+                src={card.seller_avatar}
+                alt=""
+                style={{ width: 20, height: 20, borderRadius: "50%", marginRight: 6, verticalAlign: "middle" }}
+              />
+            )}
+            {card.seller_name}
+          </Link>
+        )}
         <h2>{card.name}</h2>
-        <span className="price">{card.price} L.E</span>
+        {card.effective_price && parseFloat(card.effective_price) < parseFloat(card.price) ? (
+          <span className="price" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+            <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>{card.effective_price} L.E</span>
+            <span style={{ textDecoration: "line-through", color: "var(--text-muted)", fontSize: "0.85em" }}>{card.price} L.E</span>
+          </span>
+        ) : (
+          <span className="price">{card.price} L.E</span>
+        )}
         <p className="card-content">{getDescriptionPreview()}</p>
 
         <div className="tags">
@@ -186,10 +204,30 @@ export default function Card({ card, categories, tags }) {
               </div>
               <div className="popup-left">
                 <div className="popup-header">
-                  {card.seller_name && <span className="card-brand popup-brand">{card.seller_name}</span>}
+                  {card.seller_name && card.seller && (
+                    <Link to={`/seller/${card.seller}`} className="card-brand popup-brand card-seller-link" onClick={(e) => e.stopPropagation()}>
+                      {card.seller_avatar && (
+                        <img
+                          src={card.seller_avatar}
+                          alt=""
+                          style={{ width: 20, height: 20, borderRadius: "50%", marginRight: 6, verticalAlign: "middle" }}
+                        />
+                      )}
+                      {card.seller_name}
+                    </Link>
+                  )}
                   <h2>{card.name}</h2>
                   {card.price && (
-                    <p className="card-price">Price: {card.price} L.E</p>
+                    <p className="card-price">
+                      {card.effective_price && parseFloat(card.effective_price) < parseFloat(card.price) ? (
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>Price: {card.effective_price} L.E</span>
+                          <span style={{ textDecoration: "line-through", color: "var(--text-muted)", fontSize: "0.85em" }}>{card.price} L.E</span>
+                        </span>
+                      ) : (
+                        `Price: ${card.price} L.E`
+                      )}
+                    </p>
                   )}
                   {card.category ? (
                     <p className="card-category">

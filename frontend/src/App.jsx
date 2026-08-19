@@ -35,6 +35,7 @@ const ForgotPassword = lazy(
 const VerifyEmail = lazy(() => import("./Components/Form/VerifyEmail.jsx"));
 const OrderDetailsPage = lazy(() => import("./Pages/OrderDetails/index.jsx"));
 const OrdersPage = lazy(() => import("./Pages/Orders/index.jsx"));
+const SellerProfilePage = lazy(() => import("./Pages/Seller/SellerProfile.jsx"));
 
 const LoadingFallback = () => (
   <div className="loading-container">
@@ -192,6 +193,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/seller/:id" element={<SellerProfilePage />} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

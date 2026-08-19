@@ -1,22 +1,33 @@
-// src/Pages/Checkout/index.jsx
-
 import React, { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import { CreditCard, Smartphone, Store, Banknote } from "lucide-react";
 import CheckoutForm from "../../Components/CheckoutForm";
+import CouponInput from "../../Components/CouponInput";
 import "./css/style.scss";
 import { useNavigate } from "react-router-dom";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_51Ru3ONENPWvMQNVEdYlHECS2IB6bzT5mgHZF8UrVK7Hap8ym6xuREawCwGm4LS68ya8MEHQJy5HRIghXf17MMdbA00Au90db2g");
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLIC_KEY ||
+    "pk_test_51Ru3ONENPWvMQNVEdYlHECS2IB6bzT5mgHZF8UrVK7Hap8ym6xuREawCwGm4LS68ya8MEHQJy5HRIghXf17MMdbA00Au90db2g"
+);
+
+const PAYMENT_METHODS = [
+  { id: "card", label: "Credit/Debit Card", icon: <CreditCard size={22} />, description: "Pay securely with Visa/Mastercard" },
+  { id: "paymob_wallet", label: "Mobile Wallet", icon: <Smartphone size={22} />, description: "Vodafone Cash, Orange Cash, Etisalat" },
+  { id: "fawry", label: "Fawry", icon: <Store size={22} />, description: "Pay at any Fawry outlet" },
+  { id: "cod", label: "Cash on Delivery", icon: <Banknote size={22} />, description: "Pay when you receive your order" },
+];
 
 export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const items = JSON.parse(localStorage.getItem("cart")) || [];
-
     const itemsWithQuantity = items.map((item) => ({
       ...item,
       quantity: item.quantity || 1,
@@ -29,23 +40,26 @@ export default function CheckoutPage() {
       return;
     }
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-
+    const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [navigate]);
 
   const subtotal = cartItems.reduce((total, item) => {
     const price = parseFloat(item.price) || 0;
-    const quantity = item.quantity || 1;
-    return total + price * quantity;
+    return total + price * (item.quantity || 1);
   }, 0);
 
   const totalItems = cartItems.reduce(
     (total, item) => total + (item.quantity || 1),
-    0,
+    0
   );
+
+  const discountAmount = appliedCoupon ? parseFloat(appliedCoupon.calculated_discount) || 0 : 0;
+  const finalTotal = Math.max(subtotal - discountAmount, 0);
+
+  const handleCouponApply = (couponData) => setAppliedCoupon(couponData);
+  const handleCouponRemove = () => setAppliedCoupon(null);
+
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -53,6 +67,7 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
   return (
     <div className="checkout-page-container">
       <div className="checkout-wrapper">
@@ -65,41 +80,47 @@ export default function CheckoutPage() {
             <div className="order-items">
               {cartItems.map((item) => (
                 <div key={item.id} className="order-item">
-                  <img
-                    src={`${item.image}`}
-                    alt={item.name}
-                    className="order-item-image"
-                  />
+                  <img src={item.image} alt={item.name} className="order-item-image" />
                   <div className="order-item-details">
                     <h3>{item.name}</h3>
                     <p className="order-item-price">
                       {parseFloat(item.price).toFixed(2)} L.E × {item.quantity}
                     </p>
                     <p className="order-item-subtotal">
-                      {(
-                        (parseFloat(item.price) || 0) * (item.quantity || 1)
-                      ).toFixed(2)}{" "}
-                      L.E
+                      {((parseFloat(item.price) || 0) * (item.quantity || 1)).toFixed(2)} L.E
                     </p>
                   </div>
                 </div>
               ))}
             </div>
 
+            <div className="coupon-section">
+              <CouponInput
+                subtotal={subtotal}
+                onApply={handleCouponApply}
+                onRemove={handleCouponRemove}
+                appliedCoupon={appliedCoupon}
+              />
+            </div>
+
             <div className="order-totals">
               <div className="total-line">
-                <span>
-                  Subtotal ({totalItems} item{totalItems !== 1 ? "s" : ""})
-                </span>
+                <span>Subtotal ({totalItems} item{totalItems !== 1 ? "s" : ""})</span>
                 <span>{subtotal.toFixed(2)} L.E</span>
               </div>
+              {appliedCoupon && (
+                <div className="total-line discount-line">
+                  <span>Discount ({appliedCoupon.code})</span>
+                  <span>-{discountAmount.toFixed(2)} L.E</span>
+                </div>
+              )}
               <div className="total-line">
                 <span>Shipping</span>
                 <span>FREE</span>
               </div>
               <div className="total-line total-final">
                 <span>Total</span>
-                <span>{subtotal.toFixed(2)} L.E</span>
+                <span>{finalTotal.toFixed(2)} L.E</span>
               </div>
             </div>
           </div>
@@ -107,13 +128,51 @@ export default function CheckoutPage() {
           {/* Payment Form Section */}
           <div className="payment-section">
             <h2>Payment Details</h2>
-            <Elements stripe={stripePromise}>
+
+            {/* Payment Method Selector */}
+            <div className="payment-method-selector">
+              {PAYMENT_METHODS.map((method) => (
+                <label
+                  key={method.id}
+                  className={`payment-method-card ${paymentMethod === method.id ? "selected" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="payment_method"
+                    value={method.id}
+                    checked={paymentMethod === method.id}
+                    onChange={() => setPaymentMethod(method.id)}
+                  />
+                  <div className="payment-method-icon">{method.icon}</div>
+                  <div className="payment-method-info">
+                    <span className="payment-method-label">{method.label}</span>
+                    <span className="payment-method-desc">{method.description}</span>
+                  </div>
+                  <div className="payment-method-radio" />
+                </label>
+              ))}
+            </div>
+
+            {/* Checkout Form - Stripe Elements only wraps when card is selected */}
+            {paymentMethod === "card" ? (
+              <Elements stripe={stripePromise}>
+                <CheckoutForm
+                  cartItems={cartItems}
+                  totalAmount={finalTotal}
+                  totalItems={totalItems}
+                  paymentMethod={paymentMethod}
+                  coupon={appliedCoupon}
+                />
+              </Elements>
+            ) : (
               <CheckoutForm
                 cartItems={cartItems}
-                totalAmount={subtotal}
+                totalAmount={finalTotal}
                 totalItems={totalItems}
+                paymentMethod={paymentMethod}
+                coupon={appliedCoupon}
               />
-            </Elements>
+            )}
           </div>
         </div>
       </div>

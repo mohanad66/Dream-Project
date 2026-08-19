@@ -113,18 +113,26 @@ class OrderItemAdmin(ModelAdmin):
     pass
 
 
-# @admin.register(Product)
-# class CustomAdminClass(Product):
-#     pass
+@admin.register(Coupon)
+class CouponAdmin(ModelAdmin):
+    list_display = ["code", "discount_type", "discount_value", "times_used", "is_active", "expires_at"]
+    list_filter = ["is_active", "discount_type"]
+    search_fields = ["code"]
+    list_editable = ["is_active"]
+    readonly_fields = ["times_used"]
 
-# @admin.register(Category)
-# class CustomAdminClass(Category):
-#     pass
 
-# @admin.register(Service)
-# class CustomAdminClass(Service):
-#     pass
+@admin.register(SellerOffer)
+class SellerOfferAdmin(ModelAdmin):
+    list_display = ["title", "seller", "offer_type", "discount_percent", "is_active", "expires_at"]
+    list_filter = ["is_active", "offer_type"]
+    search_fields = ["title"]
+    list_editable = ["is_active"]
 
-# @admin.register(Contact)
-# class CustomAdminClass(Contact):
-#     pass
+
+@admin.register(SellerPayoutRecord)
+class SellerPayoutAdmin(ModelAdmin):
+    list_display = ["seller", "order", "gross_amount", "commission_amount", "net_amount", "status"]
+    list_filter = ["status", "delivery_type"]
+    search_fields = ["seller__business_name"]
+    readonly_fields = ["gross_amount", "commission_amount", "net_amount"]

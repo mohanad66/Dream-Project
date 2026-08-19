@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from .views import *
+from .payment_gateways import *
 
 # +++++++++++++++++++++++++++++++++++++++++
 
@@ -223,4 +224,44 @@ urlpatterns = [
         ProductApprovalView.as_view(),
         name="admin-product-review",
     ),
+
+    # --- Coupons ---
+    path("coupons/validate/", CouponValidateView.as_view(), name="coupon-validate"),
+    path("coupons/apply/", CouponApplyView.as_view(), name="coupon-apply"),
+
+    # --- Seller public profile ---
+    path("sellers/<int:pk>/profile/", SellerPublicProfileView.as_view(), name="seller-public-profile"),
+
+    # --- Seller offers ---
+    path("sellers/offers/", SellerOfferListCreateView.as_view(), name="seller-offers-list"),
+    path("sellers/offers/<int:pk>/", SellerOfferDetailView.as_view(), name="seller-offer-detail"),
+
+    # --- Seller delivery type ---
+    path("sellers/me/delivery-type/", SellerDeliveryUpdateView.as_view(), name="seller-delivery-update"),
+
+    # --- Admin coupons ---
+    path(
+        "admins/coupons/",
+        AdminCouponViewSet.as_view({"get": "list", "post": "create"}),
+        name="admin-coupon-list",
+    ),
+    path(
+        "admins/coupons/<int:pk>/",
+        AdminCouponViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
+        name="admin-coupon-detail",
+    ),
+
+    # --- Admin commission / earnings ---
+    path("admins/commission/", PlatformSettingsView.as_view(), name="admin-commission"),
+    path("admins/sellers/earnings/", AdminSellerEarningsView.as_view(), name="admin-seller-earnings"),
+
+    # --- Paymob ---
+    path("payments/paymob/checkout/", PaymobCheckoutView.as_view(), name="paymob-checkout"),
+    path("payments/paymob/webhook/", paymob_webhook, name="paymob-webhook"),
+    path("payments/paymob/callback/", PaymobCallbackView.as_view(), name="paymob-callback"),
+
+    # --- Fawry ---
+    path("payments/fawry/checkout/", FawryCheckoutView.as_view(), name="fawry-checkout"),
+    path("payments/fawry/webhook/", fawry_webhook, name="fawry-webhook"),
+    path("payments/fawry/status/", FawryStatusView.as_view(), name="fawry-status"),
 ]

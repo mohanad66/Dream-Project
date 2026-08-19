@@ -193,18 +193,12 @@ export default function OrdersPage() {
                     <div className="order-total">
                       <strong>Total Amount:</strong>
                       <span>
-                        {order.items && order.items.length > 0
-                          ? order.items
-                              .reduce(
-                                (sum, item) =>
-                                  sum +
-                                  item.quantity *
-                                    parseFloat(item.unit_price || 0),
-                                0,
-                              )
-                              .toFixed(2)
-                          : "0.00"}{" "}
-                        L.E
+                        {order.discount_amount > 0 && (
+                          <span style={{ textDecoration: "line-through", opacity: 0.5, marginRight: "0.5rem", fontSize: "0.85em" }}>
+                            {parseFloat(order.subtotal_before_discount || 0).toFixed(2)} L.E
+                          </span>
+                        )}
+                        {parseFloat(order.total_price || 0).toFixed(2)} L.E
                       </span>
                     </div>
                     <button

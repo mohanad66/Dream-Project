@@ -11,6 +11,7 @@ import {
   FaBox,
   FaDollarSign,
 } from "react-icons/fa";
+import { Megaphone, Settings, Truck, Store } from "lucide-react";
 import "./seller.scss";
 import { useToast } from "../../Components/Toast/useToast";
 import Button from "../../Components/UI/Button";
@@ -47,29 +48,26 @@ export default function SellerDashboard() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [offers, setOffers] = useState([]);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerForm, setOfferForm] = useState({ title: "", description: "", offer_type: "promotion", discount_percent: "", image: null });
+  const [savingOffer, setSavingOffer] = useState(false);
+
   const profile = data?.sellerProfile;
 
   useEffect(() => {
-    if (activeTab === "products" && isSeller) {
+    if (!isSeller) return;
+    if (activeTab === "overview") {
+      fetchProducts();
+      fetchOffers();
+    } else if (activeTab === "products") {
       fetchProducts();
       fetchCategories();
+    } else if (activeTab === "offers") {
+      fetchOffers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isSeller]);
-
-  useEffect(() => {
-    const checkStripeReturn = async () => {
-      try {
-        await api.get("/api/sellers/stripe/return/");
-        if (fetchAllData) {
-          fetchAllData(true);
-        }
-      } catch (err) {
-        console.error("Failed to sync Stripe return status", err);
-      }
-    };
-    checkStripeReturn();
-  }, [fetchAllData]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -93,14 +91,8 @@ export default function SellerDashboard() {
     }
   };
 
-  const handleStripeOnboard = async () => {
-    try {
-      const res = await api.post("/api/sellers/stripe/onboard/");
-      window.location.href = res.data.url;
-    } catch (err) {
-      console.error("Failed to get onboarding link", err);
-      toast.error("Failed to initiate Stripe onboarding.");
-    }
+  const handlePaymobSetup = () => {
+    toast.info("Payout setup is managed by the admin. Please contact support to configure your payout account.");
   };
 
   const validateForm = (form) => {
@@ -215,6 +207,56 @@ export default function SellerDashboard() {
     }
   };
 
+  const fetchOffers = async () => {
+    try {
+      const response = await api.get("/api/sellers/offers/");
+      setOffers(response.data.results || response.data);
+    } catch (err) { console.error(err); toast.error("Could not load offers."); }
+  };
+
+  const handleCreateOffer = async () => {
+    if (!offerForm.title.trim()) { toast.error("Title is required."); return; }
+    setSavingOffer(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", offerForm.title.trim());
+      formData.append("description", offerForm.description.trim());
+      formData.append("offer_type", offerForm.offer_type);
+      if (offerForm.discount_percent) formData.append("discount_percent", parseFloat(offerForm.discount_percent));
+      if (offerForm.image) formData.append("image", offerForm.image);
+      await api.post("/api/sellers/offers/", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      setShowOfferModal(false);
+      setOfferForm({ title: "", description: "", offer_type: "promotion", discount_percent: "", image: null });
+      fetchOffers();
+      toast.success("Offer created!");
+    } catch (err) { console.error(err); toast.error("Failed to create offer."); }
+    finally { setSavingOffer(false); }
+  };
+
+  const handleDeleteOffer = async (id) => {
+    try {
+      await api.delete(`/api/sellers/offers/${id}/`);
+      fetchOffers();
+      toast.success("Offer deleted.");
+    } catch (err) { toast.error("Failed to delete offer."); }
+  };
+
+  const handleToggleOfferActive = async (offer) => {
+    try {
+      await api.patch(`/api/sellers/offers/${offer.id}/`, { is_active: !offer.is_active });
+      fetchOffers();
+      toast.success(`Offer ${offer.is_active ? "deactivated" : "activated"}.`);
+    } catch (err) { toast.error("Failed to toggle offer status."); }
+  };
+
+  const toggleDeliveryType = async (newType) => {
+    try {
+      await api.patch("/api/sellers/me/delivery-type/", { delivery_type: newType });
+      fetchAllData(true);
+      toast.success("Delivery type updated.");
+    } catch (err) { toast.error("Failed to update delivery type."); }
+  };
+
   if (!isSeller) {
     return (
       <div className="seller-dashboard container">
@@ -279,32 +321,71 @@ export default function SellerDashboard() {
             >
               <FaWallet className="tab-icon" /> Finances &amp; Payouts
             </li>
+            <li
+              className={activeTab === "offers" ? "active" : ""}
+              onClick={() => setActiveTab("offers")}
+            >
+              <Megaphone className="tab-icon" /> Offers
+            </li>
+            <li
+              className={activeTab === "settings" ? "active" : ""}
+              onClick={() => setActiveTab("settings")}
+            >
+              <Settings className="tab-icon" /> Delivery Settings
+            </li>
           </ul>
         </div>
 
         <div className="dashboard-content glass-panel">
           {activeTab === "overview" && (
             <div className="tab-pane fade-in">
-              <h1>Welcome, {profile?.business_name}</h1>
-              <p>
-                Verification Status:{" "}
-                <strong>{profile?.verification_status}</strong>
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
+                {profile?.avatar && (
+                  <img src={profile.avatar} alt="" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--color-gold)" }} />
+                )}
+                <div>
+                  <h1 style={{ margin: 0 }}>Welcome, {profile?.business_name}</h1>
+                  <p style={{ margin: "0.25rem 0 0", color: "var(--text-secondary)" }}>
+                    @{profile?.user_username} · Joined {new Date(profile?.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", flexWrap: "wrap" }}>
+                <span className={`status-pill status-pill--${profile?.verification_status === "approved" ? "active" : profile?.verification_status === "rejected" ? "inactive" : "pending"}`}>
+                  {profile?.verification_status || "pending"}
+                </span>
+                <span className={`status-pill status-pill--${profile?.stripe_onboarding_complete ? "active" : "pending"}`}>
+                  Payouts: {profile?.stripe_onboarding_complete ? "Active" : "Pending Setup"}
+                </span>
+                <span className={`status-pill status-pill--${profile?.delivery_type === "seller" ? "active" : ""}`}>
+                  {profile?.delivery_type === "seller" ? "Self Delivery" : "Platform Delivery"}
+                </span>
+              </div>
+
               {profile?.rejection_reason && (
-                <p className="error-text">Reason: {profile?.rejection_reason}</p>
+                <div style={{ padding: "1rem", borderRadius: 8, background: "var(--color-danger-light, rgba(224,106,93,0.1))", border: "1px solid var(--color-danger)", marginBottom: "1.5rem", color: "var(--color-danger)" }}>
+                  <strong>Rejection Reason:</strong> {profile?.rejection_reason}
+                </div>
               )}
 
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <h3>Total Products</h3>
-                  <p>Check "My Products" tab</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Products</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #c9a24b)" }}>{products.length}</p>
                 </div>
-                <div className="stat-card">
-                  <h3>Stripe Status</h3>
-                  <p>
-                    {profile?.stripe_payouts_enabled
-                      ? "Enabled"
-                      : "Pending Setup"}
+                <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Commission Rate</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #c9a24b)" }}>{profile?.commission_rate != null ? `${parseFloat(profile.commission_rate).toFixed(1)}%` : "10%"}</p>
+                </div>
+                <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Active Offers</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #c9a24b)" }}>{offers.filter(o => o.is_active).length}</p>
+                </div>
+                <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Delivery</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: profile?.delivery_type === "seller" ? "#3fa781" : "#c9a24b" }}>
+                    {profile?.delivery_type === "seller" ? "Self" : "Platform"}
                   </p>
                 </div>
               </div>
@@ -395,32 +476,202 @@ export default function SellerDashboard() {
           {activeTab === "finances" && (
             <div className="tab-pane finances-tab fade-in">
               <h1>Finances &amp; Payouts</h1>
-              {!profile?.stripe_payouts_enabled ? (
-                <div
-                  className="onboard-box glass-panel-inner"
-                  style={{ padding: "1.5rem", marginTop: "1rem" }}
-                >
-                  <h3>Set up your payouts</h3>
-                  <p style={{ marginBottom: "1rem" }}>
-                    You need to connect a Stripe account to receive funds for
-                    your sales.
+
+              {/* Commission & Fee Summary */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+                <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Commission Rate</p>
+                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "#c9a24b" }}>
+                    {profile?.commission_rate != null ? `${parseFloat(profile.commission_rate).toFixed(1)}%` : "10%"}
                   </p>
-                  <Button variant="gold" size="md" onClick={handleStripeOnboard}>
-                    Connect with Stripe
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>per sale</p>
+                </div>
+                <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Delivery Mode</p>
+                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: profile?.delivery_type === "seller" ? "#3fa781" : "#c9a24b" }}>
+                    {profile?.delivery_type === "seller" ? "Self" : "Platform"}
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
+                    {profile?.delivery_type === "seller" ? "50% reduced commission" : "Standard commission"}
+                  </p>
+                </div>
+                <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Your Payout Per L.E</p>
+                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "#3fa781" }}>
+                    {profile?.delivery_type === "seller" ? "95" : "90"}%
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
+                    ({(100 - parseFloat(profile?.commission_rate || 10) * (profile?.delivery_type === "seller" ? 0.5 : 1)).toFixed(1)}% kept)
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className="onboard-box glass-panel-inner"
+                style={{ padding: "1.5rem", marginTop: "1rem" }}
+              >
+                <h3>Payout via Paymob</h3>
+                <p style={{ marginBottom: "1rem", color: "var(--text-secondary)" }}>
+                  All seller payouts are processed through Paymob. Once your
+                  account is verified, payouts will be sent automatically to
+                  your registered bank account or wallet.
+                </p>
+                <Button variant="gold" size="md" onClick={handlePaymobSetup}>
+                  Set Up Paymob Payouts
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "offers" && (
+            <div className="tab-pane fade-in">
+              <div
+                className="flex-between"
+                style={{ flexWrap: "wrap", gap: "1rem" }}
+              >
+                <h1>My Offers</h1>
+                <Button variant="gold" size="md" onClick={() => setShowOfferModal(true)}>
+                  <FaPlus /> Create Offer
+                </Button>
+              </div>
+
+              {offers.length === 0 ? (
+                <div className="empty-state-dash">
+                  <Megaphone size={48} />
+                  <h3>No offers yet</h3>
+                  <p>Create your first offer to attract more customers.</p>
+                  <Button variant="gold" size="md" onClick={() => setShowOfferModal(true)}>
+                    <FaPlus /> Create Offer
                   </Button>
                 </div>
               ) : (
-                <div
-                  className="success-box glass-panel-inner"
-                  style={{ padding: "1.5rem", marginTop: "1rem" }}
-                >
-                  <h3>Payouts Enabled</h3>
-                  <p>
-                    Your Stripe connected account is fully set up. Payouts will
-                    be sent automatically based on your Stripe settings.
-                  </p>
+                <div style={{ overflowX: "auto", marginTop: "1.5rem" }}>
+                  <table className="table" style={{ width: "100%" }}>
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Discount %</th>
+                        <th>Status</th>
+                        <th>Active</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {offers.map((o) => (
+                        <tr key={o.id}>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                              {o.image && (
+                                <img
+                                  src={o.image}
+                                  alt={o.title}
+                                  style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", border: "1px solid var(--border-color)" }}
+                                />
+                              )}
+                              {o.title}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`badge ${o.offer_type}`}>
+                              {o.offer_type}
+                            </span>
+                          </td>
+                          <td>{o.discount_percent ? `${o.discount_percent}%` : "—"}</td>
+                          <td>
+                            <span className={`badge ${o.is_active ? "approved" : "pending"}`}>
+                              {o.is_active ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td>
+                            <Button
+                              variant={o.is_active ? "danger" : "success"}
+                              size="sm"
+                              onClick={() => handleToggleOfferActive(o)}
+                            >
+                              {o.is_active ? "Deactivate" : "Activate"}
+                            </Button>
+                          </td>
+                          <td>{o.created_at ? new Date(o.created_at).toLocaleDateString() : "—"}</td>
+                          <td>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDeleteOffer(o.id)}
+                            >
+                              <FaTrash /> Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "settings" && (
+            <div className="tab-pane fade-in">
+              <h1>Delivery Settings</h1>
+              <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
+                Choose how orders are delivered to your customers.
+              </p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+                <div
+                  onClick={() => toggleDeliveryType("platform")}
+                  style={{
+                    padding: "2rem",
+                    borderRadius: "12px",
+                    border: `2px solid ${profile?.delivery_type === "platform" ? "#c9a24b" : "var(--border-color)"}`,
+                    background: "var(--bg-secondary, rgba(255,255,255,0.04))",
+                    cursor: "pointer",
+                    transition: "all 0.25s ease",
+                    textAlign: "center",
+                  }}
+                >
+                  <Truck size={40} style={{ color: profile?.delivery_type === "platform" ? "#c9a24b" : "var(--text-secondary)", marginBottom: "1rem" }} />
+                  <h3>Platform Delivery</h3>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginTop: "0.5rem" }}>
+                    Platform handles delivery and takes a commission per sale.
+                  </p>
+                  {profile?.delivery_type === "platform" && (
+                    <span className="badge approved" style={{ marginTop: "0.75rem", display: "inline-block" }}>Selected</span>
+                  )}
+                </div>
+
+                <div
+                  onClick={() => toggleDeliveryType("seller")}
+                  style={{
+                    padding: "2rem",
+                    borderRadius: "12px",
+                    border: `2px solid ${profile?.delivery_type === "seller" ? "#c9a24b" : "var(--border-color)"}`,
+                    background: "var(--bg-secondary, rgba(255,255,255,0.04))",
+                    cursor: "pointer",
+                    transition: "all 0.25s ease",
+                    textAlign: "center",
+                  }}
+                >
+                  <Store size={40} style={{ color: profile?.delivery_type === "seller" ? "#c9a24b" : "var(--text-secondary)", marginBottom: "1rem" }} />
+                  <h3>Self Delivery</h3>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginTop: "0.5rem" }}>
+                    You deliver your orders and pay a reduced commission upfront.
+                  </p>
+                  {profile?.delivery_type === "seller" && (
+                    <span className="badge approved" style={{ marginTop: "0.75rem", display: "inline-block" }}>Selected</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="glass-panel-inner" style={{ padding: "1.25rem", marginTop: "2rem", borderRadius: "10px" }}>
+                <h3 style={{ marginBottom: "0.5rem" }}>Commission Info</h3>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                  <strong>Platform Delivery:</strong> Standard platform commission applies per sale.<br />
+                  <strong>Self Delivery:</strong> Reduced commission is charged upfront when you list a product.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -577,6 +828,83 @@ export default function SellerDashboard() {
                 onClick={handleUpdateProduct}
               >
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showOfferModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel-inner">
+            <h2>Create Offer</h2>
+            <div className="modal-form">
+              <Input
+                label="Offer Title"
+                placeholder="e.g. Summer Sale 20% Off"
+                value={offerForm.title}
+                onChange={(e) =>
+                  setOfferForm({ ...offerForm, title: e.target.value })
+                }
+              />
+              <Input
+                label="Description"
+                placeholder="Describe your offer..."
+                textarea
+                rows="3"
+                value={offerForm.description}
+                onChange={(e) =>
+                  setOfferForm({ ...offerForm, description: e.target.value })
+                }
+              />
+              <Select
+                label="Offer Type"
+                options={[
+                  { id: "promotion", name: "Promotion" },
+                  { id: "announcement", name: "Announcement" },
+                  { id: "product", name: "Product" },
+                ]}
+                value={offerForm.offer_type}
+                onChange={(e) =>
+                  setOfferForm({ ...offerForm, offer_type: e.target.value })
+                }
+              />
+              <Input
+                label="Discount %"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="e.g. 15"
+                value={offerForm.discount_percent}
+                onChange={(e) =>
+                  setOfferForm({ ...offerForm, discount_percent: e.target.value })
+                }
+              />
+              <FilePicker
+                label="Offer Image"
+                hint="Optional. PNG or JPG."
+                value={offerForm.image}
+                onChange={(file) =>
+                  setOfferForm({ ...offerForm, image: file })
+                }
+              />
+            </div>
+            <div className="modal-actions">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => setShowOfferModal(false)}
+                disabled={savingOffer}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="gold"
+                size="md"
+                loading={savingOffer}
+                onClick={handleCreateOffer}
+              >
+                Create Offer
               </Button>
             </div>
           </div>

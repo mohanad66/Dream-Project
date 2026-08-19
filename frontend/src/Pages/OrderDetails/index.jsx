@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Truck, Store, Tag } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import "./css/style.scss";
@@ -157,8 +157,16 @@ export default function OrderDetailsPage() {
 
         <div className="order-header">
           <h1>Order #{order.id}</h1>
-          <div className={`order-status ${getStatusBadgeClass(order.status)}`}>
-            {getStatusText(order.status)}
+          <div className="order-header__badges">
+            <div className={`order-status ${getStatusBadgeClass(order.status)}`}>
+              {getStatusText(order.status)}
+            </div>
+            {order.delivery_type && (
+              <div className={`order-delivery-badge order-delivery-badge--${order.delivery_type}`}>
+                {order.delivery_type === "platform" ? <Truck size={13} /> : <Store size={13} />}
+                {order.delivery_type === "platform" ? "Platform Delivery" : "Seller Delivery"}
+              </div>
+            )}
           </div>
         </div>
 
@@ -244,8 +252,13 @@ export default function OrderDetailsPage() {
                   </p>
                 </div>
                 <div className="order-item-total">
-                  <strong>Total: </strong>
-                  {(item.quantity * parseFloat(item.unit_price)).toFixed(1)} L.E
+                  <strong>Subtotal: </strong>
+                  {parseFloat(item.subtotal || item.quantity * parseFloat(item.unit_price)).toFixed(1)} L.E
+                  {parseFloat(item.platform_fee || 0) > 0 && (
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", margin: "0.25rem 0 0" }}>
+                      Fee: {parseFloat(item.platform_fee).toFixed(1)} L.E · Payout: {parseFloat(item.seller_payout).toFixed(1)} L.E
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -256,16 +269,27 @@ export default function OrderDetailsPage() {
           <div className="summary-line">
             <span>Subtotal:</span>
             <span>
-              {order.items
+              {(order.subtotal_before_discount || order.items
                 ?.reduce(
                   (sum, item) =>
                     sum + item.quantity * parseFloat(item.unit_price),
                   0,
-                )
-                .toFixed(1)}{" "}
+                ) || 0).toFixed(1)}{" "}
               L.E
             </span>
           </div>
+          {parseFloat(order.discount_amount || 0) > 0 && (
+            <div className="summary-line summary-line--discount">
+              <span><Tag size={13} /> Discount</span>
+              <span>-{parseFloat(order.discount_amount).toFixed(1)} L.E</span>
+            </div>
+          )}
+          {order.coupons_applied?.length > 0 && (
+            <div className="summary-line summary-line--coupon">
+              <span>Coupon ({order.coupons_applied.map(c => c.code).join(", ")})</span>
+              <span className="coupon-tag">Applied</span>
+            </div>
+          )}
           <div className="summary-line">
             <span>Shipping:</span>
             <span>FREE</span>
@@ -273,16 +297,15 @@ export default function OrderDetailsPage() {
           <div className="summary-line total">
             <span>Total:</span>
             <span>
-              {order.items
-                ?.reduce(
-                  (sum, item) =>
-                    sum + item.quantity * parseFloat(item.unit_price),
-                  0,
-                )
-                .toFixed(1)}{" "}
-              L.E
+              {parseFloat(order.total_price || 0).toFixed(1)} L.E
             </span>
           </div>
+          {parseFloat(order.total_commission || 0) > 0 && (
+            <div className="summary-line summary-line--fee">
+              <span>Platform Fee:</span>
+              <span>{parseFloat(order.total_commission).toFixed(1)} L.E</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

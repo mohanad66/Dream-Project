@@ -64,6 +64,14 @@
     }
   }
 
+  .card-seller-link {
+    text-decoration: none;
+    transition: color 0.2s;
+    &:hover {
+      color: var(--color-gold-hover, #d9b968);
+    }
+  }
+
   // Card Image
   .card-carousel {
     border-radius: var(--border-radius-lg);

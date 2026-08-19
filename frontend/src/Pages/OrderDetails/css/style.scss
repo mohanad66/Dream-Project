@@ -142,6 +142,13 @@
         color: var(--color-gold);
       }
 
+      &__badges {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
       .order-status {
         padding: 0.4rem 1rem;
         border-radius: var(--border-radius-full);
@@ -170,6 +177,31 @@
         &.status-cancelled {
           background: var(--order-status-cancelled-bg);
           color: var(--order-status-cancelled-text);
+        }
+      }
+
+      .order-delivery-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: var(--border-radius-full);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+
+        &--platform {
+          background: rgba(201, 162, 75, 0.12);
+          color: #c9a24b;
+          border: 1px solid rgba(201, 162, 75, 0.25);
+        }
+
+        &--seller {
+          background: rgba(63, 167, 129, 0.12);
+          color: #3fa781;
+          border: 1px solid rgba(63, 167, 129, 0.25);
         }
       }
     }
@@ -504,6 +536,22 @@
         color: var(--order-text-secondary);
         font-size: 0.95rem;
 
+        &--discount {
+          color: #3fa781;
+          span { display: flex; align-items: center; gap: 0.35rem; }
+        }
+
+        &--coupon {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        &--fee {
+          font-size: 0.82rem;
+          color: var(--order-text-muted);
+        }
+
         &.total {
           border-top: 1px solid var(--border-color);
           margin-top: 0.75rem;
@@ -516,6 +564,17 @@
             color: var(--color-primary);
           }
         }
+      }
+
+      .coupon-tag {
+        font-size: 0.65rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 8px;
+        background: rgba(63, 167, 129, 0.12);
+        color: #3fa781;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
     }
   }

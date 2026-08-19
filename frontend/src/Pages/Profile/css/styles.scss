@@ -583,6 +583,226 @@
    Management Sections
    ========================================================================== */
 
+/* ==========================================================================
+   ADMIN DASHBOARD — premium dark-elegant
+   ========================================================================== */
+
+.admin-dashboard {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-gold);
+    h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+  }
+}
+
+/* ── Stats Row ── */
+.admin-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.admin-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: 1.25rem 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: var(--color-gold);
+    box-shadow: 0 4px 20px rgba(201, 162, 75, 0.08);
+    transform: translateY(-2px);
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--border-radius-lg);
+    background: var(--color-primary-alpha);
+    color: var(--color-gold);
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.25rem;
+  }
+}
+
+/* ── Tab Navigation ── */
+.admin-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: 0.35rem;
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: var(--border-radius-lg);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--text-primary);
+      background: var(--bg-subtle);
+    }
+
+    &--active {
+      background: var(--color-primary-alpha);
+      color: var(--color-gold);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(201, 162, 75, 0.15);
+    }
+  }
+
+  &__badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 10px;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    font-weight: 600;
+
+    .admin-tabs__btn--active & {
+      background: rgba(201, 162, 75, 0.2);
+      color: var(--color-gold);
+    }
+  }
+}
+
+/* ── Search Bar ── */
+.admin-search-bar {
+  margin-bottom: var(--space-4);
+
+  &__input {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-xl);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.6;
+    }
+
+    &:focus {
+      border-color: var(--color-gold);
+      box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.1);
+    }
+  }
+}
+
+/* ── Section Header ── */
+.admin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+
+    h4 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    svg { color: var(--color-gold); }
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__count {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 10px;
+    background: var(--color-primary-alpha);
+    color: var(--color-gold);
+    font-weight: 600;
+  }
+}
+
+/* ── Empty State ── */
+.admin-empty-state {
+  text-align: center;
+  padding: var(--space-10) var(--space-4);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── Panel Section ── */
+.admin-panel-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
 .management-section {
   &:not(:last-child) {
     margin-bottom: var(--space-10);
