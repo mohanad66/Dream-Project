@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { getNewUsers, getTopProducts, getPurchases } from "../services/analyticsService";
 import { ACCESS_TOKEN } from "../services/constants";
 import { useToast } from "../Components/Toast/useToast";
+import api from "../services/api";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -101,11 +102,8 @@ const AdminAnalytics = () => {
 
   const fetchAllOrders = useCallback(async () => {
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      if (!token) return;
-      const res = await fetch("/api/admins/orders/", { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error("Failed to fetch orders");
-      const data = await res.json();
+      const res = await api.get("/api/admins/orders/");
+      const data = res.data;
       const arr = data.results || data;
       setAllOrders(Array.isArray(arr) ? arr : []);
     } catch (e) { console.error(e); }
@@ -133,26 +131,23 @@ const AdminAnalytics = () => {
 
   const fetchSellerEarnings = useCallback(async () => {
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/sellers/earnings/", { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) setSellerEarnings(await res.json());
+      const res = await api.get("/api/admins/sellers/earnings/");
+      setSellerEarnings(res.data);
     } catch (e) { console.error(e); }
   }, []);
 
   const fetchCoupons = useCallback(async () => {
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/coupons/", { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
+      const res = await api.get("/api/admins/coupons/");
+      const data = res.data;
       setCoupons(data.results || data);
     } catch (e) { console.error(e); }
   }, []);
 
   const fetchPlatformSettings = useCallback(async () => {
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/commission/", { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) { const data = await res.json(); setGlobalCommissionRate(data.default_commission_rate ?? ""); }
+      const res = await api.get("/api/admins/commission/");
+      setGlobalCommissionRate(res.data.default_commission_rate ?? "");
     } catch (e) { console.error(e); }
   }, []);
 
@@ -163,38 +158,27 @@ const AdminAnalytics = () => {
 
   const handleCreateCoupon = async () => {
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/coupons/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          code: couponForm.code, discount_type: couponForm.discount_type,
-          discount_value: parseFloat(couponForm.discount_value),
-          min_order_amount: couponForm.min_order_amount ? parseFloat(couponForm.min_order_amount) : null,
-          max_discount_amount: couponForm.max_discount_amount ? parseFloat(couponForm.max_discount_amount) : null,
-          max_uses_total: couponForm.max_uses_total ? parseInt(couponForm.max_uses_total) : null,
-          expires_at: couponForm.expires_at || null,
-        }),
+      const res = await api.post("/api/admins/coupons/", {
+        code: couponForm.code, discount_type: couponForm.discount_type,
+        discount_value: parseFloat(couponForm.discount_value),
+        min_order_amount: couponForm.min_order_amount ? parseFloat(couponForm.min_order_amount) : null,
+        max_discount_amount: couponForm.max_discount_amount ? parseFloat(couponForm.max_discount_amount) : null,
+        max_uses_total: couponForm.max_uses_total ? parseInt(couponForm.max_uses_total) : null,
+        expires_at: couponForm.expires_at || null,
       });
-      if (!res.ok) { const err = await res.json(); toast.error("Failed: " + JSON.stringify(err)); return; }
       toast.success("Coupon created!");
       setCouponForm({ code: "", discount_type: "percentage", discount_value: "", min_order_amount: "", max_discount_amount: "", max_uses_total: "", expires_at: "" });
       fetchCoupons();
-    } catch (e) { console.error(e); }
+    } catch (e) { toast.error("Failed: " + (e.response?.data ? JSON.stringify(e.response.data) : e.message)); }
   };
 
   const toggleCouponActive = async (id, isActive) => {
-    const token = localStorage.getItem(ACCESS_TOKEN);
-    await fetch(`/api/admins/coupons/${id}/`, {
-      method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ is_active: !isActive }),
-    });
+    await api.patch(`/api/admins/coupons/${id}/`, { is_active: !isActive });
     fetchCoupons();
   };
 
   const deleteCoupon = async (id) => {
-    const token = localStorage.getItem(ACCESS_TOKEN);
-    await fetch(`/api/admins/coupons/${id}/`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await api.delete(`/api/admins/coupons/${id}/`);
     fetchCoupons();
   };
 
@@ -203,20 +187,11 @@ const AdminAnalytics = () => {
     if (isNaN(val) || val < 0 || val > 100) return toast.error("Enter a valid rate between 0 and 100");
     setSavingCommission(true);
     try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/commission/", {
-        method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ default_commission_rate: val }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setGlobalCommissionRate(String(data.default_commission_rate ?? val));
-        toast.success("Commission rate updated to " + (data.default_commission_rate ?? val) + "%");
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast.error("Failed to save: " + JSON.stringify(err));
-      }
-    } catch (e) { console.error(e); toast.error("Failed to save commission rate"); }
+      const res = await api.patch("/api/admins/commission/", { default_commission_rate: val });
+      const data = res.data;
+      setGlobalCommissionRate(String(data.default_commission_rate ?? val));
+      toast.success("Commission rate updated to " + (data.default_commission_rate ?? val) + "%");
+    } catch (e) { toast.error("Failed to save: " + (e.response?.data ? JSON.stringify(e.response.data) : e.message)); }
     finally { setSavingCommission(false); }
   };
 
