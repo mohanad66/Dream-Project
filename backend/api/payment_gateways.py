@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 # PAYMOB
 # ===============================================
 
-PAYMOB_BASE = "https://accept.paymob.com/api"
+PAYMOB_BASE = getattr(settings, "PAYMOB_BASE_URL", "https://accept.paymob.com/api")
 
 
 def _paymob_headers():
@@ -80,23 +80,26 @@ def _register_paymob_order(auth_token, order_obj):
         headers=_paymob_headers(),
         timeout=15,
     )
-    resp.raise_for_status()
+    if resp.status_code >= 400:
+        logger.error(f"Paymob register order {resp.status_code}: {resp.text}")
+        resp.raise_for_status()
     return resp.json()["id"]
 
 
-def _get_paymob_payment_key(auth_token, order_id, billing_data):
+def _get_paymob_payment_key(auth_token, order_id, billing_data, amount_cents=0):
     """Get a payment key for the order."""
     integration_id = getattr(settings, "PAYMOB_INTEGRATION_ID", "")
     if not integration_id:
         raise ValueError("PAYMOB_INTEGRATION_ID not configured")
-    frontend_url = getattr(settings, "FRONTEND_URL", "https://dream-project-roan.vercel.app")
+    redirect_url = ""
     backend_url = getattr(settings, "BACKEND_URL", "")
-    redirect_url = f"{frontend_url}/payment/result" if frontend_url else ""
+    if backend_url:
+        redirect_url = f"{backend_url}/api/payments/paymob/callback/"
     resp = requests.post(
         f"{PAYMOB_BASE}/acceptance/payment_keys",
         json={
             "auth_token": auth_token,
-            "amount_cents": None,
+            "amount_cents": amount_cents,
             "expiration": 3600,
             "order_id": order_id,
             "billing_data": billing_data,
@@ -107,7 +110,13 @@ def _get_paymob_payment_key(auth_token, order_id, billing_data):
         headers=_paymob_headers(),
         timeout=15,
     )
-    resp.raise_for_status()
+    if resp.status_code >= 400:
+        error_body = resp.text
+        logger.error(f"Paymob payment_keys {resp.status_code}: {error_body}")
+        try:
+            raise ValueError(f"Paymob {resp.status_code}: {resp.json()}")
+        except ValueError:
+            raise ValueError(f"Paymob {resp.status_code}: {error_body[:500]}")
     return resp.json()["token"]
 
 
@@ -132,25 +141,29 @@ class PaymobInitView(APIView):
             return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
 
         billing = {
-            "apartment": billing_data.get("apartment", ""),
-            "email": request.user.email,
-            "floor": billing_data.get("floor", ""),
+            "apartment": billing_data.get("apartment") or "NA",
+            "email": billing_data.get("email") or request.user.email or "customer@example.com",
+            "floor": billing_data.get("floor") or "NA",
             "first_name": request.user.first_name or "Customer",
-            "last_name": request.user.last_name or "",
-            "phone_number": billing_data.get("phone_number", request.user.username),
-            "street": billing_data.get("street", "N/A"),
-            "building": billing_data.get("building", "N/A"),
+            "last_name": request.user.last_name or "NA",
+            "phone_number": billing_data.get("phone_number") or request.user.username or "01000000000",
+            "street": billing_data.get("street") or "NA",
+            "building": billing_data.get("building") or "NA",
             "shipping_method": "PKG",
-            "postal_code": billing_data.get("postal_code", ""),
-            "city": billing_data.get("city", "Cairo"),
-            "country": billing_data.get("country", "EG"),
-            "state": billing_data.get("state", ""),
+            "postal_code": billing_data.get("postal_code") or "00000",
+            "city": billing_data.get("city") or "Cairo",
+            "country": billing_data.get("country") or "EG",
+            "state": billing_data.get("state") or "Cairo",
         }
 
         try:
             auth_token = _get_paymob_auth_token()
             paymob_order_id = _register_paymob_order(auth_token, order)
-            payment_token = _get_paymob_payment_key(auth_token, paymob_order_id, billing)
+            amount_cents = int(order.total_price * 100)
+            logger.info(f"Paymob init: order={order_id}, total={order.total_price}, amount_cents={amount_cents}, integration={getattr(settings, 'PAYMOB_INTEGRATION_ID', '')}, base={PAYMOB_BASE}")
+            if amount_cents <= 0:
+                return Response({"error": f"Order total is {order.total_price}, cannot pay"}, status=status.HTTP_400_BAD_REQUEST)
+            payment_token = _get_paymob_payment_key(auth_token, paymob_order_id, billing, amount_cents=amount_cents)
 
             # Store payment record
             payment = Payment.objects.create(
@@ -167,11 +180,18 @@ class PaymobInitView(APIView):
             return Response({
                 "payment_token": payment_token,
                 "paymob_order_id": paymob_order_id,
+                "iframe_url": f"https://accept.paymob.com/api/acceptance/iframes/{getattr(settings, 'PAYMOB_IFRAME_ID', '947643')}?payment_token={payment_token}",
             })
 
         except Exception as e:
             logger.exception("Paymob init error")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            detail = str(e)
+            if hasattr(e, "response") and e.response is not None:
+                try:
+                    detail = e.response.json()
+                except Exception:
+                    detail = e.response.text[:500]
+            return Response({"error": "Paymob init failed", "details": str(detail)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PaymobPayView(APIView):
@@ -223,10 +243,9 @@ class PaymobPayView(APIView):
                 timeout=30,
             )
             resp_data = resp.json()
-            logger.info(f"Paymob /payments/pay response: {json.dumps(resp_data)}")
+            logger.info(f"Paymob /payments/pay response (status={resp.status_code}): {json.dumps(resp_data)}")
 
             if resp.status_code == 200 and resp_data.get("success"):
-                # Payment succeeded — update records
                 paymob_order_id = str(resp_data.get("order", {}).get("id", ""))
                 transaction_id = str(resp_data.get("id", ""))
 
@@ -234,7 +253,6 @@ class PaymobPayView(APIView):
                 if paymob_order_id:
                     payment = Payment.objects.filter(provider_payment_id=paymob_order_id).first()
                 if not payment:
-                    # Try to find by user's recent pending payment
                     payment = Payment.objects.filter(
                         owner=request.user, method="paymob", status="pending"
                     ).order_by("-created_at").first()
@@ -255,24 +273,32 @@ class PaymobPayView(APIView):
                     "order_id": paymob_order_id,
                     "message": "Payment successful",
                 })
-            else:
-                error_msg = resp_data.get("message", resp_data.get("detail", "Payment failed"))
-                error_code = resp_data.get("code", "")
 
-                # Update payment record as failed
-                payment = Payment.objects.filter(
-                    owner=request.user, method="paymob", status="pending"
-                ).order_by("-created_at").first()
-                if payment:
-                    payment.status = "failed"
-                    payment.raw_response = json.dumps(resp_data)
-                    payment.save(update_fields=["status", "raw_response"])
-
+            redirect_url = resp_data.get("redirect_url")
+            if redirect_url:
                 return Response({
                     "success": False,
-                    "error": error_msg,
-                    "code": error_code,
-                }, status=status.HTTP_402_PAYMENT_REQUIRED)
+                    "requires_3ds": True,
+                    "redirect_url": redirect_url,
+                })
+
+            error_msg = resp_data.get("message", resp_data.get("detail", "Payment failed"))
+            error_code = resp_data.get("code", "")
+
+            payment = Payment.objects.filter(
+                owner=request.user, method="paymob", status="pending"
+            ).order_by("-created_at").first()
+            if payment:
+                payment.status = "failed"
+                payment.raw_response = json.dumps(resp_data)
+                payment.save(update_fields=["status", "raw_response"])
+
+            return Response({
+                "success": False,
+                "error": error_msg,
+                "code": error_code,
+                "paymob_response": resp_data,
+            }, status=status.HTTP_402_PAYMENT_REQUIRED)
 
         except requests.exceptions.RequestException as e:
             logger.exception("Paymob /payments/pay request failed")
@@ -304,9 +330,12 @@ def paymob_webhook(request):
             if not hmac_str:
                 logger.warning("Paymob webhook missing HMAC")
 
-        obj = data.get("obj", {})
-        paymob_order_id = str(obj.get("order", {}).get("id", ""))
-        success = obj.get("success", False)
+        order_field = data.get("order")
+        if isinstance(order_field, dict):
+            paymob_order_id = str(order_field.get("id", ""))
+        else:
+            paymob_order_id = str(order_field) if order_field else ""
+        success = data.get("success", False)
 
         if paymob_order_id:
             payment = Payment.objects.filter(provider_payment_id=paymob_order_id).first()
@@ -329,17 +358,24 @@ def paymob_webhook(request):
 class PaymobCallbackView(APIView):
     """
     GET /api/payments/paymob/callback/?order=123&success=true
-    User browser is redirected here after payment. Redirect to frontend.
+    User browser is redirected here after payment. Maps Paymob order ID to our order and redirects.
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from django.shortcuts import redirect
+        from django.shortcuts import redirect as django_redirect
         success = request.query_params.get("success", "false")
-        order_id = request.query_params.get("order", "")
+        paymob_order_id = request.query_params.get("order", "")
         frontend_url = getattr(settings, "FRONTEND_URL", "https://dream-project-roan.vercel.app")
-        redirect_url = f"{frontend_url}/payment/result?success={success}&order={order_id}"
-        return redirect(redirect_url)
+
+        our_order_id = ""
+        if paymob_order_id:
+            payment = Payment.objects.filter(provider_payment_id=str(paymob_order_id)).first()
+            if payment and hasattr(payment, "order") and payment.order:
+                our_order_id = str(payment.order.pk)
+
+        redirect_url = f"{frontend_url}/payment/result?success={success}&order={our_order_id}"
+        return django_redirect(redirect_url)
 
 
 # ===============================================
