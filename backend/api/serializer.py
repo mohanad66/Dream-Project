@@ -77,7 +77,11 @@ class SellerUpgradeSerializer(serializers.ModelSerializer):
 class SellerProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
     user_username = serializers.CharField(source="user.username", read_only=True)
- 
+    effective_commission_rate = serializers.SerializerMethodField()
+
+    def get_effective_commission_rate(self, obj):
+        return str(obj.effective_commission_rate())
+
     class Meta:
         model = SellerProfile
         fields = [
@@ -95,6 +99,9 @@ class SellerProfileSerializer(serializers.ModelSerializer):
             "bio",
             "delivery_type",
             "commission_rate",
+            "effective_commission_rate",
+            "paymob_account_id",
+            "paymob_wallet_number",
             "stripe_onboarding_complete",
             "stripe_payouts_enabled",
             "is_active",

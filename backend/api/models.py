@@ -276,6 +276,16 @@ class SellerProfile(models.Model):
     stripe_account_id = models.CharField(max_length=64, blank=True)
     stripe_onboarding_complete = models.BooleanField(default=False)
     stripe_payouts_enabled = models.BooleanField(default=False)
+
+    # Paymob payout fields
+    paymob_account_id = models.CharField(
+        max_length=128, blank=True,
+        help_text="Paymob merchant/sub-merchant account ID for payouts.",
+    )
+    paymob_wallet_number = models.CharField(
+        max_length=32, blank=True,
+        help_text="Mobile wallet number registered with Paymob.",
+    )
  
     is_active = models.BooleanField(
         default=True,
@@ -870,7 +880,6 @@ class Payment(models.Model):
         STRIPE = "stripe", "Stripe"
         PAYMOB = "paymob", "Paymob"
         FAWRY = "fawry", "Fawry"
-        CASH = "cash", "Cash on Delivery"
 
     method = models.CharField(max_length=16, choices=Method.choices, default=Method.STRIPE)
     provider_payment_id = models.CharField(max_length=255, blank=True, db_index=True)

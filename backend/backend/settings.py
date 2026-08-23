@@ -70,6 +70,22 @@ UNFOLD = {
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+# URLs
+BACKEND_URL = os.getenv("BACKEND_URL", "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dream-project-roan.vercel.app")
+
+# Paymob
+PAYMOB_API_KEY = os.getenv("PAYMOB_API_KEY", "ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklrMWxjbU5vWVc1MElpd2ljSEp2Wm1sc1pWOXdheUk2TVRBMk56QTRPQ3dpYm1GdFpTSTZJbWx1YVhScFlXd2lmUS4tUGk2cm1jd05Jd0wtZkgzcTlPTldPWDduMF9rd0tJem41YVByd1RMZkpTR0hUYTVYNzVwM21EenEyWGhoWmFGRl9EcE1KZTB1X2kzQWVncHh6M09Bdw==")
+PAYMOB_INTEGRATION_ID = os.getenv("PAYMOB_INTEGRATION_ID", "5229835")
+PAYMOB_WALLET_INTEGRATION_ID = os.getenv("PAYMOB_WALLET_INTEGRATION_ID", "")
+PAYMOB_HMAC = os.getenv("PAYMOB_HMAC", "35FC5C94DC25B935ED750C64CD581A8C")
+PAYMOB_IFRAME_ID = os.getenv("PAYMOB_IFRAME_ID", "947642")
+
+# Fawry
+FAWRY_MERCHANT_CODE = os.getenv("FAWRY_MERCHANT_CODE", "")
+FAWRY_SECURITY_CODE = os.getenv("FAWRY_SECURITY_CODE", "")
+FAWRY_RETURN_URL = os.getenv("FAWRY_RETURN_URL", "")
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",

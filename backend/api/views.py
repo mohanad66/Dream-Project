@@ -687,7 +687,7 @@ class CreateOrderView(APIView):
     """
     Creates an Order + OrderItems.
     - Stripe card: receives payment_intent_id to link existing Payment.
-    - Paymob / Fawry / COD: creates order directly, payment handled separately.
+    - Paymob / Fawry: creates order directly, payment handled separately.
     """
 
     permission_classes = [IsAuthenticated]
