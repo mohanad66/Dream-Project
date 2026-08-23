@@ -1,0 +1,96 @@
+.payment-result-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-body);
+  padding: 2rem;
+}
+
+.payment-result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: 3rem 2.5rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.payment-result-icon {
+  margin-bottom: 1.5rem;
+
+  &--success { color: var(--color-success); }
+  &--failed { color: var(--color-danger); }
+}
+
+.payment-result-card h2 {
+  font-family: var(--font-family-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+}
+
+.payment-result-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin: 0.25rem 0;
+}
+
+.payment-result-order {
+  margin-top: 1rem;
+  padding: 0.4rem 1rem;
+  display: inline-block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.payment-result-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.payment-result-btn {
+  padding: 0.6rem 1.4rem;
+  border-radius: var(--border-radius-full);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-color);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--bg-secondary);
+    border-color: var(--color-primary);
+  }
+
+  &--primary {
+    background: var(--gradient-primary);
+    color: #13150c;
+    border-color: transparent;
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,242 +1,92 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  getNewUsers,
-  getTopProducts,
-  getPurchases,
-} from "../services/analyticsService";
+import React, { useState, useEffect, useCallback } from "react";
+import { getNewUsers, getTopProducts, getPurchases } from "../services/analyticsService";
 import { ACCESS_TOKEN } from "../services/constants";
+import { useToast } from "../Components/Toast/useToast";
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  AreaChart,
-  Area,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ComposedChart,
-  Scatter,
-  ScatterChart,
-  Treemap,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Package,
-  Users,
-  Settings2,
-  Table2,
-  DollarSign,
-  ShoppingCart,
-  CalendarDays,
-  UserPlus,
-  Trophy,
-  Repeat2,
-  PackageCheck,
-  Clock,
-  XCircle,
-  AlertTriangle,
-  Tag,
-  Users2,
+  LayoutDashboard, TrendingUp, Package, Users, DollarSign,
+  ShoppingCart, CalendarDays, Tag, Users2, Table2,
 } from "lucide-react";
-
 import "../css/Analytics.scss";
-/* ─────────────────────────────────────────────
-   Theme helpers — stay in sync with site body class
-───────────────────────────────────────────── */
-const getSiteTheme = () =>
-  document.body.classList.contains("dark-theme") ? "dark" : "light";
 
-/* ─────────────────────────────────────────────
-   Design tokens (mirrored from CSS vars so
-   Recharts can consume them as JS values)
-───────────────────────────────────────────── */
 const TOKEN = {
-  primary: "#3b82f6",
-  success: "#10b981",
-  warning: "#f59e0b",
-  danger: "#ef4444",
-  purple: "#8b5cf6",
-  cyan: "#06b6d4",
-  pink: "#ec4899",
-  orange: "#f97316",
-  PALETTE: [
-    "#3b82f6",
-    "#10b981",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#06b6d4",
-    "#f97316",
-    "#ec4899",
-  ],
+  primary: "#3b82f6", success: "#10b981", warning: "#f59e0b",
+  danger: "#ef4444", purple: "#8b5cf6", cyan: "#06b6d4",
+  PALETTE: ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#f97316", "#ec4899"],
 };
 
-/* ─────────────────────────────────────────────
-   Recharts theme-aware helpers
-───────────────────────────────────────────── */
-const chartTheme = (theme) => ({
+const getTheme = () => document.body.classList.contains("dark-theme") ? "dark" : "light";
+const chartT = (theme) => ({
   grid: theme === "dark" ? "#374151" : "#e5e7eb",
   text: theme === "dark" ? "#9ca3af" : "#6b7280",
   bg: theme === "dark" ? "#1e293b" : "#ffffff",
   border: theme === "dark" ? "#374151" : "#e5e7eb",
 });
 
-/* ─────────────────────────────────────────────
-   Custom Tooltip
-───────────────────────────────────────────── */
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-  prefix = "",
-  suffix = "",
-  theme,
-}) => {
+const fmt = (v) => parseFloat(v || 0);
+const fmtL = (v) => `L.E ${fmt(v).toFixed(2)}`;
+const num = (v) => parseFloat(v || 0).toFixed(1);
+
+/* ─── Shared Components ─── */
+const TooltipBox = ({ active, payload, label, prefix = "", theme }) => {
   if (!active || !payload?.length) return null;
-  const t = chartTheme(theme);
+  const t = chartT(theme);
   return (
-    <div
-      style={{
-        background: t.bg,
-        border: `1px solid ${t.border}`,
-        borderRadius: 10,
-        padding: "10px 14px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-        minWidth: 140,
-      }}
-    >
-      <p
-        style={{
-          margin: "0 0 6px",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: t.text,
-        }}
-      >
-        {label}
-      </p>
+    <div style={{ background: t.bg, border: `1px solid ${t.border}`, borderRadius: 10, padding: "10px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 140 }}>
+      <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: t.text }}>{label}</p>
       {payload.map((p, i) => (
-        <p
-          key={i}
-          style={{
-            margin: "2px 0",
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#000",
-          }}
-        >
-          {p.name}: {prefix}
-          {typeof p.value === "number"
-            ? p.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
-            : p.value}
-          {suffix}
+        <p key={i} style={{ margin: "2px 0", fontSize: 13, fontWeight: 600, color: p.color || "#000" }}>
+          {p.name}: {prefix}{typeof p.value === "number" ? p.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : p.value}
         </p>
       ))}
     </div>
   );
 };
 
-/* ─────────────────────────────────────────────
-   KPI Card
-───────────────────────────────────────────── */
-const KPICard = ({ label, value, sub, accent, icon, trend, trendLabel }) => (
+const KPICard = ({ label, value, sub, accent, icon }) => (
   <div className="stat-card" style={{ borderLeftColor: accent }}>
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-      }}
-    >
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
       <div className="stat-label">{label}</div>
       <span style={{ fontSize: 20 }}>{icon}</span>
     </div>
-    <div className="stat-value" style={{ color: accent }}>
-      {value}
-    </div>
-    {trend !== undefined && (
-      <div
-        style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}
-      >
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            padding: "2px 7px",
-            borderRadius: 20,
-            background:
-              trend >= 0 ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
-            color: trend >= 0 ? TOKEN.success : TOKEN.danger,
-          }}
-        >
-          {trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}%
-        </span>
-        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-          {trendLabel}
-        </span>
-      </div>
-    )}
+    <div className="stat-value" style={{ color: accent }}>{value}</div>
     <div className="stat-sub">{sub}</div>
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   Chart Section wrapper
-───────────────────────────────────────────── */
-const ChartCard = ({ title, subtitle, children, span = 1 }) => (
+const Section = ({ title, subtitle, children, span = 1 }) => (
   <div className="analytics-section" style={{ gridColumn: `span ${span}` }}>
-    <div className="section-header">
-      <div>
-        <h2 style={{ marginBottom: 0 }}>{title}</h2>
-        {subtitle && (
-          <p
-            style={{
-              margin: "2px 0 0",
-              fontSize: 11,
-              color: "var(--text-muted)",
-              fontWeight: 400,
-            }}
-          >
-            {subtitle}
-          </p>
-        )}
-      </div>
-    </div>
+    <div className="section-header"><div><h2 style={{ marginBottom: 0 }}>{title}</h2>{subtitle && <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--text-muted)" }}>{subtitle}</p>}</div></div>
     <div style={{ padding: "20px 20px 12px" }}>{children}</div>
   </div>
 );
 
-/* ─────────────────────────────────────────────
-   Main Component
-───────────────────────────────────────────── */
+const TABS = [
+  { id: "overview", label: "Overview", Icon: LayoutDashboard },
+  { id: "revenue", label: "Revenue", Icon: TrendingUp },
+  { id: "products", label: "Products", Icon: Package },
+  { id: "customers", label: "Customers", Icon: Users },
+  { id: "commission", label: "Commission & Sellers", Icon: DollarSign },
+  { id: "coupons", label: "Coupons", Icon: Tag },
+  { id: "tables", label: "Raw Data", Icon: Table2 },
+];
+
+/* ─── Main Component ─── */
 const AdminAnalytics = () => {
+  const toast = useToast();
   const [newUsers, setNewUsers] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
-  const [topBuyers, setTopBuyers] = useState([]);
-  const [topSellers, setTopSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [days, setDays] = useState(30);
   const [activeTab, setActiveTab] = useState("overview");
-  const [theme, setTheme] = useState(getSiteTheme);
+  const [theme, setTheme] = useState(getTheme);
+  const t = chartT(theme);
   const [sellerEarnings, setSellerEarnings] = useState({ earnings: [], summary: {} });
   const [coupons, setCoupons] = useState([]);
   const [couponForm, setCouponForm] = useState({ code: "", discount_type: "percentage", discount_value: "", min_order_amount: "", max_discount_amount: "", max_uses_total: "", expires_at: "" });
@@ -244,68 +94,21 @@ const AdminAnalytics = () => {
   const [savingCommission, setSavingCommission] = useState(false);
 
   useEffect(() => {
-    const obs = new MutationObserver(() => setTheme(getSiteTheme()));
-    obs.observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
+    const obs = new MutationObserver(() => setTheme(getTheme()));
+    obs.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => obs.disconnect();
   }, []);
-
-  const toggleTheme = () => {
-    const isDark = document.body.classList.contains("dark-theme");
-    document.body.classList.toggle("dark-theme", !isDark);
-    document.body.classList.toggle("light-theme", isDark);
-    localStorage.setItem("theme", isDark ? "light" : "dark");
-    setTheme(isDark ? "light" : "dark");
-  };
 
   const fetchAllOrders = useCallback(async () => {
     try {
       const token = localStorage.getItem(ACCESS_TOKEN);
       if (!token) return;
-      const res = await fetch("/api/admins/orders/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("/api/admins/orders/", { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
       const arr = data.results || data;
       setAllOrders(Array.isArray(arr) ? arr : []);
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  const calculateTopBuyers = useCallback((data) => {
-    const map = {};
-    data.forEach((p) => {
-      if (!map[p.username])
-        map[p.username] = {
-          username: p.username,
-          totalSpent: 0,
-          orderCount: 0,
-        };
-      map[p.username].totalSpent += parseFloat(p.subtotal || 0);
-      map[p.username].orderCount += 1;
-    });
-    return Object.values(map)
-      .sort((a, b) => b.totalSpent - a.totalSpent)
-      .slice(0, 10);
-  }, []);
-
-  const calculateTopSellers = useCallback((data) => {
-    const map = {};
-    data.forEach((p) => {
-      const s = p.username || p.name || "Unknown";
-      if (!map[s])
-        map[s] = { name: s, totalRevenue: 0, itemsSold: 0, ordersCount: 0 };
-      map[s].totalRevenue += parseFloat(p.subtotal || 0);
-      map[s].itemsSold += p.quantity || 1;
-      map[s].ordersCount += 1;
-    });
-    return Object.values(map)
-      .sort((a, b) => b.totalRevenue - a.totalRevenue)
-      .slice(0, 10);
+    } catch (e) { console.error(e); }
   }, []);
 
   const fetchAnalyticsData = useCallback(async () => {
@@ -313,50 +116,50 @@ const AdminAnalytics = () => {
     setError(null);
     try {
       const [usersData, productsData, purchasesData] = await Promise.all([
-        getNewUsers(days),
-        getTopProducts(10, days),
-        getPurchases(null, null, days),
+        getNewUsers(days), getTopProducts(10, days), getPurchases(null, null, days),
       ]);
-      const users = usersData.users || [];
-      const products = productsData.products || [];
-      const purArr = purchasesData.purchases || [];
-      setNewUsers(users);
-      setTopProducts(products);
-      setPurchases(purArr);
-      setTopBuyers(calculateTopBuyers(purArr));
-      setTopSellers(calculateTopSellers(purArr));
+      setNewUsers(usersData.users || []);
+      setTopProducts(productsData.products || []);
+      setPurchases(purchasesData.purchases || []);
       await fetchAllOrders();
     } catch (e) {
       setError(e.message || "Failed to load analytics data");
     } finally {
       setLoading(false);
     }
-  }, [days, calculateTopBuyers, calculateTopSellers, fetchAllOrders]);
+  }, [days, fetchAllOrders]);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
+  useEffect(() => { fetchAnalyticsData(); }, [fetchAnalyticsData]);
 
-  const fetchSellerEarnings = async () => {
+  const fetchSellerEarnings = useCallback(async () => {
     try {
       const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/sellers/earnings/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("/api/admins/sellers/earnings/", { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) setSellerEarnings(await res.json());
     } catch (e) { console.error(e); }
-  };
+  }, []);
 
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     try {
       const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/coupons/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("/api/admins/coupons/", { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setCoupons(data.results || data);
     } catch (e) { console.error(e); }
-  };
+  }, []);
+
+  const fetchPlatformSettings = useCallback(async () => {
+    try {
+      const token = localStorage.getItem(ACCESS_TOKEN);
+      const res = await fetch("/api/admins/commission/", { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) { const data = await res.json(); setGlobalCommissionRate(data.default_commission_rate ?? ""); }
+    } catch (e) { console.error(e); }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "commission") { fetchSellerEarnings(); fetchPlatformSettings(); }
+    if (activeTab === "coupons") fetchCoupons();
+  }, [activeTab, fetchSellerEarnings, fetchCoupons, fetchPlatformSettings]);
 
   const handleCreateCoupon = async () => {
     try {
@@ -365,8 +168,7 @@ const AdminAnalytics = () => {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          code: couponForm.code,
-          discount_type: couponForm.discount_type,
+          code: couponForm.code, discount_type: couponForm.discount_type,
           discount_value: parseFloat(couponForm.discount_value),
           min_order_amount: couponForm.min_order_amount ? parseFloat(couponForm.min_order_amount) : null,
           max_discount_amount: couponForm.max_discount_amount ? parseFloat(couponForm.max_discount_amount) : null,
@@ -374,2060 +176,442 @@ const AdminAnalytics = () => {
           expires_at: couponForm.expires_at || null,
         }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        console.error("Coupon create error:", err);
-        alert("Failed to create coupon: " + JSON.stringify(err));
-        return;
-      }
+      if (!res.ok) { const err = await res.json(); toast.error("Failed: " + JSON.stringify(err)); return; }
+      toast.success("Coupon created!");
       setCouponForm({ code: "", discount_type: "percentage", discount_value: "", min_order_amount: "", max_discount_amount: "", max_uses_total: "", expires_at: "" });
       fetchCoupons();
     } catch (e) { console.error(e); }
   };
 
   const toggleCouponActive = async (id, isActive) => {
-    try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      await fetch(`/api/admins/coupons/${id}/`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ is_active: !isActive }),
-      });
-      fetchCoupons();
-    } catch (e) { console.error(e); }
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    await fetch(`/api/admins/coupons/${id}/`, {
+      method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ is_active: !isActive }),
+    });
+    fetchCoupons();
   };
 
   const deleteCoupon = async (id) => {
-    try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      await fetch(`/api/admins/coupons/${id}/`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchCoupons();
-    } catch (e) { console.error(e); }
-  };
-
-  const fetchPlatformSettings = async () => {
-    try {
-      const token = localStorage.getItem(ACCESS_TOKEN);
-      const res = await fetch("/api/admins/commission/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setGlobalCommissionRate(data.default_commission_rate ?? "");
-      }
-    } catch (e) { console.error(e); }
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    await fetch(`/api/admins/coupons/${id}/`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    fetchCoupons();
   };
 
   const handleSaveGlobalCommission = async () => {
     const val = parseFloat(globalCommissionRate);
-    if (isNaN(val) || val < 0 || val > 100) return;
+    if (isNaN(val) || val < 0 || val > 100) return toast.error("Enter a valid rate between 0 and 100");
     setSavingCommission(true);
     try {
       const token = localStorage.getItem(ACCESS_TOKEN);
       const res = await fetch("/api/admins/commission/", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ default_commission_rate: val }),
       });
       if (res.ok) {
         const data = await res.json();
-        setGlobalCommissionRate(data.default_commission_rate ?? val);
+        setGlobalCommissionRate(String(data.default_commission_rate ?? val));
+        toast.success("Commission rate updated to " + (data.default_commission_rate ?? val) + "%");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error("Failed to save: " + JSON.stringify(err));
       }
-    } catch (e) { console.error(e); }
-    setSavingCommission(false);
+    } catch (e) { console.error(e); toast.error("Failed to save commission rate"); }
+    finally { setSavingCommission(false); }
   };
 
-  useEffect(() => {
-    fetchSellerEarnings();
-    fetchCoupons();
-    fetchPlatformSettings();
-  }, []);
+  /* ─── Computed Data ─── */
+  const totalRevenue = purchases.reduce((s, p) => s + fmt(p.subtotal), 0);
+  const avgOrderValue = purchases.length > 0 ? totalRevenue / purchases.length : 0;
 
-  /* ── Derived metrics ── */
-  const totalRevenue = useMemo(
-    () => purchases.reduce((s, p) => s + parseFloat(p.subtotal || 0), 0),
-    [purchases],
-  );
+  const revenueByDay = {};
+  purchases.forEach((p) => {
+    const d = p.order_date?.slice(0, 10);
+    if (d) revenueByDay[d] = (revenueByDay[d] || 0) + fmt(p.subtotal);
+  });
+  const revenueTrend = Object.entries(revenueByDay).sort().map(([date, revenue]) => ({ date, revenue: +revenue.toFixed(2) }));
+  let running = 0;
+  const cumulativeRevenue = revenueTrend.map((r) => { running += r.revenue; return { ...r, cumulative: +running.toFixed(2) }; });
 
-  const avgOrderValue = purchases.length ? totalRevenue / purchases.length : 0;
+  const userByDay = {};
+  newUsers.forEach((u) => { const d = u.date_joined?.slice(0, 10); if (d) userByDay[d] = (userByDay[d] || 0) + 1; });
+  const userGrowth = Object.entries(userByDay).sort().map(([date, count]) => ({ date, count }));
 
-  /* Daily revenue for sparkline / area chart */
-  const revenueTrend = useMemo(() => {
-    const map = {};
-    purchases.forEach((p) => {
-      const d = new Date(p.order_date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-      map[d] = (map[d] || 0) + parseFloat(p.subtotal || 0);
-    });
-    return Object.entries(map)
-      .map(([date, revenue]) => ({ date, revenue: +revenue.toFixed(2) }))
-      .slice(-14);
-  }, [purchases]);
+  const statusMap = {};
+  allOrders.forEach((o) => { const s = (o.status || "unknown").toLowerCase(); statusMap[s] = (statusMap[s] || 0) + 1; });
+  const orderStatusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
-  /* Cumulative revenue */
-  const cumulativeRevenue = useMemo(() => {
-    let running = 0;
-    return revenueTrend.map((r) => {
-      running += r.revenue;
-      return { ...r, cumulative: +running.toFixed(2) };
-    });
-  }, [revenueTrend]);
+  const dowNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dowRev = new Array(7).fill(0);
+  purchases.forEach((p) => { const d = new Date(p.order_date); if (!isNaN(d)) dowRev[d.getDay()] += fmt(p.subtotal); });
+  const revenueByDow = dowNames.map((day, i) => ({ day, revenue: +dowRev[i].toFixed(2) }));
 
-  /* Daily new users */
-  const userGrowth = useMemo(() => {
-    const map = {};
-    newUsers.forEach((u) => {
-      const d = new Date(u.date_joined).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-      map[d] = (map[d] || 0) + 1;
-    });
-    return Object.entries(map)
-      .map(([date, count]) => ({ date, count }))
-      .slice(-14);
-  }, [newUsers]);
+  /* Top buyers / sellers from purchases */
+  const buyerMap = {};
+  purchases.forEach((p) => {
+    const u = p.username || "Guest";
+    if (!buyerMap[u]) buyerMap[u] = { username: u, totalSpent: 0, orderCount: 0 };
+    buyerMap[u].totalSpent += fmt(p.subtotal);
+    buyerMap[u].orderCount += 1;
+  });
+  const topBuyers = Object.values(buyerMap).sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 10);
 
-  /* Order status pie */
-  const orderStatusData = useMemo(() => {
-    const map = {};
-    allOrders.forEach((o) => {
-      const s = (o.status || "pending").toLowerCase();
-      map[s] = (map[s] || 0) + 1;
-    });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [allOrders]);
+  const sellerMap = {};
+  purchases.forEach((p) => {
+    const s = p.username || "Unknown";
+    if (!sellerMap[s]) sellerMap[s] = { name: s, totalRevenue: 0, itemsSold: 0 };
+    sellerMap[s].totalRevenue += fmt(p.subtotal);
+    sellerMap[s].itemsSold += p.quantity || 1;
+  });
+  const topSellers = Object.values(sellerMap).sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 10);
 
-  /* Revenue by day-of-week */
-  const revenueByDow = useMemo(() => {
-    const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const map = Object.fromEntries(
-      DAYS.map((d) => [d, { day: d, revenue: 0, orders: 0 }]),
-    );
-    purchases.forEach((p) => {
-      const d = DAYS[new Date(p.order_date).getDay()];
-      map[d].revenue += parseFloat(p.subtotal || 0);
-      map[d].orders += 1;
-    });
-    return DAYS.map((d) => ({
-      ...map[d],
-      revenue: +map[d].revenue.toFixed(2),
-    }));
-  }, [purchases]);
-
-  /* Product revenue bar */
-  const productRevenue = useMemo(
-    () =>
-      topProducts.slice(0, 8).map((p) => ({
-        name: p.name.length > 16 ? p.name.slice(0, 14) + "…" : p.name,
-        revenue: +parseFloat(p.total_revenue || 0).toFixed(2),
-        units: p.total_sold,
-        price: +parseFloat(p.price).toFixed(2),
-      })),
-    [topProducts],
-  );
-
-  /* Seller comparison radar */
-  const sellerRadar = useMemo(
-    () =>
-      topSellers.slice(0, 6).map((s) => ({
-        name: s.name.length > 12 ? s.name.slice(0, 10) + "…" : s.name,
-        Revenue: +s.totalRevenue.toFixed(0),
-        Items: s.itemsSold,
-        Orders: s.ordersCount,
-        AvgPrice: s.itemsSold ? +(s.totalRevenue / s.itemsSold).toFixed(2) : 0,
-      })),
-    [topSellers],
-  );
-
-  /* Buyer spend distribution */
-  const buyerSpend = useMemo(
-    () =>
-      topBuyers.slice(0, 10).map((b) => ({
-        name: b.username,
-        spent: +b.totalSpent.toFixed(2),
-        orders: b.orderCount,
-        avg: +(b.totalSpent / b.orderCount).toFixed(2),
-      })),
-    [topBuyers],
-  );
-
-  /* Hourly order heatmap (mock from order dates) */
-  const hourlyActivity = useMemo(() => {
-    const buckets = Array.from({ length: 24 }, (_, h) => ({
-      hour: `${h}:00`,
-      orders: 0,
-      revenue: 0,
-    }));
-    purchases.forEach((p) => {
-      const h = new Date(p.order_date).getHours();
-      buckets[h].orders += 1;
-      buckets[h].revenue += parseFloat(p.subtotal || 0);
-    });
-    return buckets.map((b) => ({ ...b, revenue: +b.revenue.toFixed(2) }));
-  }, [purchases]);
-
-  /* Treemap data for product share */
-  const productTreemap = useMemo(
-    () =>
-      topProducts.slice(0, 10).map((p) => ({
-        name: p.name.length > 14 ? p.name.slice(0, 12) + "…" : p.name,
-        size: +parseFloat(p.total_revenue || 0).toFixed(2),
-        fill: TOKEN.PALETTE[topProducts.indexOf(p) % TOKEN.PALETTE.length],
-      })),
-    [topProducts],
-  );
-
-  /* Profit margin per product */
-  const profitMargins = useMemo(
-    () =>
-      topProducts.slice(0, 8).map((p) => {
-        const rev = parseFloat(p.total_revenue || 0);
-        const cost = parseFloat(p.cost || 0);
-        const profit = rev - cost;
-        const margin = rev > 0 ? (profit / rev) * 100 : 0;
-        return {
-          name: p.name.length > 14 ? p.name.slice(0, 12) + "…" : p.name,
-          revenue: +rev.toFixed(2),
-          cost: +cost.toFixed(2),
-          profit: +profit.toFixed(2),
-          margin: +margin.toFixed(1),
-        };
-      }),
-    [topProducts],
-  );
-
-  /* Shipping funnel */
-  const shippingFunnel = useMemo(() => {
-    const total = allOrders.length || 1;
-    const statuses = [
-      "pending",
-      "processing",
-      "shipped",
-      "delivered",
-      "cancelled",
-    ];
-    return statuses.map((s) => ({
-      status: s.charAt(0).toUpperCase() + s.slice(1),
-      count: allOrders.filter((o) => o.status?.toLowerCase() === s).length,
-      pct: +(
-        (allOrders.filter((o) => o.status?.toLowerCase() === s).length /
-          total) *
-        100
-      ).toFixed(1),
-    }));
-  }, [allOrders]);
-
-  /* AOV over time */
-  const aovTrend = useMemo(() => {
-    const map = {};
-    purchases.forEach((p) => {
-      const d = new Date(p.order_date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-      if (!map[d]) map[d] = { date: d, total: 0, count: 0 };
-      map[d].total += parseFloat(p.subtotal || 0);
-      map[d].count += 1;
-    });
-    return Object.values(map)
-      .map((v) => ({ date: v.date, aov: +(v.total / v.count).toFixed(2) }))
-      .slice(-14);
-  }, [purchases]);
-
-  const t = chartTheme(theme);
-
-  /* ─── Tab definitions ─── */
-  const TABS = [
-    { id: "overview", label: "Overview", Icon: LayoutDashboard },
-    { id: "revenue", label: "Revenue", Icon: TrendingUp },
-    { id: "products", label: "Products", Icon: Package },
-    { id: "customers", label: "Customers", Icon: Users },
-    { id: "commission", label: "Commission & Sellers", Icon: DollarSign },
-    { id: "coupons", label: "Coupons", Icon: Tag },
-    { id: "operations", label: "Operations", Icon: Settings2 },
-    { id: "tables", label: "Raw Data", Icon: Table2 },
-  ];
-
-  const getStatusBadge = (status) => {
-    const map = {
-      pending: { label: "Pending", color: TOKEN.warning },
-      processing: { label: "Processing", color: TOKEN.primary },
-      shipped: { label: "Shipped", color: TOKEN.success },
-      delivered: { label: "Delivered", color: TOKEN.success },
-      cancelled: { label: "Cancelled", color: TOKEN.danger },
-    };
-    return (
-      map[status?.toLowerCase()] || {
-        label: status || "Unknown",
-        color: "#6b7280",
-      }
-    );
-  };
-
-  if (loading)
-    return (
-      <div className="analytics-loading">
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              border: `3px solid var(--border-color)`,
-              borderTop: `3px solid ${TOKEN.primary}`,
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-              margin: "0 auto 16px",
-            }}
-          />
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-            Loading analytics…
-          </p>
-        </div>
+  if (loading) return (
+    <div className="analytics-loading">
+      <div style={{ textAlign: "center" }}>
+        <div style={{ width: 48, height: 48, border: "3px solid var(--border-color)", borderTop: `3px solid ${TOKEN.primary}`, borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
+        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading analytics...</p>
       </div>
-    );
+    </div>
+  );
 
-  if (error)
-    return (
-      <div className="analytics-error">
-        <div className="analytics-error-card">
-          <AlertTriangle className="error-icon" size={28} />
-          <div className="error-title">Failed to load</div>
-          <div className="error-message">{error}</div>
-          <button className="retry-btn" onClick={fetchAnalyticsData}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+  if (error) return (
+    <div className="analytics-loading">
+      <div className="error-box"><div className="error-title">Failed to load</div><div className="error-message">{error}</div><button className="retry-btn" onClick={fetchAnalyticsData}>Retry</button></div>
+    </div>
+  );
 
   return (
     <div className="analytics-root">
-      {/* ── Top Bar ── */}
+      {/* Top Bar */}
       <div className="analytics-topbar">
-        <div className="analytics-brand">
-          <div className="analytics-brand-dot" />
-          <span className="analytics-brand-text">Analytics Dashboard</span>
-        </div>
-
+        <div className="analytics-brand"><div className="analytics-brand-dot" /><span className="analytics-brand-text">Analytics Dashboard</span></div>
         <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: 8,
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: isActive ? TOKEN.primary : "var(--bg-hover)",
-                  color: isActive ? "#fff" : "var(--text-color)",
-                  transition: "all 0.15s",
-                }}
-              >
-                <tab.Icon size={14} />
-                {tab.label}
-              </button>
-            );
-          })}
+          {TABS.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+              padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+              whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6,
+              background: activeTab === tab.id ? TOKEN.primary : "var(--bg-hover)",
+              color: activeTab === tab.id ? "#fff" : "var(--text-color)", transition: "all 0.15s",
+            }}><tab.Icon size={14} />{tab.label}</button>
+          ))}
           <div className="analytics-controls">
             <label htmlFor="days-filter">Period:</label>
-            <select
-              id="days-filter"
-              value={days}
-              onChange={(e) => setDays(parseInt(e.target.value))}
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-              <option value={365}>Last year</option>
+            <select id="days-filter" value={days} onChange={(e) => setDays(parseInt(e.target.value))}>
+              <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option>
+              <option value={90}>Last 90 days</option><option value={365}>Last year</option>
             </select>
           </div>
         </div>
       </div>
 
-      <div className="analytics-container">
-        {/* ══════════════════════════════════════════
-            OVERVIEW TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "overview" && (
-          <>
-            {/* KPI Row */}
-            <div
-              className="analytics-stats-row"
-              style={{ gridTemplateColumns: "repeat(4,1fr)" }}
-            >
-              <KPICard
-                label="Gross Revenue"
-                value={`L.E ${totalRevenue.toFixed(2)}`}
-                sub="Before costs"
-                accent={TOKEN.primary}
-                icon={<DollarSign size={18} color="#22c55e" />}
-              />
-              <KPICard
-                label="Total Purchases"
-                value={purchases.length}
-                sub="Transactions"
-                accent={TOKEN.success}
-                icon={<ShoppingCart size={18} color="#3b82f6" />}
-              />
-              <KPICard
-                label="Avg Order Value"
-                value={`L.E ${avgOrderValue.toFixed(2)}`}
-                sub="Per transaction"
-                accent={TOKEN.warning}
-                icon={<TrendingUp size={18} color="#f59e0b" />}
-              />
-              <KPICard
-                label="Active Days"
-                value={revenueTrend.length}
-                sub="Days with sales"
-                accent={TOKEN.purple}
-                icon={<CalendarDays size={18} color="#a855f7" />}
-              />
-            </div>
-
-            {/* Revenue + Users side by side */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-              }}
-            >
-              <ChartCard title="Revenue Trend" subtitle={`Last ${days} days`}>
-                <ResponsiveContainer width="100%" height={250}>
-                  <AreaChart data={cumulativeRevenue}>
-                    <defs>
-                      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor={TOKEN.primary}
-                          stopOpacity={0.3}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor={TOKEN.primary}
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => `L.E ${v}`}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="cumulative"
-                      stroke={TOKEN.primary}
-                      fill="url(#revGrad)"
-                      strokeWidth={2}
-                      name="Cumulative Rev"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke={TOKEN.cyan}
-                      strokeWidth={2}
-                      dot={false}
-                      name="Daily Rev"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard
-                title="User Growth"
-                subtitle="New registrations per day"
-              >
-                <ResponsiveContainer width="100%" height={250}>
-                  <AreaChart data={userGrowth}>
-                    <defs>
-                      <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor={TOKEN.success}
-                          stopOpacity={0.3}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor={TOKEN.success}
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      allowDecimals={false}
-                    />
-                    <Tooltip content={<CustomTooltip theme={theme} />} />
-                    <Area
-                      type="monotone"
-                      dataKey="count"
-                      stroke={TOKEN.success}
-                      fill="url(#userGrad)"
-                      strokeWidth={2}
-                      name="New Users"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
-
-            {/* Order Status + Revenue by DOW */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 2fr",
-                gap: 20,
-              }}
-            >
-              <ChartCard title="Order Status" subtitle="All orders breakdown">
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie
-                      data={orderStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={90}
-                      dataKey="value"
-                      label={({ name, pct }) => `${name}`}
-                      labelLine
-                    >
-                      {orderStatusData.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip theme={theme} />} />
-                    <Legend
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 11 }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard
-                title="Revenue by Day of Week"
-                subtitle="Best performing days"
-              >
-                <ResponsiveContainer width="100%" height={350}>
-                  <BarChart data={revenueByDow}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                    <XAxis
-                      dataKey="day"
-                      tick={{ fill: t.text, fontSize: 11 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => `L.E ${v}`}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <Bar dataKey="revenue" name="Revenue" radius={[6, 6, 0, 0]}>
-                      {revenueByDow.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════
-            REVENUE TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "revenue" && (
-          <>
-            <div
-              className="analytics-stats-row"
-              style={{ gridTemplateColumns: "repeat(4,1fr)" }}
-            >
-              <KPICard
-                label="Gross Revenue"
-                value={`L.E ${totalRevenue.toFixed(2)}`}
-                sub="Before costs"
-                accent={TOKEN.primary}
-                icon={<DollarSign size={18} color="#22c55e" />}
-              />
-              <KPICard
-                label="Total Purchases"
-                value={purchases.length}
-                sub="Transactions"
-                accent={TOKEN.success}
-                icon={<ShoppingCart size={18} color="#3b82f6" />}
-              />
-              <KPICard
-                label="Avg Order Value"
-                value={`L.E ${avgOrderValue.toFixed(2)}`}
-                sub="Per transaction"
-                accent={TOKEN.warning}
-                icon={<TrendingUp size={18} color="#f59e0b" />}
-              />
-              <KPICard
-                label="Active Days"
-                value={revenueTrend.length}
-                sub="Days with sales"
-                accent={TOKEN.purple}
-                icon={<CalendarDays size={18} color="#a855f7" />}
-              />
-            </div>
-
-            <ChartCard
-              title="Daily vs Cumulative Revenue"
-              subtitle="Growth trajectory"
-              span={1}
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={cumulativeRevenue}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `L.E ${v}`}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `L.E ${v}`}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip prefix="L.E " theme={theme} />}
-                  />
-                  <Legend />
-                  <Bar
-                    yAxisId="left"
-                    dataKey="revenue"
-                    name="Daily Revenue"
-                    fill={TOKEN.primary}
-                    opacity={0.7}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Line
-                    yAxisId="right"
-                    dataKey="cumulative"
-                    name="Cumulative Revenue"
-                    stroke={TOKEN.orange}
-                    strokeWidth={2.5}
-                    dot={false}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-              }}
-            >
-              <ChartCard
-                title="Average Order Value Trend"
-                subtitle="AOV over time"
-              >
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={aovTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => `L.E ${v}`}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <ReferenceLine
-                      y={avgOrderValue}
-                      stroke={TOKEN.danger}
-                      strokeDasharray="4 4"
-                      label={{ value: "Avg", fill: TOKEN.danger, fontSize: 10 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="aov"
-                      stroke={TOKEN.purple}
-                      strokeWidth={2.5}
-                      dot={{ r: 3, fill: TOKEN.purple }}
-                      name="AOV"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard
-                title="Revenue by Day of Week"
-                subtitle="Peak revenue days"
-              >
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={revenueByDow}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                    <XAxis
-                      dataKey="day"
-                      tick={{ fill: t.text, fontSize: 11 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => `L.E ${v}`}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="revenue"
-                      name="Revenue"
-                      fill={TOKEN.primary}
-                      radius={[6, 6, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="orders"
-                      name="Orders"
-                      fill={TOKEN.cyan}
-                      radius={[6, 6, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
-
-            <ChartCard
-              title="Hourly Order Activity"
-              subtitle="When do customers buy?"
-            >
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={hourlyActivity}>
-                  <defs>
-                    <linearGradient id="hourGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor={TOKEN.cyan}
-                        stopOpacity={0.35}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={TOKEN.cyan}
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                  <XAxis
-                    dataKey="hour"
-                    tick={{ fill: t.text, fontSize: 9 }}
-                    tickLine={false}
-                    interval={2}
-                  />
-                  <YAxis
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip content={<CustomTooltip theme={theme} />} />
-                  <Area
-                    type="monotone"
-                    dataKey="orders"
-                    stroke={TOKEN.cyan}
-                    fill="url(#hourGrad)"
-                    strokeWidth={2}
-                    name="Orders"
-                  />
+      <div className="analytics-content">
+        {/* ═══ OVERVIEW ═══ */}
+        {activeTab === "overview" && (<>
+          <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+            <KPICard label="Gross Revenue" value={fmtL(totalRevenue)} sub="Before costs" accent={TOKEN.primary} icon={<DollarSign size={18} color="#22c55e" />} />
+            <KPICard label="Total Purchases" value={purchases.length} sub="Transactions" accent={TOKEN.success} icon={<ShoppingCart size={18} color="#3b82f6" />} />
+            <KPICard label="Avg Order Value" value={fmtL(avgOrderValue)} sub="Per transaction" accent={TOKEN.warning} icon={<TrendingUp size={18} color="#f59e0b" />} />
+            <KPICard label="Active Days" value={revenueTrend.length} sub="Days with sales" accent={TOKEN.purple} icon={<CalendarDays size={18} color="#a855f7" />} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <Section title="Revenue Trend" subtitle={`Last ${days} days`}>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={cumulativeRevenue}>
+                  <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={TOKEN.primary} stopOpacity={0.3} /><stop offset="95%" stopColor={TOKEN.primary} stopOpacity={0} /></linearGradient></defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} /><XAxis dataKey="date" tick={{ fill: t.text, fontSize: 10 }} tickLine={false} /><YAxis tick={{ fill: t.text, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v) => `L.E ${v}`} />
+                  <Tooltip content={<TooltipBox prefix="L.E " theme={theme} />} />
+                  <Area type="monotone" dataKey="cumulative" stroke={TOKEN.primary} fill="url(#rg)" strokeWidth={2} name="Cumulative Rev" />
+                  <Area type="monotone" dataKey="revenue" stroke={TOKEN.cyan} fill="none" strokeWidth={2} dot={false} name="Daily Rev" />
                 </AreaChart>
               </ResponsiveContainer>
-            </ChartCard>
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════
-            PRODUCTS TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "products" && (
-          <>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr",
-                gap: 20,
-              }}
-            >
-              <ChartCard
-                title="Product Revenue Comparison"
-                subtitle="Top 8 by revenue"
-              >
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={productRevenue} layout="vertical">
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={t.grid}
-                      horizontal={false}
-                    />
-                    <XAxis
-                      type="number"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => `L.E ${v}`}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={110}
-                      tick={{ fill: t.text, fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="revenue"
-                      name="Revenue"
-                      fill={TOKEN.primary}
-                      radius={[0, 6, 6, 0]}
-                    >
-                      {productRevenue.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard
-                title="Revenue Share"
-                subtitle="Market share by product"
-              >
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={productTreemap}
-                      dataKey="size"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label={({ name }) => name}
-                      labelLine
-                    >
-                      {productTreemap.map((e, i) => (
-                        <Cell key={i} fill={e.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
-
-            <ChartCard
-              title="Profit Margin Analysis"
-              subtitle="Revenue vs Cost vs Profit per product"
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={profitMargins}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `L.E ${v}`}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(v) => `${v}%`}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip prefix="L.E " theme={theme} />}
-                  />
-                  <Legend />
-                  <Bar
-                    yAxisId="left"
-                    dataKey="revenue"
-                    name="Revenue"
-                    fill={TOKEN.primary}
-                    opacity={0.8}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    yAxisId="left"
-                    dataKey="cost"
-                    name="Cost"
-                    fill={TOKEN.danger}
-                    opacity={0.7}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    yAxisId="left"
-                    dataKey="profit"
-                    name="Profit"
-                    fill={TOKEN.success}
-                    opacity={0.9}
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Line
-                    yAxisId="right"
-                    dataKey="margin"
-                    name="Margin %"
-                    stroke={TOKEN.warning}
-                    strokeWidth={2.5}
-                    dot={{ r: 4 }}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <ChartCard
-              title="Units Sold vs Unit Price"
-              subtitle="Volume & price relationship"
-            >
-              <ResponsiveContainer width="100%" height={260}>
-                <ScatterChart>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                  <XAxis
-                    dataKey="units"
-                    name="Units Sold"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    label={{
-                      value: "Units Sold",
-                      position: "insideBottom",
-                      offset: -5,
-                      fill: t.text,
-                      fontSize: 11,
-                    }}
-                  />
-                  <YAxis
-                    dataKey="price"
-                    name="Unit Price"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    label={{
-                      value: "Price (L.E)",
-                      angle: -90,
-                      position: "insideLeft",
-                      fill: t.text,
-                      fontSize: 11,
-                    }}
-                  />
-                  <Tooltip
-                    cursor={{ strokeDasharray: "3 3" }}
-                    content={<CustomTooltip prefix="L.E " theme={theme} />}
-                  />
-                  <Scatter
-                    data={productRevenue}
-                    name="Products"
-                    fill={TOKEN.purple}
-                  />
-                </ScatterChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════
-            CUSTOMERS TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "customers" && (
-          <>
-            <div
-              className="analytics-stats-row"
-              style={{ gridTemplateColumns: "repeat(3,1fr)" }}
-            >
-              <KPICard
-                label="New Users"
-                value={newUsers.length}
-                sub={`Last ${days} days`}
-                accent={TOKEN.success}
-                icon={<UserPlus size={18} color="#22c55e" />}
-              />
-              <KPICard
-                label="Top Buyer Spend"
-                value={`L.E ${topBuyers[0]?.totalSpent?.toFixed(2) || 0}`}
-                sub={topBuyers[0]?.username || "—"}
-                accent={TOKEN.primary}
-                icon={<Trophy size={18} color="#eab308" />}
-              />
-              <KPICard
-                label="Repeat Buyers"
-                value={topBuyers.filter((b) => b.orderCount > 1).length}
-                sub="Ordered more than once"
-                accent={TOKEN.purple}
-                icon={<Repeat2 size={18} color="#a855f7" />}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-              }}
-            >
-              <ChartCard
-                title="Top 10 Buyers by Spend"
-                subtitle="Lifetime value ranking"
-              >
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={buyerSpend} layout="vertical">
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={t.grid}
-                      horizontal={false}
-                    />
-                    <XAxis
-                      type="number"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v) => `L.E ${v}`}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      width={90}
-                      tick={{ fill: t.text, fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <Bar
-                      dataKey="spent"
-                      name="Total Spent"
-                      radius={[0, 6, 6, 0]}
-                    >
-                      {buyerSpend.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard
-                title="Buyer: Spend vs Orders"
-                subtitle="Engagement scatter"
-              >
-                <ResponsiveContainer width="100%" height={300}>
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                    <XAxis
-                      dataKey="orders"
-                      name="Orders"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      label={{
-                        value: "# Orders",
-                        position: "insideBottom",
-                        offset: -5,
-                        fill: t.text,
-                        fontSize: 11,
-                      }}
-                    />
-                    <YAxis
-                      dataKey="spent"
-                      name="Total Spent"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      label={{
-                        value: "Spent (L.E)",
-                        angle: -90,
-                        position: "insideLeft",
-                        fill: t.text,
-                        fontSize: 11,
-                      }}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip prefix="L.E " theme={theme} />}
-                    />
-                    <Scatter
-                      data={buyerSpend}
-                      name="Buyers"
-                      fill={TOKEN.success}
-                    />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
-
-            <ChartCard
-              title="New User Registrations"
-              subtitle="Growth over time"
-            >
+            </Section>
+            <Section title="User Growth" subtitle="New registrations per day">
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={userGrowth}>
-                  <defs>
-                    <linearGradient id="ug2" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor={TOKEN.success}
-                        stopOpacity={0.35}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={TOKEN.success}
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip content={<CustomTooltip theme={theme} />} />
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke={TOKEN.success}
-                    fill="url(#ug2)"
-                    strokeWidth={2}
-                    name="New Users"
-                  />
+                  <defs><linearGradient id="ug" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={TOKEN.success} stopOpacity={0.3} /><stop offset="95%" stopColor={TOKEN.success} stopOpacity={0} /></linearGradient></defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} /><XAxis dataKey="date" tick={{ fill: t.text, fontSize: 10 }} tickLine={false} /><YAxis tick={{ fill: t.text, fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip content={<TooltipBox theme={theme} />} />
+                  <Area type="monotone" dataKey="count" stroke={TOKEN.success} fill="url(#ug)" strokeWidth={2} name="New Users" />
                 </AreaChart>
               </ResponsiveContainer>
-            </ChartCard>
-
-            {topSellers.length > 2 && (
-              <ChartCard
-                title="Seller Performance Radar"
-                subtitle="Multidimensional comparison"
-              >
-                <ResponsiveContainer width="100%" height={320}>
-                  <RadarChart data={sellerRadar}>
-                    <PolarGrid stroke={t.grid} />
-                    <PolarAngleAxis
-                      dataKey="name"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                    />
-                    <PolarRadiusAxis
-                      tick={{ fill: t.text, fontSize: 8 }}
-                      axisLine={false}
-                    />
-                    <Radar
-                      name="Revenue"
-                      dataKey="Revenue"
-                      stroke={TOKEN.primary}
-                      fill={TOKEN.primary}
-                      fillOpacity={0.25}
-                    />
-                    <Radar
-                      name="Items"
-                      dataKey="Items"
-                      stroke={TOKEN.success}
-                      fill={TOKEN.success}
-                      fillOpacity={0.25}
-                    />
-                    <Legend />
-                    <Tooltip content={<CustomTooltip theme={theme} />} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            )}
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════
-            OPERATIONS TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "operations" && (
-          <>
-            <div
-              className="analytics-stats-row"
-              style={{ gridTemplateColumns: "repeat(4,1fr)" }}
-            >
-              <KPICard
-                label="Total Orders"
-                value={allOrders.length}
-                sub="All time"
-                accent={TOKEN.primary}
-                icon={<Package size={18} color="#3b82f6" />}
-              />
-              <KPICard
-                label="Shipped"
-                value={
-                  allOrders.filter((o) =>
-                    ["shipped", "delivered"].includes(o.status?.toLowerCase()),
-                  ).length
-                }
-                sub="Completed"
-                accent={TOKEN.success}
-                icon={<PackageCheck size={18} color="#22c55e" />}
-              />
-              <KPICard
-                label="Pending"
-                value={
-                  allOrders.filter((o) => o.status?.toLowerCase() === "pending")
-                    .length
-                }
-                sub="Awaiting"
-                accent={TOKEN.warning}
-                icon={<Clock size={18} color="#f59e0b" />}
-              />
-              <KPICard
-                label="Cancelled"
-                value={
-                  allOrders.filter(
-                    (o) => o.status?.toLowerCase() === "cancelled",
-                  ).length
-                }
-                sub="Lost orders"
-                accent={TOKEN.danger}
-                icon={<XCircle size={18} color="#ef4444" />}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 20,
-              }}
-            >
-              <ChartCard
-                title="Order Status Distribution"
-                subtitle="Current fulfillment pipeline"
-              >
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie
-                      data={orderStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}`}
-                      labelLine
-                    >
-                      {orderStatusData.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip theme={theme} />} />
-                    <Legend
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 11 }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard
-                title="Fulfillment Funnel"
-                subtitle="Order pipeline breakdown"
-              >
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={shippingFunnel} layout="vertical">
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke={t.grid}
-                      horizontal={false}
-                    />
-                    <XAxis
-                      type="number"
-                      tick={{ fill: t.text, fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="status"
-                      width={85}
-                      tick={{ fill: t.text, fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip theme={theme} />} />
-                    <Bar dataKey="count" name="Orders" radius={[0, 6, 6, 0]}>
-                      {shippingFunnel.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
-            </div>
-
-            <ChartCard
-              title="Hourly Order Volume"
-              subtitle="Peak hours analysis — plan your staffing"
-            >
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={hourlyActivity}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
-                  <XAxis
-                    dataKey="hour"
-                    tick={{ fill: t.text, fontSize: 9 }}
-                    tickLine={false}
-                    interval={1}
-                  />
-                  <YAxis
-                    tick={{ fill: t.text, fontSize: 10 }}
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip content={<CustomTooltip theme={theme} />} />
-                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]}>
-                    {hourlyActivity.map((d, i) => (
-                      <Cell
-                        key={i}
-                        fill={d.orders > 0 ? TOKEN.primary : t.grid}
-                      />
-                    ))}
+            </Section>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr", gap: 20 }}>
+            <Section title="Order Status" subtitle="All orders breakdown">
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={orderStatusData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" label={({ name }) => name} labelLine>
+                    {orderStatusData.map((_, i) => <Cell key={i} fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]} />)}
+                  </Pie>
+                  <Tooltip content={<TooltipBox theme={theme} />} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </Section>
+            <Section title="Revenue by Day of Week" subtitle="Best performing days">
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={revenueByDow}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} /><XAxis dataKey="day" tick={{ fill: t.text, fontSize: 11 }} tickLine={false} /><YAxis tick={{ fill: t.text, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v) => `L.E ${v}`} />
+                  <Tooltip content={<TooltipBox prefix="L.E " theme={theme} />} />
+                  <Bar dataKey="revenue" name="Revenue" radius={[6, 6, 0, 0]}>
+                    {revenueByDow.map((_, i) => <Cell key={i} fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </ChartCard>
-          </>
-        )}
+            </Section>
+          </div>
+        </>)}
 
-        {/* ══════════════════════════════════════════
-            RAW DATA TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "tables" && (
-          <>
-            {/* Top Buyers */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  Top Buyers <span className="badge">{topBuyers.length}</span>
-                </h2>
-              </div>
-              {topBuyers.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Rank</th>
-                        <th>Username</th>
-                        <th>Total Spent</th>
-                        <th>Orders</th>
-                        <th>Avg Order</th>
+        {/* ═══ REVENUE ═══ */}
+        {activeTab === "revenue" && (<>
+          <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+            <KPICard label="Gross Revenue" value={fmtL(totalRevenue)} sub="Before costs" accent={TOKEN.primary} icon={<DollarSign size={18} color="#22c55e" />} />
+            <KPICard label="Total Purchases" value={purchases.length} sub="Transactions" accent={TOKEN.success} icon={<ShoppingCart size={18} color="#3b82f6" />} />
+            <KPICard label="Avg Order Value" value={fmtL(avgOrderValue)} sub="Per transaction" accent={TOKEN.warning} icon={<TrendingUp size={18} color="#f59e0b" />} />
+            <KPICard label="Active Days" value={revenueTrend.length} sub="Days with sales" accent={TOKEN.purple} icon={<CalendarDays size={18} color="#a855f7" />} />
+          </div>
+          <Section title="Revenue Over Time" subtitle={`Last ${days} days`}>
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={cumulativeRevenue}>
+                <defs><linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={TOKEN.primary} stopOpacity={0.3} /><stop offset="95%" stopColor={TOKEN.primary} stopOpacity={0} /></linearGradient></defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={t.grid} /><XAxis dataKey="date" tick={{ fill: t.text, fontSize: 10 }} tickLine={false} /><YAxis tick={{ fill: t.text, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v) => `L.E ${v}`} />
+                <Tooltip content={<TooltipBox prefix="L.E " theme={theme} />} />
+                <Area type="monotone" dataKey="cumulative" stroke={TOKEN.primary} fill="url(#rg2)" strokeWidth={2} name="Cumulative" />
+                <Area type="monotone" dataKey="revenue" stroke={TOKEN.cyan} fill="none" strokeWidth={2} dot={false} name="Daily" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Section>
+          <Section title="Revenue by Day of Week">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={revenueByDow}>
+                <CartesianGrid strokeDasharray="3 3" stroke={t.grid} /><XAxis dataKey="day" tick={{ fill: t.text, fontSize: 11 }} tickLine={false} /><YAxis tick={{ fill: t.text, fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(v) => `L.E ${v}`} />
+                <Tooltip content={<TooltipBox prefix="L.E " theme={theme} />} />
+                <Bar dataKey="revenue" name="Revenue" radius={[6, 6, 0, 0]}>{revenueByDow.map((_, i) => <Cell key={i} fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]} />)}</Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Section>
+        </>)}
+
+        {/* ═══ PRODUCTS ═══ */}
+        {activeTab === "products" && (<>
+          <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+            <KPICard label="Unique Products Sold" value={topProducts.length} sub={`Top ${days} days`} accent={TOKEN.primary} icon={<Package size={18} color="#3b82f6" />} />
+            <KPICard label="Total Items Sold" value={topProducts.reduce((s, p) => s + (p.total_sold || 0), 0)} sub="Across all products" accent={TOKEN.success} icon={<ShoppingCart size={18} color="#10b981" />} />
+            <KPICard label="Top Product Revenue" value={topProducts.length > 0 ? fmtL(topProducts[0].total_revenue) : "L.E 0"} sub={topProducts[0]?.name || "—"} accent={TOKEN.warning} icon={<TrendingUp size={18} color="#f59e0b" />} />
+          </div>
+          <Section title="Top Products" subtitle="By revenue">
+            <ResponsiveContainer width="100%" height={Math.max(300, topProducts.length * 40)}>
+              <BarChart data={topProducts} layout="vertical" margin={{ left: 100 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={t.grid} />
+                <XAxis type="number" tick={{ fill: t.text, fontSize: 10 }} tickFormatter={(v) => `L.E ${v}`} />
+                <YAxis type="category" dataKey="name" tick={{ fill: t.text, fontSize: 11 }} width={120} />
+                <Tooltip content={<TooltipBox prefix="L.E " theme={theme} />} />
+                <Bar dataKey="total_revenue" name="Revenue" radius={[0, 6, 6, 0]}>{topProducts.map((_, i) => <Cell key={i} fill={TOKEN.PALETTE[i % TOKEN.PALETTE.length]} />)}</Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Section>
+          {topProducts.length > 0 && (
+            <Section title="Products Table">
+              <div className="table-wrapper">
+                <table className="analytics-table">
+                  <thead><tr><th>Product</th><th>Price</th><th>Sold</th><th>Revenue</th></tr></thead>
+                  <tbody>
+                    {topProducts.map((p, i) => (
+                      <tr key={p.id || i}>
+                        <td className="cell-strong">{p.name}</td>
+                        <td>{fmtL(p.price)}</td>
+                        <td className="cell-center">{p.total_sold}</td>
+                        <td className="cell-green">{fmtL(p.total_revenue)}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {topBuyers.map((b, i) => (
-                        <tr key={b.username}>
-                          <td>
-                            <span className="rank-number">{i + 1}</span>
-                          </td>
-                          <td className="cell-strong">{b.username}</td>
-                          <td className="cell-green">
-                            L.E {b.totalSpent.toFixed(2)}
-                          </td>
-                          <td className="cell-center">{b.orderCount}</td>
-                          <td>L.E {(b.totalSpent / b.orderCount).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No buyer data available</p>
-              )}
-            </div>
-
-            {/* Top Sellers */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  Top Sellers <span className="badge">{topSellers.length}</span>
-                </h2>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              {topSellers.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Rank</th>
-                        <th>Seller</th>
-                        <th>Revenue</th>
-                        <th>Items</th>
-                        <th>Orders</th>
-                        <th>Avg Price</th>
+            </Section>
+          )}
+        </>)}
+
+        {/* ═══ CUSTOMERS ═══ */}
+        {activeTab === "customers" && (<>
+          <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+            <KPICard label="New Users" value={newUsers.length} sub={`Last ${days} days`} accent={TOKEN.success} icon={<Users size={18} color="#10b981" />} />
+            <KPICard label="Unique Buyers" value={topBuyers.length} sub="Active customers" accent={TOKEN.primary} icon={<Users2 size={18} color="#3b82f6" />} />
+            <KPICard label="Top Buyer Spent" value={topBuyers.length > 0 ? fmtL(topBuyers[0].totalSpent) : "L.E 0"} sub={topBuyers[0]?.username || "—"} accent={TOKEN.warning} icon={<DollarSign size={18} color="#f59e0b" />} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <Section title="Top Buyers" subtitle="By total spent">
+              <div className="table-wrapper">
+                <table className="analytics-table">
+                  <thead><tr><th>#</th><th>Customer</th><th>Spent</th><th>Orders</th></tr></thead>
+                  <tbody>
+                    {topBuyers.map((b, i) => (
+                      <tr key={i}><td className="cell-center">{i + 1}</td><td className="cell-strong">{b.username}</td><td className="cell-green">{fmtL(b.totalSpent)}</td><td className="cell-center">{b.orderCount}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+            <Section title="New Users" subtitle={`Last ${days} days`}>
+              <div className="table-wrapper" style={{ maxHeight: 400, overflowY: "auto" }}>
+                <table className="analytics-table">
+                  <thead><tr><th>Username</th><th>Email</th><th>Joined</th></tr></thead>
+                  <tbody>
+                    {newUsers.slice(0, 30).map((u, i) => (
+                      <tr key={u.id || i}><td className="cell-strong">{u.username}</td><td>{u.email}</td><td>{u.date_joined?.slice(0, 10)}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </div>
+        </>)}
+
+        {/* ═══ COMMISSION & SELLERS ═══ */}
+        {activeTab === "commission" && (<>
+          <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+            <KPICard label="Total Revenue (30d)" value={fmtL(sellerEarnings.summary?.total_revenue_30d)} sub="All seller revenue" accent={TOKEN.primary} icon={<DollarSign size={18} color="#22c55e" />} />
+            <KPICard label="Platform Commission (30d)" value={fmtL(sellerEarnings.summary?.total_commission_30d)} sub="Commission earned" accent={TOKEN.warning} icon={<DollarSign size={18} color="#c9a24b" />} />
+            <KPICard label="Active Sellers" value={sellerEarnings.earnings?.length || 0} sub="Registered sellers" accent={TOKEN.success} icon={<Users2 size={18} color="#3b82f6" />} />
+          </div>
+          <div style={{ display: "flex", gap: 16, padding: "14px 20px", borderRadius: 10, background: "var(--bg-card, rgba(255,255,255,0.04))", border: "1px solid var(--border-color)", flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Total Revenue: <span style={{ color: TOKEN.primary }}>{fmtL(sellerEarnings.summary?.total_revenue_30d)}</span></div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Platform Commission: <span style={{ color: TOKEN.warning }}>{fmtL(sellerEarnings.summary?.total_commission_30d)}</span></div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Total Payouts: <span style={{ color: TOKEN.success }}>{fmtL(fmt(sellerEarnings.summary?.total_revenue_30d) - fmt(sellerEarnings.summary?.total_commission_30d))}</span></div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderRadius: 10, background: "var(--bg-card, rgba(255,255,255,0.04))", border: "1px solid var(--border-color)", flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Default Commission Rate:</span>
+            <input type="number" step="0.01" min="0" max="100" value={globalCommissionRate} onChange={(e) => setGlobalCommissionRate(e.target.value)} style={{ width: 80, padding: "4px 8px", fontSize: 13 }} />
+            <span style={{ fontSize: 13 }}>%</span>
+            <button className="button button--small button--primary" onClick={handleSaveGlobalCommission} disabled={savingCommission}>{savingCommission ? "Saving..." : "Save"}</button>
+          </div>
+          {sellerEarnings.earnings?.length > 0 ? (
+            <Section title={`Seller Earnings (${sellerEarnings.earnings.length})`}>
+              <div className="table-wrapper">
+                <table className="analytics-table">
+                  <thead><tr><th>Seller</th><th>Delivery</th><th>Commission</th><th>Revenue (30d)</th><th>Commission (30d)</th><th>Payout</th><th>Orders</th></tr></thead>
+                  <tbody>
+                    {sellerEarnings.earnings.map((s, i) => (
+                      <tr key={s.seller_id || i}>
+                        <td className="cell-strong">{s.business_name || "—"}</td>
+                        <td className="cell-center">{s.delivery_type || "—"}</td>
+                        <td className="cell-accent">{s.commission_rate != null ? `${num(s.commission_rate)}%` : "—"}</td>
+                        <td className="cell-green">{fmtL(s.total_revenue_30d)}</td>
+                        <td className="cell-green">{fmtL(s.total_commission_30d)}</td>
+                        <td>{fmtL(s.seller_payout_30d)}</td>
+                        <td className="cell-center">{s.total_orders_30d || 0}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {topSellers.map((s, i) => (
-                        <tr key={s.name}>
-                          <td>
-                            <span className="rank-number">{i + 1}</span>
-                          </td>
-                          <td className="cell-strong">{s.name}</td>
-                          <td className="cell-green">
-                            L.E {s.totalRevenue.toFixed(2)}
-                          </td>
-                          <td className="cell-center">{s.itemsSold}</td>
-                          <td className="cell-center">{s.ordersCount}</td>
-                          <td>L.E {(s.totalRevenue / s.itemsSold).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No seller data available</p>
-              )}
-            </div>
-
-            {/* All Orders */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  All Orders <span className="badge">{allOrders.length}</span>
-                </h2>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              {allOrders.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table orders-table">
-                    <thead>
-                      <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Shipping</th>
-                        <th>Date</th>
+            </Section>
+          ) : <p className="empty-state">No seller earnings data</p>}
+        </>)}
+
+        {/* ═══ COUPONS ═══ */}
+        {activeTab === "coupons" && (<>
+          <Section title="Create Coupon">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+              {[
+                { label: "Code", key: "code", type: "text", placeholder: "e.g. SUMMER25" },
+                { label: "Discount Type", key: "discount_type", type: "select", options: [{ value: "percentage", label: "Percentage (%)" }, { value: "fixed", label: "Fixed Amount" }] },
+                { label: "Discount Value", key: "discount_value", type: "number", placeholder: "e.g. 25" },
+                { label: "Min Order Amount", key: "min_order_amount", type: "number", placeholder: "Optional" },
+                { label: "Max Discount Amount", key: "max_discount_amount", type: "number", placeholder: "Optional" },
+                { label: "Max Total Uses", key: "max_uses_total", type: "number", placeholder: "Unlimited" },
+                { label: "Expiry Date", key: "expires_at", type: "datetime-local" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{field.label}</label>
+                  {field.type === "select" ? (
+                    <select value={couponForm[field.key]} onChange={(e) => setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "var(--text-color)", fontSize: 13, outline: "none" }}>
+                      {field.options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  ) : (
+                    <input type={field.type} value={couponForm[field.key]} placeholder={field.placeholder}
+                      onChange={(e) => setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "var(--text-color)", fontSize: 13, outline: "none" }} />
+                  )}
+                </div>
+              ))}
+            </div>
+            <button className="button button--small button--primary" onClick={handleCreateCoupon}
+              disabled={!couponForm.code || !couponForm.discount_value}
+              style={{ cursor: couponForm.code && couponForm.discount_value ? "pointer" : "not-allowed", opacity: couponForm.code && couponForm.discount_value ? 1 : 0.5 }}>
+              Create Coupon
+            </button>
+          </Section>
+          <Section title={`Coupons (${coupons.length})`}>
+            {coupons.length > 0 ? (
+              <div className="table-wrapper">
+                <table className="analytics-table">
+                  <thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Used</th><th>Max Uses</th><th>Active</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {coupons.map((c) => (
+                      <tr key={c.id}>
+                        <td className="cell-strong">{c.code}</td>
+                        <td className="cell-center">{c.discount_type}</td>
+                        <td className="cell-green">{c.discount_type === "percentage" ? `${c.discount_value}%` : fmtL(c.discount_value)}</td>
+                        <td className="cell-center">{c.times_used || 0}</td>
+                        <td className="cell-center">{c.max_uses_total || "∞"}</td>
+                        <td className="cell-center">
+                          <span className={`badge ${c.is_active ? "approved" : "pending"}`} style={{ cursor: "pointer" }} onClick={() => toggleCouponActive(c.id, c.is_active)}>
+                            {c.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td><button className="button button--small" style={{ color: TOKEN.danger, cursor: "pointer" }} onClick={() => deleteCoupon(c.id)}>Delete</button></td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {allOrders.map((order) => {
-                        const si = getStatusBadge(order.status);
-                        const shipped = ["shipped", "delivered"].includes(
-                          order.status?.toLowerCase(),
-                        );
-                        return (
-                          <tr key={order.id}>
-                            <td className="cell-accent">#{order.id}</td>
-                            <td className="cell-strong">
-                              {order.owner_detail?.username ||
-                                order.customer_name ||
-                                "N/A"}
-                            </td>
-                            <td className="cell-green">
-                              L.E {parseFloat(order.total || 0).toFixed(2)}
-                            </td>
-                            <td>
-                              <span
-                                className="status-badge"
-                                style={{ backgroundColor: si.color }}
-                              >
-                                {si.label}
-                              </span>
-                            </td>
-                            <td>
-                              <span
-                                className={`shipping-badge ${shipped ? "shipped" : ""}`}
-                              >
-                                {shipped ? "✓ Shipped" : "○ Pending"}
-                              </span>
-                            </td>
-                            <td className="cell-date">
-                              {new Date(
-                                order.created_at || order.order_date,
-                              ).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No orders found</p>
-              )}
-            </div>
-
-            {/* New Users */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  New Users <span className="badge">{newUsers.length}</span>
-                </h2>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              {newUsers.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Joined</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {newUsers.map((u) => (
-                        <tr key={u.id}>
-                          <td className="cell-id">#{u.id}</td>
-                          <td className="cell-strong">{u.username}</td>
-                          <td className="cell-muted">{u.email}</td>
-                          <td>
-                            {`${u.first_name} ${u.last_name}`.trim() || "—"}
-                          </td>
-                          <td className="cell-date">
-                            {new Date(u.date_joined).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No new users in this period</p>
-              )}
-            </div>
+            ) : <p className="empty-state">No coupons created yet</p>}
+          </Section>
+        </>)}
 
-            {/* Top Products */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  Top Products{" "}
-                  <span className="badge">{topProducts.length}</span>
-                </h2>
-              </div>
-              {topProducts.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Units Sold</th>
-                        <th>Revenue</th>
-                        <th>Margin</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {topProducts.map((p, i) => {
-                        const rev = parseFloat(p.total_revenue || 0);
-                        const cost = parseFloat(p.cost || 0);
-                        const margin =
-                          rev > 0
-                            ? (((rev - cost) / rev) * 100).toFixed(1)
-                            : "—";
-                        return (
-                          <tr key={p.id}>
-                            <td>
-                              <span className="rank-number">{i + 1}</span>
-                            </td>
-                            <td className="cell-strong">{p.name}</td>
-                            <td>L.E {parseFloat(p.price).toFixed(2)}</td>
-                            <td className="cell-center">{p.total_sold}</td>
-                            <td className="cell-green">L.E {rev.toFixed(2)}</td>
-                            <td className="cell-accent">
-                              {margin !== "—" ? `${margin}%` : "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No products sold in this period</p>
-              )}
-            </div>
-
-            {/* Purchases */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  Recent Purchases{" "}
-                  <span className="badge">{purchases.length}</span>
-                </h2>
-              </div>
-              {purchases.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {purchases.map((p, i) => (
-                        <tr key={`${p.order_id}-${i}`}>
-                          <td className="cell-accent">#{p.order_id}</td>
-                          <td className="cell-strong">{p.username}</td>
-                          <td>{p.product_name}</td>
-                          <td className="cell-center">{p.quantity}</td>
-                          <td>L.E {parseFloat(p.unit_price).toFixed(2)}</td>
-                          <td className="cell-green">
-                            L.E {parseFloat(p.subtotal).toFixed(2)}
-                          </td>
-                          <td className="cell-date">
-                            {new Date(p.order_date).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No purchases in this period</p>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════
-            COMMISSION & SELLERS TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "commission" && (
-          <>
-            {/* KPI Row */}
-            <div
-              className="analytics-stats-row"
-              style={{ gridTemplateColumns: "repeat(3,1fr)" }}
-            >
-              <KPICard
-                label="Total Revenue (30d)"
-                value={`L.E ${parseFloat(sellerEarnings.summary?.total_revenue_30d || 0).toFixed(2)}`}
-                sub="All seller revenue"
-                accent={TOKEN.primary}
-                icon={<DollarSign size={18} color="var(--color-success, #22c55e)" />}
-              />
-              <KPICard
-                label="Platform Commission (30d)"
-                value={`L.E ${parseFloat(sellerEarnings.summary?.total_commission_30d || 0).toFixed(2)}`}
-                sub="Commission earned"
-                accent={TOKEN.warning}
-                icon={<DollarSign size={18} color="var(--color-gold, #c9a24b)" />}
-              />
-              <KPICard
-                label="Active Sellers"
-                value={sellerEarnings.earnings?.length || 0}
-                sub="Registered sellers"
-                accent={TOKEN.success}
-                icon={<Users2 size={18} color="var(--color-info, #3b82f6)" />}
-              />
-            </div>
-
-            {/* Summary bar */}
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                padding: "14px 20px",
-                borderRadius: 10,
-                background: "var(--bg-card, rgba(255,255,255,0.04))",
-                border: "1px solid var(--border-color)",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
-                Total Revenue: <span style={{ color: TOKEN.primary }}>L.E {parseFloat(sellerEarnings.summary?.total_revenue_30d || 0).toFixed(2)}</span>
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
-                Platform Commission: <span style={{ color: TOKEN.warning }}>L.E {parseFloat(sellerEarnings.summary?.total_commission_30d || 0).toFixed(2)}</span>
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
-                Total Payouts: <span style={{ color: TOKEN.success }}>L.E {(parseFloat(sellerEarnings.summary?.total_revenue_30d || 0) - parseFloat(sellerEarnings.summary?.total_commission_30d || 0)).toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Global Commission Rate Editor */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "14px 20px",
-                borderRadius: 10,
-                background: "var(--bg-card, rgba(255,255,255,0.04))",
-                border: "1px solid var(--border-color)",
-                flexWrap: "wrap",
-              }}
-            >
-              <span style={{ fontSize: 13, fontWeight: 600 }}>Default Commission Rate:</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-                value={globalCommissionRate}
-                onChange={(e) => setGlobalCommissionRate(e.target.value)}
-                style={{ width: 80, padding: "4px 8px", fontSize: 13 }}
-              />
-              <span style={{ fontSize: 13 }}>%</span>
-              <button
-                className="button button--small button--primary"
-                onClick={handleSaveGlobalCommission}
-                disabled={savingCommission}
-              >
-                {savingCommission ? "Saving..." : "Save"}
-              </button>
-            </div>
-
-            {/* Sellers Table */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  Seller Earnings{" "}
-                  <span className="badge">{sellerEarnings.earnings?.length || 0}</span>
-                </h2>
-              </div>
-              {sellerEarnings.earnings?.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Seller</th>
-                        <th>Delivery Type</th>
-                        <th>Commission Rate</th>
-                        <th>Revenue (30d)</th>
-                        <th>Commission (30d)</th>
-                        <th>Payout Amount</th>
-                        <th>Orders</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sellerEarnings.earnings.map((s, i) => (
-                        <tr key={s.seller_id || i}>
-                          <td className="cell-strong">{s.business_name || s.name || "—"}</td>
-                          <td className="cell-center">{s.delivery_type || "—"}</td>
-                          <td className="cell-accent">{s.commission_rate != null ? `${parseFloat(s.commission_rate).toFixed(1)}%` : "—"}</td>
-                          <td className="cell-green">L.E {parseFloat(s.total_revenue_30d || 0).toFixed(2)}</td>
-                          <td className="cell-green">L.E {parseFloat(s.total_commission_30d || 0).toFixed(2)}</td>
-                          <td>L.E {parseFloat(s.seller_payout_30d || 0).toFixed(2)}</td>
-                          <td className="cell-center">{s.total_orders_30d || 0}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No seller earnings data available</p>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ══════════════════════════════════════════
-            COUPONS TAB
-        ══════════════════════════════════════════ */}
-        {activeTab === "coupons" && (
-          <>
-            {/* Create Coupon Form */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>Create Coupon</h2>
-              </div>
-              <div style={{ padding: "20px 20px 12px" }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                    gap: 12,
-                    marginBottom: 16,
-                  }}
-                >
-                  {[
-                    { label: "Code", key: "code", type: "text", placeholder: "e.g. SUMMER25" },
-                    { label: "Discount Type", key: "discount_type", type: "select", options: [
-                      { value: "percentage", label: "Percentage (%)" },
-                      { value: "fixed", label: "Fixed Amount" },
-                    ]},
-                    { label: "Discount Value", key: "discount_value", type: "number", placeholder: "e.g. 25" },
-                    { label: "Min Order Amount", key: "min_order_amount", type: "number", placeholder: "Optional" },
-                    { label: "Max Discount Amount", key: "max_discount_amount", type: "number", placeholder: "Optional" },
-                    { label: "Max Total Uses", key: "max_uses_total", type: "number", placeholder: "Unlimited" },
-                    { label: "Expiry Date", key: "expires_at", type: "datetime-local" },
-                  ].map((field) => (
-                    <div key={field.key}>
-                      <label
-                        style={{
-                          display: "block",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "var(--text-muted)",
-                          marginBottom: 4,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        {field.label}
-                      </label>
-                      {field.type === "select" ? (
-                        <select
-                          value={couponForm[field.key]}
-                          onChange={(e) =>
-                            setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            background: "rgba(255,255,255,0.06)",
-                            color: "var(--text-color)",
-                            fontSize: 13,
-                            outline: "none",
-                          }}
-                        >
-                          {field.options.map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={field.type}
-                          value={couponForm[field.key]}
-                          placeholder={field.placeholder}
-                          onChange={(e) =>
-                            setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                          }
-                          style={{
-                            width: "100%",
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            background: "rgba(255,255,255,0.06)",
-                            color: "var(--text-color)",
-                            fontSize: 13,
-                            outline: "none",
-                          }}
-                        />
-                      )}
-                    </div>
+        {/* ═══ RAW DATA ═══ */}
+        {activeTab === "tables" && (<>
+          <Section title="Recent Purchases" subtitle={`Last ${days} days — ${purchases.length} records`}>
+            <div className="table-wrapper" style={{ maxHeight: 500, overflowY: "auto" }}>
+              <table className="analytics-table">
+                <thead><tr><th>Order</th><th>User</th><th>Product</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th><th>Date</th></tr></thead>
+                <tbody>
+                  {purchases.map((p, i) => (
+                    <tr key={i}>
+                      <td className="cell-strong">#{p.order_id}</td>
+                      <td>{p.username}</td>
+                      <td>{p.product_name}</td>
+                      <td className="cell-center">{p.quantity}</td>
+                      <td>{fmtL(p.unit_price)}</td>
+                      <td className="cell-green">{fmtL(p.subtotal)}</td>
+                      <td>{p.order_date?.slice(0, 10)}</td>
+                    </tr>
                   ))}
-                </div>
-                <button
-                  onClick={handleCreateCoupon}
-                  disabled={!couponForm.code || !couponForm.discount_value}
-                  style={{
-                    padding: "8px 20px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: TOKEN.warning,
-                    color: "#fff",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: couponForm.code && couponForm.discount_value ? "pointer" : "not-allowed",
-                    opacity: couponForm.code && couponForm.discount_value ? 1 : 0.5,
-                  }}
-                >
-                  Create Coupon
-                </button>
-              </div>
+                </tbody>
+              </table>
             </div>
-
-            {/* Coupons Table */}
-            <div className="analytics-section">
-              <div className="section-header">
-                <h2>
-                  Existing Coupons{" "}
-                  <span className="badge">{coupons.length}</span>
-                </h2>
-              </div>
-              {coupons.length > 0 ? (
-                <div className="table-wrapper">
-                  <table className="analytics-table">
-                    <thead>
-                      <tr>
-                        <th>Code</th>
-                        <th>Type</th>
-                        <th>Value</th>
-                        <th>Uses / Max</th>
-                        <th>Active</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {coupons.map((c) => (
-                        <tr key={c.id}>
-                          <td className="cell-accent" style={{ fontWeight: 700, letterSpacing: "0.04em" }}>
-                            {c.code}
-                          </td>
-                          <td className="cell-center">
-                            <span
-                              style={{
-                                padding: "2px 10px",
-                                borderRadius: 20,
-                                fontSize: 11,
-                                fontWeight: 600,
-                                background: c.discount_type === "percentage" ? "rgba(59,130,246,0.12)" : "rgba(16,185,129,0.12)",
-                                color: c.discount_type === "percentage" ? TOKEN.primary : TOKEN.success,
-                              }}
-                            >
-                              {c.discount_type === "percentage" ? "Percentage" : "Fixed"}
-                            </span>
-                          </td>
-                          <td className="cell-green">
-                            {c.discount_type === "percentage" ? `${c.discount_value}%` : `L.E ${parseFloat(c.discount_value).toFixed(2)}`}
-                          </td>
-                          <td className="cell-center">
-                            {c.times_used || 0} / {c.max_uses_total ?? "∞"}
-                          </td>
-                          <td>
-                            <button
-                              onClick={() => toggleCouponActive(c.id, c.is_active)}
-                              style={{
-                                padding: "4px 12px",
-                                borderRadius: 20,
-                                border: "none",
-                                fontSize: 11,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                background: c.is_active ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
-                                color: c.is_active ? TOKEN.success : TOKEN.danger,
-                              }}
-                            >
-                              {c.is_active ? "Active" : "Inactive"}
-                            </button>
-                          </td>
-                          <td className="cell-date">
-                            {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
-                          </td>
-                          <td>
-                            <button
-                              onClick={() => deleteCoupon(c.id)}
-                              style={{
-                                padding: "4px 12px",
-                                borderRadius: 8,
-                                border: "1px solid rgba(239,68,68,0.3)",
-                                background: "rgba(239,68,68,0.08)",
-                                color: TOKEN.danger,
-                                fontSize: 11,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="empty-state">No coupons created yet</p>
-              )}
+          </Section>
+          <Section title="All Orders" subtitle={`${allOrders.length} orders`}>
+            <div className="table-wrapper" style={{ maxHeight: 500, overflowY: "auto" }}>
+              <table className="analytics-table">
+                <thead><tr><th>ID</th><th>User</th><th>Status</th><th>Total</th><th>Date</th></tr></thead>
+                <tbody>
+                  {allOrders.slice(0, 50).map((o) => (
+                    <tr key={o.id}>
+                      <td className="cell-strong">#{o.id}</td>
+                      <td>{o.owner_detail?.username || "—"}</td>
+                      <td className="cell-center"><span className={`badge ${o.status}`}>{o.status || "—"}</span></td>
+                      <td className="cell-green">{fmtL(o.total_price)}</td>
+                      <td>{o.created_at?.slice(0, 10)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </>
-        )}
+          </Section>
+        </>)}
       </div>
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };

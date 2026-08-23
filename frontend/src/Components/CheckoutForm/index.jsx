@@ -1,52 +1,74 @@
 import React, { useState, useEffect } from "react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { Loader2, CheckCircle, ExternalLink, Copy } from "lucide-react";
+import { Loader2, CheckCircle, ExternalLink, Copy, CreditCard } from "lucide-react";
 import api from "../../services/api";
+import { useToast } from "../../Components/Toast/useToast";
 import "./css/style.scss";
 
 function CardForm({ email, setEmail, shippingAddress, setShippingAddress, note, setNote, total, buildOrderPayload, onOrderCreated, onError }) {
-  const stripe = useStripe();
-  const elements = useElements();
+  const toast = useToast();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
 
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardHolderName, setCardHolderName] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+
+  const formatCardNumber = (val) => {
+    const digits = val.replace(/\D/g, "").slice(0, 16);
+    return digits.replace(/(.{4})/g, "$1 ").trim();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!stripe || !elements || total === 0) return;
+    if (total === 0) return;
+
+    const digits = cardNumber.replace(/\s/g, "");
+    if (digits.length < 13) { setError("Invalid card number"); return; }
+    if (!expiryMonth || !expiryYear) { setError("Enter expiry date"); return; }
+    if (cvv.length < 3) { setError("Invalid CVV"); return; }
+    if (!cardHolderName.trim()) { setError("Enter cardholder name"); return; }
 
     setProcessing(true);
     setError(null);
 
     try {
-      const payload = await api.post("/api/payments/create-intent/", {
-        amount: Math.round(total * 100),
-        currency: "egp",
+      // 1. Create order
+      const orderRes = await api.post("/api/orders/create/", {
         ...buildOrderPayload(),
+        payment_method: "paymob",
       });
-
-      const { clientSecret, orderId } = payload.data;
+      const orderId = orderRes.data.id;
       onOrderCreated(orderId);
 
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement),
-          billing_details: { email },
-        },
+      // 2. Init Paymob — get payment_token
+      const initRes = await api.post("/api/payments/paymob/init/", {
+        order_id: orderId,
+        billing_data: { email, street: shippingAddress },
+      });
+      const { payment_token } = initRes.data;
+
+      // 3. Pay with card details
+      const payRes = await api.post("/api/payments/paymob/pay/", {
+        payment_token,
+        card_number: digits,
+        card_holder_name: cardHolderName.trim(),
+        expiry_month: expiryMonth,
+        expiry_year: expiryYear,
+        cvv,
       });
 
-      if (result.error) {
-        setError(`Payment failed: ${result.error.message}`);
-        setProcessing(false);
-      } else if (result.paymentIntent.status === "succeeded") {
+      if (payRes.data.success) {
         onOrderCreated(orderId, true);
-        setProcessing(false);
+        toast.success("Payment successful!");
       } else {
-        setError(`Payment status: ${result.paymentIntent.status}`);
+        setError(payRes.data.error || "Payment failed");
         setProcessing(false);
       }
     } catch (err) {
-      const msg = err.response?.data?.error || err.response ? `Server error: ${err.response.status}` : err.message;
-      setError(`Payment error: ${msg}`);
+      const msg = err.response?.data?.error || err.response?.data?.details || `Error: ${err.message}`;
+      setError(msg);
       setProcessing(false);
     }
   };
@@ -89,27 +111,75 @@ function CardForm({ email, setEmail, shippingAddress, setShippingAddress, note, 
       </div>
 
       <div className="form-group">
-        <label>Card Details</label>
-        <CardElement
-          id="card-element"
-          options={{
-            style: {
-              base: {
-                color: "#ccc",
-                fontFamily: "Arial, sans-serif",
-                fontSmoothing: "antialiased",
-                fontSize: "16px",
-                "::placeholder": { color: "#aab7c4" },
-              },
-              invalid: { color: "#fa755a", iconColor: "#fa755a" },
-            },
-          }}
+        <label>Cardholder Name</label>
+        <input
+          type="text"
+          value={cardHolderName}
+          onChange={(e) => setCardHolderName(e.target.value)}
+          placeholder="Name on card"
+          required
         />
       </div>
 
-      <button disabled={processing || !stripe} id="submit-btn">
+      <div className="form-group">
+        <label>Card Number</label>
+        <input
+          type="text"
+          value={cardNumber}
+          onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+          placeholder="0000 0000 0000 0000"
+          maxLength={19}
+          required
+        />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+        <div className="form-group">
+          <label>Expiry Month</label>
+          <input
+            type="text"
+            value={expiryMonth}
+            onChange={(e) => setExpiryMonth(e.target.value.replace(/\D/g, "").slice(0, 2))}
+            placeholder="MM"
+            maxLength={2}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Expiry Year</label>
+          <input
+            type="text"
+            value={expiryYear}
+            onChange={(e) => setExpiryYear(e.target.value.replace(/\D/g, "").slice(0, 2))}
+            placeholder="YY"
+            maxLength={2}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>CVV</label>
+        <input
+          type="password"
+          value={cvv}
+          onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          placeholder="***"
+          maxLength={4}
+          required
+        />
+      </div>
+
+      <button disabled={processing} id="submit-btn">
         <span id="button-text">
-          {processing ? "Processing..." : `Pay ${total.toFixed(2)} L.E`}
+          {processing ? (
+            <span className="btn-loading"><Loader2 size={18} className="spin" /> Processing...</span>
+          ) : (
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <CreditCard size={18} />
+              Pay {total.toFixed(2)} L.E
+            </span>
+          )}
         </span>
       </button>
 
@@ -125,6 +195,7 @@ export default function CheckoutForm({
   paymentMethod,
   coupon,
 }) {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [shippingAddress, setShippingAddress] = useState("");
   const [note, setNote] = useState("");
@@ -139,9 +210,6 @@ export default function CheckoutForm({
   // Fawry state
   const [fawryRef, setFawryRef] = useState(null);
   const [fawryUrl, setFawryUrl] = useState(null);
-
-  // Paymob state
-  const [paymobIframeUrl, setPaymobIframeUrl] = useState(null);
 
   useEffect(() => {
     if (propCartItems && propTotal !== undefined) {
@@ -183,39 +251,6 @@ export default function CheckoutForm({
     }),
   });
 
-  // Shared order creation for non-card methods
-  const createOrder = async () => {
-    const response = await api.post("/api/orders/create/", {
-      ...buildOrderPayload(),
-      payment_method: paymentMethod,
-    });
-    return response.data;
-  };
-
-  // --- Paymob Wallet ---
-  const handlePaymobCheckout = async () => {
-    if (!email || !shippingAddress) {
-      setError("Please fill in your email and shipping address.");
-      return;
-    }
-    setProcessing(true);
-    setError(null);
-
-    try {
-      const order = await createOrder();
-      setOrderId(order.id);
-
-      const res = await api.post("/api/payments/paymob/checkout/", {
-        order_id: order.id,
-      });
-
-      setPaymobIframeUrl(res.data.iframe_url);
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to initiate Paymob payment");
-      setProcessing(false);
-    }
-  };
-
   // --- Fawry ---
   const handleFawryCheckout = async () => {
     if (!email || !shippingAddress) {
@@ -226,7 +261,11 @@ export default function CheckoutForm({
     setError(null);
 
     try {
-      const order = await createOrder();
+      const response = await api.post("/api/orders/create/", {
+        ...buildOrderPayload(),
+        payment_method: paymentMethod,
+      });
+      const order = response.data;
       setOrderId(order.id);
 
       const res = await api.post("/api/payments/fawry/checkout/", {
@@ -242,41 +281,10 @@ export default function CheckoutForm({
     }
   };
 
-  // --- COD ---
-  const handleCodCheckout = async () => {
-    if (!email || !shippingAddress) {
-      setError("Please fill in your email and shipping address.");
-      return;
-    }
-    setProcessing(true);
-    setError(null);
-
-    try {
-      const order = await createOrder();
-      setOrderId(order.id);
-      setSucceeded(true);
-      setProcessing(false);
-      localStorage.removeItem("cart");
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to place order");
-      setProcessing(false);
-    }
-  };
-
   const handleSubmit = (event) => {
     event.preventDefault();
-    switch (paymentMethod) {
-      case "paymob_wallet":
-        handlePaymobCheckout();
-        break;
-      case "fawry":
-        handleFawryCheckout();
-        break;
-      case "cod":
-        handleCodCheckout();
-        break;
-      default:
-        break;
+    if (paymentMethod === "fawry") {
+      handleFawryCheckout();
     }
   };
 
@@ -299,7 +307,7 @@ export default function CheckoutForm({
   }, [succeeded, orderId, paymentMethod]);
 
   // --- Success states ---
-  if (succeeded && !fawryRef && !paymobIframeUrl) {
+  if (succeeded && !fawryRef) {
     return (
       <div className="payment-success">
         <CheckCircle size={48} className="success-icon" />
@@ -317,21 +325,6 @@ export default function CheckoutForm({
       <div className="empty-checkout">
         <h2>Your cart is empty.</h2>
         <p>Add items to your cart before checking out.</p>
-      </div>
-    );
-  }
-
-  // --- Paymob iframe ---
-  if (paymobIframeUrl) {
-    return (
-      <div className="paymob-container">
-        <h3>Complete Payment</h3>
-        <iframe
-          src={paymobIframeUrl}
-          title="Paymob Payment"
-          className="paymob-iframe"
-          allow="payment"
-        />
       </div>
     );
   }
@@ -366,7 +359,7 @@ export default function CheckoutForm({
     );
   }
 
-  // --- Card: render inside CardForm (which has its own Stripe hooks) ---
+  // --- Card: render CardForm with Paymob headless fields ---
   if (paymentMethod === "card") {
     return (
       <CardForm

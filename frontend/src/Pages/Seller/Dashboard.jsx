@@ -53,7 +53,26 @@ export default function SellerDashboard() {
   const [offerForm, setOfferForm] = useState({ title: "", description: "", offer_type: "promotion", discount_percent: "", image: null });
   const [savingOffer, setSavingOffer] = useState(false);
 
+  const [paymobAccountId, setPaymobAccountId] = useState("");
+  const [paymobWalletNumber, setPaymobWalletNumber] = useState("");
+  const [savingPaymob, setSavingPaymob] = useState(false);
+
   const profile = data?.sellerProfile;
+
+  useEffect(() => {
+    if (!isSeller) return;
+    const refreshProfile = async () => {
+      try {
+        const res = await api.get("/api/sellers/me/");
+        const updated = res.data;
+        if (updated && JSON.stringify(updated) !== JSON.stringify(data?.sellerProfile)) {
+          fetchAllData(true);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    refreshProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isSeller) return;
@@ -91,8 +110,32 @@ export default function SellerDashboard() {
     }
   };
 
-  const handlePaymobSetup = () => {
-    toast.info("Payout setup is managed by the admin. Please contact support to configure your payout account.");
+  useEffect(() => {
+    if (profile) {
+      setPaymobAccountId(profile.paymob_account_id || "");
+      setPaymobWalletNumber(profile.paymob_wallet_number || "");
+    }
+  }, [profile]);
+
+  const handleSavePaymob = async () => {
+    if (!paymobAccountId.trim() && !paymobWalletNumber.trim()) {
+      toast.error("Enter at least your Paymob Account ID or Wallet Number.");
+      return;
+    }
+    setSavingPaymob(true);
+    try {
+      await api.patch("/api/sellers/me/", {
+        paymob_account_id: paymobAccountId.trim(),
+        paymob_wallet_number: paymobWalletNumber.trim(),
+      });
+      fetchAllData(true);
+      toast.success("Paymob payout details saved!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save Paymob details.");
+    } finally {
+      setSavingPaymob(false);
+    }
   };
 
   const validateForm = (form) => {
@@ -268,6 +311,38 @@ export default function SellerDashboard() {
     );
   }
 
+  if (profile?.verification_status !== "approved") {
+    const statusLabel = profile?.verification_status === "rejected" ? "Rejected" : "Pending Approval";
+    const statusColor = profile?.verification_status === "rejected" ? "var(--color-danger)" : "var(--color-gold)";
+    return (
+      <div className="seller-dashboard-page">
+        <div className="seller-dashboard container" style={{ justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+          <div className="glass-panel" style={{ padding: "3rem", textAlign: "center", maxWidth: 500, width: "100%" }}>
+            {profile?.verification_status === "rejected" ? (
+              <FaBox style={{ fontSize: "3rem", color: "var(--color-danger)", marginBottom: "1rem" }} />
+            ) : (
+              <div style={{ width: 64, height: 64, borderRadius: "50%", border: "3px solid var(--color-gold)", borderTopColor: "transparent", animation: "spin 1s linear infinite", margin: "0 auto 1.5rem" }} />
+            )}
+            <h2 style={{ marginBottom: "0.5rem" }}>Account {statusLabel}</h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "1rem" }}>
+              {profile?.verification_status === "rejected"
+                ? "Your seller account has been rejected."
+                : "Your seller account is being reviewed by our team. You'll have full access once approved."}
+            </p>
+            {profile?.rejection_reason && (
+              <div style={{ padding: "0.75rem 1rem", borderRadius: 8, background: "var(--color-danger-light, rgba(224,106,93,0.1))", border: "1px solid var(--color-danger)", marginBottom: "1rem", color: "var(--color-danger)", fontSize: "0.9rem" }}>
+                <strong>Reason:</strong> {profile.rejection_reason}
+              </div>
+            )}
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+              Status: <span style={{ color: statusColor, fontWeight: 600 }}>{statusLabel}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const Spinner = () => (
     <div style={{ display: "flex", justifyContent: "center", padding: "2rem" }}>
       <div
@@ -355,8 +430,8 @@ export default function SellerDashboard() {
                 <span className={`status-pill status-pill--${profile?.verification_status === "approved" ? "active" : profile?.verification_status === "rejected" ? "inactive" : "pending"}`}>
                   {profile?.verification_status || "pending"}
                 </span>
-                <span className={`status-pill status-pill--${profile?.stripe_onboarding_complete ? "active" : "pending"}`}>
-                  Payouts: {profile?.stripe_onboarding_complete ? "Active" : "Pending Setup"}
+                <span className={`status-pill status-pill--${(profile?.paymob_account_id || profile?.paymob_wallet_number) ? "active" : "pending"}`}>
+                  Payouts: {(profile?.paymob_account_id || profile?.paymob_wallet_number) ? "Configured" : "Pending Setup"}
                 </span>
                 <span className={`status-pill status-pill--${profile?.delivery_type === "seller" ? "active" : ""}`}>
                   {profile?.delivery_type === "seller" ? "Self Delivery" : "Platform Delivery"}
@@ -376,7 +451,7 @@ export default function SellerDashboard() {
                 </div>
                 <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Commission Rate</p>
-                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #c9a24b)" }}>{profile?.commission_rate != null ? `${parseFloat(profile.commission_rate).toFixed(1)}%` : "10%"}</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #c9a24b)" }}>{parseFloat(profile?.effective_commission_rate ?? 10).toFixed(1)}%</p>
                 </div>
                 <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Active Offers</p>
@@ -481,8 +556,8 @@ export default function SellerDashboard() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
                 <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Commission Rate</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "#c9a24b" }}>
-                    {profile?.commission_rate != null ? `${parseFloat(profile.commission_rate).toFixed(1)}%` : "10%"}
+                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--color-gold, #c9a24b)" }}>
+                    {parseFloat(profile?.effective_commission_rate ?? 10).toFixed(1)}%
                   </p>
                   <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>per sale</p>
                 </div>
@@ -498,10 +573,10 @@ export default function SellerDashboard() {
                 <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Your Payout Per L.E</p>
                   <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "#3fa781" }}>
-                    {profile?.delivery_type === "seller" ? "95" : "90"}%
+                    {(100 - parseFloat(profile?.effective_commission_rate ?? 10) * (profile?.delivery_type === "seller" ? 0.5 : 1)).toFixed(1)}%
                   </p>
                   <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-                    ({(100 - parseFloat(profile?.commission_rate || 10) * (profile?.delivery_type === "seller" ? 0.5 : 1)).toFixed(1)}% kept)
+                    kept after commission
                   </p>
                 </div>
               </div>
@@ -512,13 +587,53 @@ export default function SellerDashboard() {
               >
                 <h3>Payout via Paymob</h3>
                 <p style={{ marginBottom: "1rem", color: "var(--text-secondary)" }}>
-                  All seller payouts are processed through Paymob. Once your
-                  account is verified, payouts will be sent automatically to
-                  your registered bank account or wallet.
+                  Enter your Paymob account details below. Payouts will be
+                  sent to this account after each completed order.
                 </p>
-                <Button variant="gold" size="md" onClick={handlePaymobSetup}>
-                  Set Up Paymob Payouts
-                </Button>
+
+                <div style={{ display: "grid", gap: "0.75rem", maxWidth: 420 }}>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>
+                      Paymob Account ID
+                    </label>
+                    <input
+                      type="text"
+                      value={paymobAccountId}
+                      onChange={(e) => setPaymobAccountId(e.target.value)}
+                      placeholder="e.g. 456789"
+                      style={{
+                        width: "100%", padding: "0.5rem 0.75rem", fontSize: "0.9rem",
+                        background: "var(--bg-body)", border: "1px solid var(--border-color)",
+                        borderRadius: "var(--border-radius-md)", color: "var(--text-color)",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4, display: "block" }}>
+                      Wallet Number
+                    </label>
+                    <input
+                      type="text"
+                      value={paymobWalletNumber}
+                      onChange={(e) => setPaymobWalletNumber(e.target.value)}
+                      placeholder="e.g. 01012345678"
+                      style={{
+                        width: "100%", padding: "0.5rem 0.75rem", fontSize: "0.9rem",
+                        background: "var(--bg-body)", border: "1px solid var(--border-color)",
+                        borderRadius: "var(--border-radius-md)", color: "var(--text-color)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <Button variant="gold" size="md" onClick={handleSavePaymob} disabled={savingPaymob}>
+                    {savingPaymob ? "Saving..." : "Save Details"}
+                  </Button>
+                  {paymobAccountId || paymobWalletNumber ? (
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-success, #10b981)" }}>Details saved</span>
+                  ) : null}
+                </div>
               </div>
             </div>
           )}

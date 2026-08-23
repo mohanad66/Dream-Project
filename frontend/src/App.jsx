@@ -36,6 +36,7 @@ const VerifyEmail = lazy(() => import("./Components/Form/VerifyEmail.jsx"));
 const OrderDetailsPage = lazy(() => import("./Pages/OrderDetails/index.jsx"));
 const OrdersPage = lazy(() => import("./Pages/Orders/index.jsx"));
 const SellerProfilePage = lazy(() => import("./Pages/Seller/SellerProfile.jsx"));
+const PaymentResult = lazy(() => import("./Pages/PaymentResult/index.jsx"));
 
 const LoadingFallback = () => (
   <div className="loading-container">
@@ -64,7 +65,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-const HIDE_NAVBAR_ROUTES = ["/checkout", "/login", "/register", "/verify-otp", "/seller-register"];
+const HIDE_NAVBAR_ROUTES = ["/checkout", "/login", "/register", "/verify-otp", "/seller-register", "/payment/result"];
 
 export default function App() {
   const { data, login, logout, isLoading } = useAuth();
@@ -194,6 +195,7 @@ export default function App() {
                 }
               />
               <Route path="/seller/:id" element={<SellerProfilePage />} />
+              <Route path="/payment/result" element={<PaymentResult />} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -1,22 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
-import { CreditCard, Smartphone, Store, Banknote } from "lucide-react";
+import { CreditCard, Smartphone, Store } from "lucide-react";
 import CheckoutForm from "../../Components/CheckoutForm";
 import CouponInput from "../../Components/CouponInput";
 import "./css/style.scss";
 import { useNavigate } from "react-router-dom";
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLIC_KEY ||
-    "pk_test_51Ru3ONENPWvMQNVEdYlHECS2IB6bzT5mgHZF8UrVK7Hap8ym6xuREawCwGm4LS68ya8MEHQJy5HRIghXf17MMdbA00Au90db2g"
-);
-
 const PAYMENT_METHODS = [
   { id: "card", label: "Credit/Debit Card", icon: <CreditCard size={22} />, description: "Pay securely with Visa/Mastercard" },
   { id: "paymob_wallet", label: "Mobile Wallet", icon: <Smartphone size={22} />, description: "Vodafone Cash, Orange Cash, Etisalat" },
   { id: "fawry", label: "Fawry", icon: <Store size={22} />, description: "Pay at any Fawry outlet" },
-  { id: "cod", label: "Cash on Delivery", icon: <Banknote size={22} />, description: "Pay when you receive your order" },
 ];
 
 export default function CheckoutPage() {
@@ -153,26 +145,14 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            {/* Checkout Form - Stripe Elements only wraps when card is selected */}
-            {paymentMethod === "card" ? (
-              <Elements stripe={stripePromise}>
-                <CheckoutForm
-                  cartItems={cartItems}
-                  totalAmount={finalTotal}
-                  totalItems={totalItems}
-                  paymentMethod={paymentMethod}
-                  coupon={appliedCoupon}
-                />
-              </Elements>
-            ) : (
-              <CheckoutForm
-                cartItems={cartItems}
-                totalAmount={finalTotal}
-                totalItems={totalItems}
-                paymentMethod={paymentMethod}
-                coupon={appliedCoupon}
-              />
-            )}
+            {/* Checkout Form */}
+            <CheckoutForm
+              cartItems={cartItems}
+              totalAmount={finalTotal}
+              totalItems={totalItems}
+              paymentMethod={paymentMethod}
+              coupon={appliedCoupon}
+            />
           </div>
         </div>
       </div>
