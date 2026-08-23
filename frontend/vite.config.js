@@ -40,16 +40,8 @@ export default defineConfig({
     ],
   },
   server: {
-    // host: '0.0.0.0',  // ✅ ADD THIS - allows network access
     port: 5173,
-    strictPort: false, // If port 5173 is taken, try next available
-    proxy: {
-      "/api": {
-        target: "http://127.0.0.1:8000",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    strictPort: false,
   },
   preview: {
     // host: '0.0.0.0',  // ✅ ADD THIS - for production preview
@@ -66,10 +58,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "stripe-vendor": ["@stripe/react-stripe-js", "@stripe/stripe-js"],
-          "ui-vendor": ["react-icons", "lucide-react"],
-        },
+            "react-vendor": ["react", "react-dom", "react-router-dom"],
+            "ui-vendor": ["react-icons", "lucide-react"],
+          },
       },
     },
   },
