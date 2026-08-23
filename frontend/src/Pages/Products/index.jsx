@@ -5,7 +5,7 @@ import Card from "../../Components/Card";
 import { fetchAllCategories, fetchAllTags } from "../../services/auth";
 import { Helmet } from "react-helmet-async";
 
-const API_URL = (import.meta.env.VITE_API_URL || "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app").replace(/\/api\/?$/, "") + "/api";
+const API_URL = "https://legislative-lynelle-idk1321-fdbb6c71.koyeb.app/api";
 
 export default function Products() {
   const location = useLocation();
