@@ -118,7 +118,6 @@ export default function CheckoutForm({
         payment_method: "paymob",
       });
       const oid = orderRes.data.id;
-      setOrderId(oid);
 
       const initRes = await api.post("/api/payments/paymob/init/", {
         order_id: oid,
@@ -127,6 +126,7 @@ export default function CheckoutForm({
       });
 
       if (initRes.data.iframe_url) {
+        setOrderId(oid);
         setPaymobIframeUrl(initRes.data.iframe_url);
       } else {
         setError("Failed to initialize payment");
@@ -155,7 +155,6 @@ export default function CheckoutForm({
         payment_method: "paymob_wallet",
       });
       const oid = orderRes.data.id;
-      setOrderId(oid);
 
       const res = await api.post("/api/payments/paymob/wallet/", {
         order_id: oid,
@@ -163,6 +162,7 @@ export default function CheckoutForm({
       });
 
       if (res.data.redirect_url) {
+        setOrderId(oid);
         window.location.href = res.data.redirect_url;
       } else {
         setError("Failed to initialize wallet payment");
@@ -188,9 +188,9 @@ export default function CheckoutForm({
         payment_method: "fawry",
       });
       const oid = orderRes.data.id;
-      setOrderId(oid);
 
       const res = await api.post("/api/payments/fawry/checkout/", { order_id: oid });
+      setOrderId(oid);
       setFawryRef(res.data.fawry_ref_number);
       setFawryUrl(res.data.payment_url);
       setProcessing(false);

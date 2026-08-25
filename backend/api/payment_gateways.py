@@ -430,7 +430,7 @@ class PaymobWalletPayView(APIView):
                     "paymob_order_id": paymob_order_id,
                 })
 
-            error_msg = wallet_data.get("message", wallet_data.get("detail", "Wallet payment failed"))
+            error_msg = wallet_data.get("message", wallet_data.get("detail", "Wallet payment failed — check that wallet payments are enabled for this integration in Paymob Dashboard"))
             return Response({"error": error_msg, "paymob_response": wallet_data},
                             status=status.HTTP_402_PAYMENT_REQUIRED)
 
