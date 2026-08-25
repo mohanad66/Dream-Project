@@ -86,9 +86,14 @@ def _register_paymob_order(auth_token, order_obj):
     return resp.json()["id"]
 
 
-def _get_paymob_payment_key(auth_token, order_id, billing_data, amount_cents=0):
+def _get_paymob_payment_key(auth_token, order_id, billing_data, amount_cents=0, payment_method="card"):
     """Get a payment key for the order."""
-    integration_id = getattr(settings, "PAYMOB_INTEGRATION_ID", "")
+    if payment_method == "paymob_wallet":
+        integration_id = getattr(settings, "PAYMOB_WALLET_INTEGRATION_ID", "")
+        if not integration_id:
+            raise ValueError("PAYMOB_WALLET_INTEGRATION_ID not configured. Wallet payments unavailable.")
+    else:
+        integration_id = getattr(settings, "PAYMOB_INTEGRATION_ID", "")
     if not integration_id:
         raise ValueError("PAYMOB_INTEGRATION_ID not configured")
     redirect_url = ""
@@ -131,6 +136,7 @@ class PaymobInitView(APIView):
     def post(self, request):
         order_id = request.data.get("order_id")
         billing_data = request.data.get("billing_data", {})
+        payment_method = request.data.get("payment_method", "card")
 
         if not order_id:
             return Response({"error": "order_id required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -163,12 +169,12 @@ class PaymobInitView(APIView):
             logger.info(f"Paymob init: order={order_id}, total={order.total_price}, amount_cents={amount_cents}, integration={getattr(settings, 'PAYMOB_INTEGRATION_ID', '')}, base={PAYMOB_BASE}")
             if amount_cents <= 0:
                 return Response({"error": f"Order total is {order.total_price}, cannot pay"}, status=status.HTTP_400_BAD_REQUEST)
-            payment_token = _get_paymob_payment_key(auth_token, paymob_order_id, billing, amount_cents=amount_cents)
+            payment_token = _get_paymob_payment_key(auth_token, paymob_order_id, billing, amount_cents=amount_cents, payment_method=payment_method)
 
             # Store payment record
             payment = Payment.objects.create(
                 owner=request.user,
-                method="paymob",
+                method=payment_method,
                 amount=order.total_price,
                 provider_payment_id=str(paymob_order_id),
                 status="pending",
@@ -177,10 +183,16 @@ class PaymobInitView(APIView):
             order.payment = payment
             order.save(update_fields=["payment"])
 
+            if payment_method == "paymob_wallet":
+                iframe_id = getattr(settings, "PAYMOB_WALLET_IFRAME_ID", getattr(settings, "PAYMOB_IFRAME_ID", "947643"))
+            else:
+                iframe_id = getattr(settings, "PAYMOB_IFRAME_ID", "947643")
+
             return Response({
                 "payment_token": payment_token,
                 "paymob_order_id": paymob_order_id,
-                "iframe_url": f"https://accept.paymob.com/api/acceptance/iframes/{getattr(settings, 'PAYMOB_IFRAME_ID', '947643')}?payment_token={payment_token}",
+                "payment_method": payment_method,
+                "iframe_url": f"https://accept.paymob.com/api/acceptance/iframes/{iframe_id}?payment_token={payment_token}",
             })
 
         except Exception as e:

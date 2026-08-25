@@ -122,6 +122,7 @@ export default function CheckoutForm({
       const initRes = await api.post("/api/payments/paymob/init/", {
         order_id: oid,
         billing_data: { email, street: shippingAddress },
+        payment_method: paymentMethod === "paymob_wallet" ? "paymob_wallet" : "card",
       });
 
       if (initRes.data.iframe_url) {
