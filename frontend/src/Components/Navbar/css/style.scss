@@ -239,6 +239,18 @@
   .navbar-disc {
     padding: 10px;
     border-radius: 24px;
+    max-width: 95vw;
+  }
+
+  .nav-items {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 2px;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .nav-link,
@@ -246,6 +258,7 @@
   .nav-auth {
     padding: 6px 10px;
     min-width: 58px;
+    flex-shrink: 0;
   }
 
   .nav-icon,

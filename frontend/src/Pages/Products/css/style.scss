@@ -952,9 +952,42 @@ $product-breakpoint-xl: 1200px;
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
   }
+
+  .products-grid {
+    gap: $product-spacing-lg;
+  }
 }
 
 @media (max-width: $product-breakpoint-sm) {
+  .products-container {
+    padding-top: $product-spacing-lg;
+  }
+
+  .products-container h1 {
+    font-size: clamp(1.5rem, 8vw, 2.2rem);
+    margin-bottom: $product-spacing-lg;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: $product-spacing-md;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+    gap: $product-spacing-md;
+    padding: $product-spacing-md;
+  }
+
+  .results-summary {
+    margin: $product-spacing-lg 0 $product-spacing-md;
+
+    p {
+      padding: $product-spacing-sm $product-spacing-lg;
+      font-size: $font-xs;
+    }
+  }
+
   .pagination-container {
     padding: $product-spacing-md;
 

@@ -84,12 +84,49 @@
     border-radius: var(--border-radius-lg);
     margin-bottom: 1rem;
     cursor: pointer;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.35s ease;
     opacity: 0;
     background: var(--bg-muted);
 
     &.img-ready {
       opacity: 1;
+    }
+  }
+
+  // Skeleton placeholder while image loads
+  .card-carousel {
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: var(--border-radius-lg);
+      background: linear-gradient(
+        90deg,
+        var(--bg-muted) 25%,
+        var(--bg-hover) 50%,
+        var(--bg-muted) 75%
+      );
+      background-size: 200% 100%;
+      animation: cardShimmer 1.4s ease-in-out infinite;
+      z-index: 1;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    &:has(.img-ready)::before {
+      opacity: 0;
+    }
+  }
+
+  @keyframes cardShimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
     }
   }
 

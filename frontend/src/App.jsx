@@ -47,20 +47,23 @@ const LoadingFallback = () => (
         justifyContent: "center",
         alignItems: "center",
         flexDirection: "column",
+        gap: "1rem",
       }}
     >
       <div
         style={{
-          width: 48,
-          height: 48,
-          border: `3px solid var(--border-color)`,
-          borderTop: `3px solid #3b82f6`,
+          width: 52,
+          height: 52,
+          border: "3px solid var(--border-color, #232d3f)",
+          borderTop: "3px solid #c9a24b",
           borderRadius: "50%",
           animation: "spin 0.8s linear infinite",
-          margin: "auto 16px",
+          margin: "auto",
         }}
       />
-      <p style={{ color: "#fff", fontSize: 14 }}>Loading…</p>
+      <p style={{ color: "var(--text-primary, #f0efe8)", fontSize: 14, margin: 0, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+        DreamStore
+      </p>
     </div>
   </div>
 );

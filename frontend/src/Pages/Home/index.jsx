@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Card from "../../Components/Card";
 import Carousel from "../../Components/Carousel";
 import "./css/style.scss";
@@ -12,6 +12,26 @@ import {
   FaHeadset,
   FaStar,
 } from "react-icons/fa6";
+
+function useReveal(threshold = 0.12) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { el.classList.add("revealed"); obs.unobserve(el); } },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return ref;
+}
+
+function RevealSection({ children, className = "", as: Tag = "div", ...props }) {
+  const ref = useReveal();
+  return <Tag ref={ref} className={`reveal ${className}`} {...props}>{children}</Tag>;
+}
 
 const FEATURES = [
   {
@@ -27,7 +47,7 @@ const FEATURES = [
   {
     icon: <FaShieldHalved />,
     title: "Secure Payments",
-    text: "Bank-grade Stripe checkout protects every transaction from click to delivery.",
+    text: "Bank-grade encryption and verified gateways protect every transaction from click to delivery.",
   },
   {
     icon: <FaHeadset />,
@@ -164,20 +184,20 @@ export default function Home({
 
         {/* ============ BRAND STRIP ============ */}
         {uniqueBrands.length > 0 && (
-          <section className="featured-brands">
+          <RevealSection className="featured-brands" as="section">
             <p className="brands-label">Trusted by leading local brands</p>
             <div className="brands-list">
               {uniqueBrands.map((brand, idx) => (
                 <span key={idx} className="brand-badge">
                   {brand}
                 </span>
-              ))}
-            </div>
-          </section>
+            ))}
+          </div>
+          </RevealSection>
         )}
 
         {/* ============ WHY DREAMSTORE ============ */}
-        <section className="features">
+        <RevealSection className="features" as="section">
           <div className="section-heading">
             <p className="section-eyebrow">Why DreamStore</p>
             <h2 className="title">Built for the Next Generation of Commerce</h2>
@@ -191,10 +211,10 @@ export default function Home({
               </div>
             ))}
           </div>
-        </section>
+        </RevealSection>
 
         {/* ============ CATEGORIES ============ */}
-        <section className="categories">
+        <RevealSection className="categories" as="section">
           <div className="section-heading">
             <p className="section-eyebrow">Browse by Category</p>
             <h2 className="title">Shop the Finest Selection</h2>
@@ -217,10 +237,10 @@ export default function Home({
               <h2>Categories are coming soon</h2>
             </div>
           )}
-        </section>
+        </RevealSection>
 
         {/* ============ FEATURED PRODUCTS ============ */}
-        <section className="cards-container">
+        <RevealSection className="cards-container" as="section">
           <div className="section-heading">
             <p className="section-eyebrow">Handpicked for You</p>
             <h2 className="title">Featured Products</h2>
@@ -241,10 +261,10 @@ export default function Home({
               <h2>There isn't any Products</h2>
             </div>
           )}
-        </section>
+        </RevealSection>
 
         {/* ============ LATEST PRODUCTS ============ */}
-        <section className="cards-container">
+        <RevealSection className="cards-container" as="section">
           <div className="section-heading">
             <p className="section-eyebrow">Fresh Arrivals</p>
             <h2 className="title">Our Latest Products</h2>
@@ -267,10 +287,10 @@ export default function Home({
               <h2>There isn't any Products</h2>
             </div>
           )}
-        </section>
+        </RevealSection>
 
         {/* ============ CTA BANNER ============ */}
-        <section className="cta-banner">
+        <RevealSection className="cta-banner" as="section">
           <div className="cta-banner-bg" aria-hidden="true">
             <div className="hero-glow hero-glow--one" />
           </div>
@@ -296,7 +316,7 @@ export default function Home({
               </Link>
             </div>
           </div>
-        </section>
+        </RevealSection>
       </div>
     </>
   );

@@ -288,7 +288,7 @@ export default function Products() {
           {/* Price Filter */}
           <div className="price-filter">
             <label>
-              Price Range: ${priceRange.min} - ${priceRange.max}
+              Price Range: {priceRange.min} L.E - {priceRange.max} L.E
             </label>
             <div className="price-inputs">
               <input
