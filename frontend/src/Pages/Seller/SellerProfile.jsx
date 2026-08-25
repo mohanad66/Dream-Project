@@ -231,54 +231,66 @@ export default function SellerProfile() {
 
         {activeTab === "about" && (
           <div className="sp-about fade-in">
-            <div className="sp-about__section">
-              <h2>About {seller.business_name}</h2>
+            <div className="sp-about__story">
+              <div className="sp-about__story-accent" />
+              <h2 className="sp-about__title">About {seller.business_name}</h2>
               {seller.business_description && (
                 <p className="sp-about__text">{seller.business_description}</p>
               )}
               {seller.bio && (
                 <>
-                  <h3>Bio</h3>
+                  <h3 className="sp-about__subtitle">Our Story</h3>
                   <p className="sp-about__text">{seller.bio}</p>
                 </>
               )}
             </div>
 
             <div className="sp-about__details">
-              <div className="sp-about__detail">
-                <Store size={18} />
-                <div>
-                  <span className="sp-about__label">Business Name</span>
-                  <span className="sp-about__value">{seller.business_name}</span>
+              <h3 className="sp-about__details-heading">Store Details</h3>
+              <div className="sp-about__details-grid">
+                <div className="sp-about__detail">
+                  <div className="sp-about__detail-icon">
+                    <Store size={20} />
+                  </div>
+                  <div>
+                    <span className="sp-about__label">Business Name</span>
+                    <span className="sp-about__value">{seller.business_name}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="sp-about__detail">
-                <Truck size={18} />
-                <div>
-                  <span className="sp-about__label">Delivery Type</span>
-                  <span className="sp-about__value">
-                    {seller.delivery_type === "platform" ? "Platform Delivery" : "Seller Delivery"}
-                  </span>
+                <div className="sp-about__detail">
+                  <div className="sp-about__detail-icon">
+                    <Truck size={20} />
+                  </div>
+                  <div>
+                    <span className="sp-about__label">Delivery Type</span>
+                    <span className="sp-about__value">
+                      {seller.delivery_type === "platform" ? "Platform Delivery" : "Seller Self-Delivery"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="sp-about__detail">
-                <Calendar size={18} />
-                <div>
-                  <span className="sp-about__label">Member Since</span>
-                  <span className="sp-about__value">
-                    {new Date(seller.created_at).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
+                <div className="sp-about__detail">
+                  <div className="sp-about__detail-icon">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <span className="sp-about__label">Member Since</span>
+                    <span className="sp-about__value">
+                      {new Date(seller.created_at).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="sp-about__detail">
-                <Package size={18} />
-                <div>
-                  <span className="sp-about__label">Products Listed</span>
-                  <span className="sp-about__value">{products_count ?? 0}</span>
+                <div className="sp-about__detail">
+                  <div className="sp-about__detail-icon">
+                    <Package size={20} />
+                  </div>
+                  <div>
+                    <span className="sp-about__label">Products Listed</span>
+                    <span className="sp-about__value">{products_count ?? 0}</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -294,6 +294,7 @@ async function fetchPaginatedData(url, cacheKey) {
 
   try {
     while (nextUrl) {
+      nextUrl = nextUrl.replace(/^http:\/\//, "https://");
       const response = await fetch(nextUrl);
       if (!response.ok) break;
       const data = await response.json();
