@@ -192,7 +192,7 @@ export default function CheckoutForm({
           frameBorder="0"
           style={{ width: "100%", minHeight: "600px", borderRadius: "12px", opacity: iframeLoaded ? 1 : 0, transition: "opacity 0.3s" }}
           title="Paymob Payment"
-          sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation-by-user-activation"
+          sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-top-navigation"
           onLoad={() => setIframeLoaded(true)}
         />
       </div>

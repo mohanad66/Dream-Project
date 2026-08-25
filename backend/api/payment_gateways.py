@@ -358,12 +358,12 @@ def paymob_webhook(request):
 class PaymobCallbackView(APIView):
     """
     GET /api/payments/paymob/callback/?order=123&success=true
-    User browser is redirected here after payment. Maps Paymob order ID to our order and redirects.
+    User browser is redirected here after payment. Must break out of iframe
+    using JavaScript to navigate the top-level window.
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from django.shortcuts import redirect as django_redirect
         success = request.query_params.get("success", "false")
         paymob_order_id = request.query_params.get("order", "")
         frontend_url = getattr(settings, "FRONTEND_URL", "https://dream-project-roan.vercel.app")
@@ -375,7 +375,23 @@ class PaymobCallbackView(APIView):
                 our_order_id = str(payment.order.pk)
 
         redirect_url = f"{frontend_url}/payment/result?success={success}&order={our_order_id}"
-        return django_redirect(redirect_url)
+
+        html = f"""<!DOCTYPE html>
+<html><head><title>Redirecting...</title></head>
+<body>
+<script>
+try {{
+    window.top.location.href = "{redirect_url}";
+}} catch(e) {{
+    window.location.href = "{redirect_url}";
+}}
+</script>
+<noscript>
+<meta http-equiv="refresh" content="0;url={redirect_url}">
+</noscript>
+</body></html>"""
+        from django.http import HttpResponse
+        return HttpResponse(html)
 
 
 # ===============================================
