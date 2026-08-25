@@ -1,9 +1,16 @@
 import Form from "../../Components/Form/Form";
 import React from "react";
+import { Helmet } from "react-helmet-async";
 
 export default function Register() {
   return (
     <div className="login-page">
+      <Helmet>
+        <title>Create Account — DreamStore</title>
+        <meta name="description" content="Create your DreamStore account to shop curated products from premium local brands and independent creators." />
+        <link rel="canonical" href="https://dream-project-roan.vercel.app/register" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {/* Animated background particles */}
       <div className="particles">
         {[...Array(15)].map((_, i) => (

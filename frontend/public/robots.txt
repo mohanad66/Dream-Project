@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /orders
+Disallow: /profile
+Disallow: /payment/result
+Disallow: /seller/dashboard
+
+Sitemap: https://dream-project-roan.vercel.app/sitemap.xml

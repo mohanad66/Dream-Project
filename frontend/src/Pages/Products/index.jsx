@@ -190,7 +190,7 @@ export default function Products() {
           name="keywords"
           content="products, shopping, electronics, fashion, home goods, online store"
         />
-        <link rel="canonical" href="https://dreamstore.com/products" />
+        <link rel="canonical" href="https://dream-project-roan.vercel.app/products" />
         <meta
           property="og:title"
           content="Products - Dream Store | Shop Quality Items Online"
@@ -199,8 +199,44 @@ export default function Products() {
           property="og:description"
           content="Browse our wide range of products at Dream Store."
         />
-        <meta property="og:url" content="https://dreamstore.com/products" />
+        <meta property="og:url" content="https://dream-project-roan.vercel.app/products" />
         <meta property="og:type" content="website" />
+        <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "DreamStore Products",
+          "description": "Browse our wide range of products at Dream Store.",
+          "url": "https://dream-project-roan.vercel.app/products",
+          "mainEntity": {
+            "@type": "ItemList",
+            "name": "DreamStore Products",
+            "numberOfItems": products.length,
+            "itemListElement": products.slice(0, 50).map((p, i) => ({
+              "@type": "ListItem",
+              "position": i + 1,
+              "url": `https://dream-project-roan.vercel.app/products`,
+              "item": {
+                "@type": "Product",
+                "name": p.name,
+                "description": p.description || p.name,
+                "image": p.images?.[0]?.image || p.image || "",
+                "url": `https://dream-project-roan.vercel.app/products`,
+                "offers": {
+                  "@type": "Offer",
+                  "price": p.effective_price || p.price,
+                  "priceCurrency": "EGP",
+                  "availability": "https://schema.org/InStock",
+                  "seller": p.seller_name ? {
+                    "@type": "Organization",
+                    "name": p.seller_name,
+                  } : undefined,
+                },
+              },
+            })),
+          },
+        })}
+        </script>
       </Helmet>
       <div className="products-container">
         <h1>Our Products</h1>

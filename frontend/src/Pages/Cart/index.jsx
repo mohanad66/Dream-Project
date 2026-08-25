@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import "./css/style.scss";
 import { FaTrash, FaPlus, FaMinus } from "react-icons/fa";
 
@@ -80,6 +81,12 @@ export default function Cart() {
 
   return (
     <div className="cart-page-container">
+      <Helmet>
+        <title>Shopping Cart — DreamStore</title>
+        <meta name="description" content="Review items in your DreamStore shopping cart. Proceed to secure checkout with Paymob or Fawry." />
+        <link rel="canonical" href="https://dream-project-roan.vercel.app/cart" />
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <h1>Your Shopping Cart</h1>
       {totalItems > 0 && (
         <p className="cart-item-count">

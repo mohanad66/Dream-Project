@@ -112,7 +112,7 @@ export default function Home({
           name="description"
           content="DreamStore is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators."
         />
-        <link rel="canonical" href="https://dreamstore.com/" />
+        <link rel="canonical" href="https://dream-project-roan.vercel.app/" />
         <meta
           property="og:title"
           content="DreamStore — Curated Marketplace for Premium & Local Brands"
@@ -121,7 +121,7 @@ export default function Home({
           property="og:description"
           content="Discover a curated marketplace of premium local brands, artisans and independent creators."
         />
-        <meta property="og:url" content="https://dreamstore.com/" />
+        <meta property="og:url" content="https://dream-project-roan.vercel.app/" />
         <meta property="og:type" content="website" />
       </Helmet>
 

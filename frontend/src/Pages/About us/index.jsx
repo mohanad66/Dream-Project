@@ -52,13 +52,14 @@ export default function About() {
           name="description"
           content="DreamStore is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators. Discover our story."
         />
-        <link rel="canonical" href="https://dreamstore.com/about" />
+        <link rel="canonical" href="https://dream-project-roan.vercel.app/about" />
         <meta property="og:title" content="About DreamStore — The Story Behind the Marketplace" />
         <meta
           property="og:description"
           content="A curated marketplace built on taste, trust and craft."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://dream-project-roan.vercel.app/about" />
       </Helmet>
 
       <div className="about-page">
