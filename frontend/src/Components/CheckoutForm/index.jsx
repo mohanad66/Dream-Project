@@ -30,6 +30,43 @@ export default function CheckoutForm({
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
   useEffect(() => {
+    if (!paymobIframeUrl || succeeded) return;
+
+    const handleMessage = (event) => {
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (data && (data.success === true || data.status === "success" || data.event === "payment")) {
+          setSucceeded(true);
+        } else if (data && (data.success === false || data.status === "failed")) {
+          setError("Payment was not completed. Please try again.");
+          setPaymobIframeUrl(null);
+          setProcessing(false);
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [paymobIframeUrl, succeeded]);
+
+  useEffect(() => {
+    if (!orderId || succeeded) return;
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts++;
+      if (attempts > 60) { clearInterval(interval); return; }
+      try {
+        const res = await api.get(`/api/orders/${orderId}/`);
+        if (res.data && (res.data.status === "confirmed" || res.data.status === "processing" || res.data.status === "shipped")) {
+          setSucceeded(true);
+          clearInterval(interval);
+        }
+      } catch (e) {}
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [orderId, succeeded]);
+
+  useEffect(() => {
     if (propCartItems && propTotal !== undefined) {
       setCartItems(propCartItems);
       setTotal(propTotal);
