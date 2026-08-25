@@ -36,7 +36,7 @@ from api.models import (
 # ═══════════════════════════════════════════════════════════
 # HELPER: Create minimal valid PNG (1x1 gold pixel)
 # ═══════════════════════════════════════════════════════════
-def make_png(r, g, b, size=4):
+def make_png(r, g, b, size=100):
     """Create a small colored PNG as an InMemoryUploadedFile."""
     import struct, zlib
     def chunk(ctype, data):
@@ -56,14 +56,14 @@ def make_png(r, g, b, size=4):
     return ContentFile(png_bytes, name=f'img_{r}_{g}_{b}.png')
 
 
-def gold_png(size=8):
-    return make_png(201, 162, 75, size)
+def gold_png():
+    return make_png(201, 162, 75)
 
-def navy_png(size=8):
-    return make_png(11, 15, 23, size)
+def navy_png():
+    return make_png(11, 15, 23)
 
-def white_png(size=8):
-    return make_png(245, 246, 248, size)
+def white_png():
+    return make_png(245, 246, 248)
 
 
 print("\n" + "="*60)
@@ -228,6 +228,22 @@ print(f"  ✓ {len(sellers)} seller profiles created")
 # 4. CATEGORIES
 # ═══════════════════════════════════════════════════════════
 print("[4/12] Creating categories...")
+
+CAT_COLORS = {
+    'Electronics': (41, 98, 255),
+    'Fashion': (180, 60, 120),
+    'Home & Living': (60, 140, 90),
+    'Beauty & Care': (190, 100, 160),
+    'Books & Stationery': (120, 80, 50),
+    'Sports & Fitness': (220, 80, 40),
+    'Kitchen': (60, 120, 140),
+    'Garden': (80, 160, 60),
+    'Toys & Games': (230, 170, 30),
+    'Automotive': (80, 80, 100),
+    'Grocery': (140, 170, 50),
+    'Health & Wellness': (100, 180, 160),
+}
+
 categories_data = [
     'Electronics', 'Fashion', 'Home & Living', 'Beauty & Care',
     'Books & Stationery', 'Sports & Fitness', 'Kitchen', 'Garden',
@@ -314,6 +330,7 @@ products = []
 for spec in product_specs:
     seller_profile = sellers[spec['seller']]
     cat = next((c for c in categories if c.name == spec['cat']), categories[0])
+    rgb = CAT_COLORS.get(spec['cat'], (201, 162, 75))
     product, pcreated = Product.objects.get_or_create(
         name=spec['name'],
         defaults={
@@ -321,7 +338,7 @@ for spec in product_specs:
             'category': cat,
             'description': spec['desc'],
             'price': Decimal(str(spec['price'])),
-            'image': gold_png(),
+            'image': make_png(*rgb),
             'approval_status': 'approved',
             'is_active': True,
         }
@@ -338,11 +355,13 @@ print(f"  ✓ {len(products)} products created")
 print("[7/12] Creating product gallery images...")
 gallery_count = 0
 for product in products:
+    rgb = CAT_COLORS.get(product.category.name, (201, 162, 75)) if product.category else (201, 162, 75)
+    dark = tuple(max(c - 60, 0) for c in rgb)
     if random.random() > 0.3:
         for i in range(random.randint(1, 3)):
             ProductImage.objects.create(
                 product=product,
-                image=gold_png() if i % 2 == 0 else navy_png(),
+                image=make_png(*rgb) if i % 2 == 0 else make_png(*dark),
             )
             gallery_count += 1
 print(f"  ✓ {gallery_count} gallery images created")
@@ -399,6 +418,7 @@ offer_titles = [
 
 for seller in sellers:
     seller_products = [p for p in products if p.seller == seller]
+    seller_rgb = CAT_COLORS.get(seller_products[0].category.name, (201, 162, 75)) if seller_products else (201, 162, 75)
     num_offers = random.randint(2, 4)
     for i in range(num_offers):
         title, otype = random.choice(offer_titles)
@@ -413,7 +433,7 @@ for seller in sellers:
             product=product_ref,
             discount_percent=discount,
             original_price=product_ref.price if product_ref else None,
-            image=gold_png(),
+            image=make_png(*seller_rgb),
             is_active=random.choice([True, True, True, False]),
             starts_at=timezone.now() - timedelta(days=random.randint(1, 14)),
             expires_at=timezone.now() + timedelta(days=random.randint(5, 60)),
@@ -538,7 +558,7 @@ carousel_count = 0
 for i, name in enumerate(carousel_data):
     obj, created = CarouselImg.objects.get_or_create(
         name=name,
-        defaults={'image': gold_png(16), 'is_active': True, 'order': i}
+        defaults={'image': make_png(201, 162, 75, 200), 'is_active': True, 'order': i}
     )
     if created:
         carousel_count += 1

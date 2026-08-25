@@ -9,7 +9,7 @@ from django.utils import timezone
 User = get_user_model()
 
 
-def make_png(r, g, b, size=8):
+def make_png(r, g, b, size=100):
     def chunk(ctype, data):
         c = ctype + data
         return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
@@ -34,8 +34,23 @@ class Command(BaseCommand):
             PlatformSettings
         )
 
-        gold = lambda s=8: make_png(201, 162, 75, s)
-        navy = lambda s=8: make_png(11, 15, 23, s)
+        gold = lambda: make_png(201, 162, 75)
+        navy = lambda: make_png(11, 15, 23)
+
+        CAT_COLORS = {
+            'Electronics': (41, 98, 255),
+            'Fashion': (180, 60, 120),
+            'Home & Living': (60, 140, 90),
+            'Beauty & Care': (190, 100, 160),
+            'Books & Stationery': (120, 80, 50),
+            'Sports & Fitness': (220, 80, 40),
+            'Kitchen': (60, 120, 140),
+            'Garden': (80, 160, 60),
+            'Toys & Games': (230, 170, 30),
+            'Automotive': (80, 80, 100),
+            'Grocery': (140, 170, 50),
+            'Health & Wellness': (100, 180, 160),
+        }
 
         self.stdout.write(self.style.WARNING('\n  DREAMSTORE SEED — STARTING...\n'))
 
@@ -158,9 +173,11 @@ class Command(BaseCommand):
         for si, cn, nm, pr, desc in specs:
             seller = sellers[si]
             cat = next((c for c in cats if c.name == cn), cats[0])
+            rgb = CAT_COLORS.get(cn, (201, 162, 75))
+            cat_img = lambda rgb=rgb: make_png(*rgb)
             p, cr = Product.objects.get_or_create(name=nm, defaults={
                 'seller': seller, 'category': cat, 'description': desc,
-                'price': Decimal(str(pr)), 'image': gold(), 'approval_status': 'approved', 'is_active': True,
+                'price': Decimal(str(pr)), 'image': cat_img(), 'approval_status': 'approved', 'is_active': True,
             })
             if cr:
                 p.tags.add(*random.sample(tgs, k=min(3, len(tgs))))
@@ -171,9 +188,11 @@ class Command(BaseCommand):
         self.stdout.write('[7/12] Gallery images...')
         gc = 0
         for p in prods:
+            rgb = CAT_COLORS.get(p.category.name, (201, 162, 75)) if p.category else (201, 162, 75)
+            dark = tuple(max(c - 60, 0) for c in rgb)
             if random.random() > 0.3:
                 for i in range(random.randint(1, 3)):
-                    ProductImage.objects.create(product=p, image=gold() if i % 2 == 0 else navy())
+                    ProductImage.objects.create(product=p, image=make_png(*rgb) if i % 2 == 0 else make_png(*dark))
                     gc += 1
         self.stdout.write(self.style.SUCCESS(f'  ✓ {gc} gallery images'))
 
@@ -285,7 +304,7 @@ class Command(BaseCommand):
 
         ccc = 0
         for i, nm in enumerate(['Summer Collection', 'Tech Deals', 'Handmade Specials', 'New Arrivals', 'Flash Sale', 'Home Makeover']):
-            _, cr = CarouselImg.objects.get_or_create(name=nm, defaults={'image': gold(16), 'is_active': True, 'order': i})
+            _, cr = CarouselImg.objects.get_or_create(name=nm, defaults={'image': make_png(201, 162, 75, 200), 'is_active': True, 'order': i})
             if cr:
                 ccc += 1
         self.stdout.write(self.style.SUCCESS(f'  ✓ Services, contacts, {ccc} carousel images'))
