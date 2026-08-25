@@ -325,6 +325,122 @@ class PaymobPayView(APIView):
 PaymobCheckoutView = PaymobInitView
 
 
+class PaymobWalletPayView(APIView):
+    """
+    POST /api/payments/paymob/wallet/
+    Initiates a mobile wallet payment (Vodafone Cash, Orange Cash, etc.)
+    Body: { "order_id": 123, "wallet_number": "010XXXXXXXX" }
+    Returns: { "redirect_url": "https://..." } — user goes there to enter OTP
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        order_id = request.data.get("order_id")
+        wallet_number = request.data.get("wallet_number", "").strip()
+
+        if not order_id:
+            return Response({"error": "order_id required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not wallet_number:
+            return Response({"error": "wallet_number required (e.g. 01012345678)"}, status=status.HTTP_400_BAD_REQUEST)
+
+        wallet_integration_id = getattr(settings, "PAYMOB_WALLET_INTEGRATION_ID", "")
+        if not wallet_integration_id:
+            return Response(
+                {"error": "Mobile wallet payments are not configured yet."},
+                status=status.HTTP_501_NOT_IMPLEMENTED,
+            )
+
+        try:
+            order = Order.objects.get(pk=order_id, owner=request.user)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        billing = {
+            "apartment": "NA",
+            "email": request.user.email or "customer@example.com",
+            "floor": "NA",
+            "first_name": request.user.first_name or "Customer",
+            "last_name": request.user.last_name or "NA",
+            "phone_number": wallet_number,
+            "street": "NA",
+            "building": "NA",
+            "shipping_method": "PKG",
+            "postal_code": "00000",
+            "city": "Cairo",
+            "country": "EG",
+            "state": "Cairo",
+        }
+
+        try:
+            auth_token = _get_paymob_auth_token()
+            paymob_order_id = _register_paymob_order(auth_token, order)
+            amount_cents = int(order.total_price * 100)
+
+            if amount_cents <= 0:
+                return Response({"error": f"Order total is {order.total_price}, cannot pay"}, status=status.HTTP_400_BAD_REQUEST)
+
+            resp = requests.post(
+                f"{PAYMOB_BASE}/acceptance/payment_keys",
+                json={
+                    "auth_token": auth_token,
+                    "amount_cents": amount_cents,
+                    "expiration": 3600,
+                    "order_id": paymob_order_id,
+                    "billing_data": billing,
+                    "currency": "EGP",
+                    "integration_id": int(wallet_integration_id),
+                },
+                headers=_paymob_headers(),
+                timeout=15,
+            )
+            if resp.status_code >= 400:
+                logger.error(f"Paymob wallet payment_keys {resp.status_code}: {resp.text}")
+                return Response({"error": "Failed to initialize wallet payment", "details": resp.text[:500]},
+                                status=status.HTTP_402_PAYMENT_REQUIRED)
+            payment_token = resp.json()["token"]
+
+            wallet_resp = requests.post(
+                f"{PAYMOB_BASE}/acceptance/payments/pay",
+                json={
+                    "source": {"identifier": wallet_number},
+                    "payment_token": payment_token,
+                },
+                headers=_paymob_headers(),
+                timeout=30,
+            )
+            wallet_data = wallet_resp.json()
+            logger.info(f"Paymob wallet /payments/pay response (status={wallet_resp.status_code}): {json.dumps(wallet_data)}")
+
+            redirect_url = wallet_data.get("redirect_url")
+
+            if redirect_url:
+                Payment.objects.create(
+                    owner=request.user,
+                    method="paymob_wallet",
+                    amount=order.total_price,
+                    provider_payment_id=str(paymob_order_id),
+                    status="pending",
+                    raw_response=json.dumps(wallet_data),
+                )
+                return Response({
+                    "success": True,
+                    "redirect_url": redirect_url,
+                    "paymob_order_id": paymob_order_id,
+                })
+
+            error_msg = wallet_data.get("message", wallet_data.get("detail", "Wallet payment failed"))
+            return Response({"error": error_msg, "paymob_response": wallet_data},
+                            status=status.HTTP_402_PAYMENT_REQUIRED)
+
+        except requests.exceptions.RequestException as e:
+            logger.exception("Paymob wallet request failed")
+            return Response({"error": "Payment gateway unreachable", "details": str(e)},
+                            status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Paymob wallet error")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @csrf_exempt
 @require_POST
 def paymob_webhook(request):

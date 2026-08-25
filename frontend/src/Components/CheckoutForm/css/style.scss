@@ -172,3 +172,37 @@
     background: var(--bg-primary, #0b0f17);
   }
 }
+
+.wallet-number-group {
+  position: relative;
+
+  input[type="tel"] {
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-gold);
+    }
+
+    &::placeholder {
+      letter-spacing: 0;
+    }
+  }
+
+  .field-hint {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted, rgba(255,255,255,0.4));
+  }
+}

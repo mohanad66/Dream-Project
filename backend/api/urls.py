@@ -259,6 +259,7 @@ urlpatterns = [
     path("payments/paymob/checkout/", PaymobCheckoutView.as_view(), name="paymob-checkout"),
     path("payments/paymob/init/", PaymobInitView.as_view(), name="paymob-init"),
     path("payments/paymob/pay/", PaymobPayView.as_view(), name="paymob-pay"),
+    path("payments/paymob/wallet/", PaymobWalletPayView.as_view(), name="paymob-wallet"),
     path("payments/paymob/webhook/", paymob_webhook, name="paymob-webhook"),
     path("payments/paymob/callback/", PaymobCallbackView.as_view(), name="paymob-callback"),
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, CheckCircle, ExternalLink, Copy, CreditCard } from "lucide-react";
+import { Loader2, CheckCircle, ExternalLink, Copy, CreditCard, Smartphone } from "lucide-react";
 import api from "../../services/api";
 import { useToast } from "../../Components/Toast/useToast";
 import "./css/style.scss";
@@ -15,6 +15,7 @@ export default function CheckoutForm({
   const [email, setEmail] = useState("");
   const [shippingAddress, setShippingAddress] = useState("");
   const [note, setNote] = useState("");
+  const [walletNumber, setWalletNumber] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -122,13 +123,49 @@ export default function CheckoutForm({
       const initRes = await api.post("/api/payments/paymob/init/", {
         order_id: oid,
         billing_data: { email, street: shippingAddress },
-        payment_method: paymentMethod === "paymob_wallet" ? "paymob_wallet" : "card",
+        payment_method: "card",
       });
 
       if (initRes.data.iframe_url) {
         setPaymobIframeUrl(initRes.data.iframe_url);
       } else {
         setError("Failed to initialize payment");
+        setProcessing(false);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.details || `Error: ${err.message}`);
+      setProcessing(false);
+    }
+  };
+
+  const handleWalletPay = async (e) => {
+    e.preventDefault();
+    if (processing) return;
+    if (total === 0) { setError("Cart total is 0"); return; }
+    if (!email) { setError("Enter your email"); return; }
+    if (!shippingAddress) { setError("Enter your shipping address"); return; }
+    if (!walletNumber || walletNumber.length < 10) { setError("Enter a valid wallet number (e.g. 01012345678)"); return; }
+
+    setProcessing(true);
+    setError(null);
+
+    try {
+      const orderRes = await api.post("/api/orders/create/", {
+        ...buildOrderPayload(),
+        payment_method: "paymob_wallet",
+      });
+      const oid = orderRes.data.id;
+      setOrderId(oid);
+
+      const res = await api.post("/api/payments/paymob/wallet/", {
+        order_id: oid,
+        wallet_number: walletNumber,
+      });
+
+      if (res.data.redirect_url) {
+        window.location.href = res.data.redirect_url;
+      } else {
+        setError("Failed to initialize wallet payment");
         setProcessing(false);
       }
     } catch (err) {
@@ -213,9 +250,7 @@ export default function CheckoutForm({
     );
   }
 
-  const isCard = paymentMethod === "card" || paymentMethod === "paymob_wallet";
-
-  if (isCard && paymobIframeUrl) {
+  if (paymentMethod === "card" && paymobIframeUrl) {
     return (
       <div className="paymob-iframe-wrapper">
         {!iframeLoaded && (
@@ -237,8 +272,60 @@ export default function CheckoutForm({
     );
   }
 
+  if (paymentMethod === "paymob_wallet") {
+    return (
+      <form id="payment-form" onSubmit={handleWalletPay}>
+        <div className="form-group">
+          <label>Email Address</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" />
+        </div>
+
+        <div className="form-group">
+          <label>Shipping Address</label>
+          <textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} placeholder="Enter your shipping address" rows="3" />
+        </div>
+
+        <div className="form-group">
+          <label>Order Notes (Optional)</label>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Special instructions" rows="2" />
+        </div>
+
+        <div className="form-group wallet-number-group">
+          <label>
+            <Smartphone size={16} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+            Vodafone Cash / Mobile Wallet Number
+          </label>
+          <input
+            type="tel"
+            value={walletNumber}
+            onChange={(e) => setWalletNumber(e.target.value.replace(/\D/g, "").slice(0, 11))}
+            placeholder="01012345678"
+            pattern="01[0-9]{9}"
+            maxLength={11}
+          />
+          <span className="field-hint">You will receive an OTP on this number to confirm payment</span>
+        </div>
+
+        <button type="submit" disabled={processing} id="submit-btn">
+          <span id="button-text">
+            {processing ? (
+              <span className="btn-loading"><Loader2 size={18} className="spin" /> Redirecting to wallet...</span>
+            ) : (
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Smartphone size={18} />
+                Pay {total.toFixed(2)} L.E via Wallet
+              </span>
+            )}
+          </span>
+        </button>
+
+        {error && <div id="payment-message" role="alert">{error}</div>}
+      </form>
+    );
+  }
+
   return (
-    <form id="payment-form" onSubmit={isCard ? handleCardInit : handleFawryPay}>
+    <form id="payment-form" onSubmit={handleFawryPay}>
       <div className="form-group">
         <label>Email Address</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" />
@@ -258,11 +345,6 @@ export default function CheckoutForm({
         <span id="button-text">
           {processing ? (
             <span className="btn-loading"><Loader2 size={18} className="spin" /> Processing...</span>
-          ) : isCard ? (
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <CreditCard size={18} />
-              Pay {total.toFixed(2)} L.E
-            </span>
           ) : (
             `Submit Order — ${total.toFixed(2)} L.E`
           )}
