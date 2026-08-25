@@ -452,7 +452,7 @@ const AdminAnalytics = () => {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderRadius: 10, background: "var(--bg-card, rgba(255,255,255,0.04))", border: "1px solid var(--border-color)", flexWrap: "wrap" }}>
             <span style={{ fontSize: 13, fontWeight: 600 }}>Default Commission Rate:</span>
-            <input type="number" step="0.01" min="0" max="100" value={globalCommissionRate} onChange={(e) => setGlobalCommissionRate(e.target.value)} style={{ width: 80, padding: "4px 8px", fontSize: 13 }} />
+            <input type="number" step="0.01" min="0" max="100" value={globalCommissionRate} onChange={(e) => setGlobalCommissionRate(e.target.value)} className="analytics-input" style={{ width: 80 }} />
             <span style={{ fontSize: 13 }}>%</span>
             <button className="button button--small button--primary" onClick={handleSaveGlobalCommission} disabled={savingCommission}>{savingCommission ? "Saving..." : "Save"}</button>
           </div>

@@ -328,6 +328,44 @@
 }
 
 /* ==========================================================================
+   Inputs & Selects
+   ========================================================================== */
+
+.analytics-input,
+.analytics-root input[type="text"],
+.analytics-root input[type="number"],
+.analytics-root input[type="datetime-local"],
+.analytics-root select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+
+  &::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-alpha);
+  }
+
+  &:hover:not(:focus) {
+    border-color: var(--border-hover);
+  }
+}
+
+/* ==========================================================================
    Buttons
    ========================================================================== */
 
