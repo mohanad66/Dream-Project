@@ -482,7 +482,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             "id", "owner", "status", "shipping_address", "note",
-            "delivery_type", "subtotal_before_discount", "discount_amount",
+            "delivery_type", "delivery_fee", "subtotal_before_discount", "discount_amount",
             "total_commission", "total_price", "owner_name",
             "items", "coupons_applied", "created_at", "updated_at",
         ]
@@ -646,7 +646,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         read_only_fields = ["unit_price", "subtotal", "product_name"]
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class AdminOrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     total_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
@@ -670,6 +670,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "note",
             "items",
             "total_price",
+            "delivery_type",
+            "delivery_fee",
             "created_at",
             "updated_at",
             "owner_detail",
@@ -744,3 +746,79 @@ class ProductApprovalSerializer(serializers.ModelSerializer):
                 {"rejection_reason": "Required when rejecting a product."}
             )
         return attrs
+
+
+# ===============================================
+# WISHLIST SERIALIZERS
+# ===============================================
+
+class WishlistItemSerializer(serializers.ModelSerializer):
+    product_detail = ProductSerializer(source="product", read_only=True)
+
+    class Meta:
+        model = WishlistItem
+        fields = ["id", "product", "product_detail", "created_at"]
+        read_only_fields = ["created_at"]
+
+
+class WishlistAddSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+
+
+# ===============================================
+# REVIEW SERIALIZERS
+# ===============================================
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.username", read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
+    class Meta:
+        model = Review
+        fields = [
+            "id", "user", "user_name", "product", "product_name",
+            "rating", "title", "comment", "is_active",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["user", "is_active", "created_at", "updated_at"]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5.")
+        return value
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ["rating", "title", "comment"]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5.")
+        return value
+
+
+class ProductReviewStatsSerializer(serializers.Serializer):
+    average_rating = serializers.FloatField()
+    total_reviews = serializers.IntegerField()
+    rating_distribution = serializers.DictField()
+
+
+# ===============================================
+# NOTIFICATION SERIALIZERS
+# ===============================================
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = [
+            "id", "notification_type", "title", "message",
+            "link", "is_read", "icon", "created_at",
+        ]
+        read_only_fields = ["created_at"]
+
+
+class NotificationCountSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    unread = serializers.IntegerField()

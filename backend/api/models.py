@@ -962,6 +962,10 @@ class Order(models.Model):
         choices=[("platform", "Platform"), ("seller", "Seller")],
         default="platform",
     )
+    delivery_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Shipping fee calculated via delivery provider.",
+    )
     subtotal_before_discount = models.DecimalField(
         max_digits=10, decimal_places=2, default=0,
         help_text="Total before coupon discount.",
@@ -990,7 +994,7 @@ class Order(models.Model):
     @property
     def total_price(self):
         items_total = sum(item.subtotal for item in self.items.all())
-        return items_total - self.discount_amount
+        return items_total - self.discount_amount + self.delivery_fee
 
     @property
     def total_before_discount(self):
@@ -1043,3 +1047,169 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} × {self.product} in Order #{self.order_id}"
+
+
+# ===============================================
+# WISHLIST
+# ===============================================
+
+class WishlistItem(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="wishlist_items",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="wishlisted_by",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "product")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} → {self.product}"
+
+
+# ===============================================
+# PRODUCT REVIEWS
+# ===============================================
+
+class Review(models.Model):
+    class Rating(models.IntegerChoices):
+        ONE = 1, "1"
+        TWO = 2, "2"
+        THREE = 3, "3"
+        FOUR = 4, "4"
+        FIVE = 5, "5"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    rating = models.PositiveSmallIntegerField(
+        choices=Rating.choices,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+    )
+    title = models.CharField(max_length=255, blank=True)
+    comment = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "product")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} → {self.product} ({self.rating}★)"
+
+    @property
+    def star_display(self):
+        return self.rating
+
+
+# ===============================================
+# SELLER EARNINGS
+# ===============================================
+
+class SellerEarning(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        WITHDRAWN = "withdrawn", "Withdrawn"
+
+    seller = models.ForeignKey(
+        "SellerProfile",
+        on_delete=models.CASCADE,
+        related_name="earnings",
+    )
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="earnings",
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    platform_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.seller} earned {self.amount} from Order #{self.order_id}"
+
+
+# ===============================================
+# NOTIFICATIONS
+# ===============================================
+
+class Notification(models.Model):
+    class Type(models.TextChoices):
+        ORDER_CONFIRMED = "order_confirmed", "Order Confirmed"
+        ORDER_SHIPPED = "order_shipped", "Order Shipped"
+        ORDER_DELIVERED = "order_delivered", "Order Delivered"
+        ORDER_CANCELLED = "order_cancelled", "Order Cancelled"
+        PAYMENT_RECEIVED = "payment_received", "Payment Received"
+        SELLER_APPROVED = "seller_approved", "Seller Approved"
+        SELLER_REJECTED = "seller_rejected", "Seller Rejected"
+        PRODUCT_APPROVED = "product_approved", "Product Approved"
+        PRODUCT_REJECTED = "product_rejected", "Product Rejected"
+        PAYOUT_PROCESSED = "payout_processed", "Payout Processed"
+        SYSTEM = "system", "System"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    notification_type = models.CharField(
+        max_length=30,
+        choices=Type.choices,
+        default=Type.SYSTEM,
+        db_index=True,
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    link = models.CharField(max_length=500, blank=True, help_text="Frontend URL to navigate to")
+    is_read = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} — {self.notification_type} — {self.title}"
+
+    @property
+    def icon(self):
+        icons = {
+            "order_confirmed": "check-circle",
+            "order_shipped": "truck",
+            "order_delivered": "package",
+            "order_cancelled": "x-circle",
+            "payment_received": "banknote",
+            "seller_approved": "party-popper",
+            "seller_rejected": "alert-triangle",
+            "product_approved": "check-circle",
+            "product_rejected": "alert-triangle",
+            "payout_processed": "arrow-down-circle",
+            "system": "bell",
+        }
+        return icons.get(self.notification_type, "bell")

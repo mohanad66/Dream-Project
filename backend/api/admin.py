@@ -136,3 +136,34 @@ class SellerPayoutAdmin(ModelAdmin):
     list_filter = ["status", "delivery_type"]
     search_fields = ["seller__business_name"]
     readonly_fields = ["gross_amount", "commission_amount", "net_amount"]
+
+
+@admin.register(WishlistItem)
+class WishlistItemAdmin(ModelAdmin):
+    list_display = ["user", "product", "created_at"]
+    list_filter = ["created_at"]
+    search_fields = ["user__username", "product__name"]
+
+
+@admin.register(Review)
+class ReviewAdmin(ModelAdmin):
+    list_display = ["user", "product", "rating", "is_active", "created_at"]
+    list_filter = ["is_active", "rating"]
+    search_fields = ["user__username", "product__name", "title"]
+    list_editable = ["is_active"]
+
+
+@admin.register(SellerEarning)
+class SellerEarningAdmin(ModelAdmin):
+    list_display = ["seller", "order", "amount", "platform_fee", "status", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["seller__business_name"]
+    readonly_fields = ["amount", "platform_fee"]
+
+
+@admin.register(Notification)
+class NotificationAdmin(ModelAdmin):
+    list_display = ["user", "notification_type", "title", "is_read", "created_at"]
+    list_filter = ["is_read", "notification_type"]
+    search_fields = ["user__username", "title"]
+    list_editable = ["is_read"]

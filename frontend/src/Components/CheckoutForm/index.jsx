@@ -10,6 +10,7 @@ export default function CheckoutForm({
   totalItems: propTotalItems,
   paymentMethod,
   coupon,
+  deliveryFee = 0,
 }) {
   const toast = useToast();
   const [email, setEmail] = useState("");
@@ -96,6 +97,7 @@ export default function CheckoutForm({
     note,
     email,
     payment_method: paymentMethod,
+    delivery_fee: deliveryFee,
     ...(coupon && {
       coupon_code: coupon.code,
       discount_amount: parseFloat(coupon.calculated_discount) || 0,

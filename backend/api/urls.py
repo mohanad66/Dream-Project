@@ -267,4 +267,25 @@ urlpatterns = [
     path("payments/fawry/checkout/", FawryCheckoutView.as_view(), name="fawry-checkout"),
     path("payments/fawry/webhook/", fawry_webhook, name="fawry-webhook"),
     path("payments/fawry/status/", FawryStatusView.as_view(), name="fawry-status"),
+
+    # --- Wishlist ---
+    path("wishlist/", WishlistListView.as_view(), name="wishlist-list"),
+    path("wishlist/add/", WishlistAddView.as_view(), name="wishlist-add"),
+    path("wishlist/remove/", WishlistRemoveView.as_view(), name="wishlist-remove"),
+    path("wishlist/check/", WishlistCheckView.as_view(), name="wishlist-check"),
+    path("wishlist/bulk-check/", WishlistBulkCheckView.as_view(), name="wishlist-bulk-check"),
+
+    # --- Reviews ---
+    path("products/<int:product_id>/reviews/", ProductReviewListView.as_view(), name="product-reviews"),
+    path("products/<int:product_id>/reviews/stats/", ProductReviewStatsView.as_view(), name="product-review-stats"),
+    path("products/<int:product_id>/reviews/create/", ReviewCreateView.as_view(), name="review-create"),
+    path("reviews/<int:review_id>/delete/", ReviewDeleteView.as_view(), name="review-delete"),
+
+    # --- Notifications ---
+    path("notifications/", NotificationListView.as_view(), name="notification-list"),
+    path("notifications/count/", NotificationCountView.as_view(), name="notification-count"),
+    path("notifications/mark-read/", NotificationMarkReadView.as_view(), name="notification-mark-read"),
+
+    # --- Delivery ---
+    path("delivery/fee/", DeliveryFeeView.as_view(), name="delivery-fee"),
 ]

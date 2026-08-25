@@ -27,7 +27,7 @@ load_dotenv(override=True)
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key-change-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True") == "True"
@@ -76,7 +76,7 @@ BACKEND_URL = os.getenv("BACKEND_URL", "https://legislative-lynelle-idk1321-fdbb
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dream-project-roan.vercel.app")
 
 # Paymob
-PAYMOB_API_KEY = os.getenv("PAYMOB_API_KEY", "ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklrMWxjbU5vWVc1MElpd2ljSEp2Wm1sc1pWOXdheUk2TVRBMk56QTRPQ3dpYm1GdFpTSTZJbWx1YVhScFlXd2lmUS4tUGk2cm1jd05Jd0wtZkgzcTlPTldPWDduMF9rd0tJem41YVByd1RMZkpTR0hUYTVYNzVwM21EenEyWGhoWmFGRl9EcE1KZTB1X2kzQWVncHh6M09Bdw==")
+PAYMOB_API_KEY = os.getenv("PAYMOB_API_KEY", "")
 PAYMOB_INTEGRATION_ID = os.getenv("PAYMOB_INTEGRATION_ID", "5229835")
 PAYMOB_WALLET_INTEGRATION_ID = os.getenv("PAYMOB_WALLET_INTEGRATION_ID", "")
 PAYMOB_WALLET_IFRAME_ID = os.getenv("PAYMOB_WALLET_IFRAME_ID", "")
@@ -88,6 +88,13 @@ PAYMOB_BASE_URL = os.getenv("PAYMOB_BASE_URL", "https://accept.paymob.com/api")
 FAWRY_MERCHANT_CODE = os.getenv("FAWRY_MERCHANT_CODE", "")
 FAWRY_SECURITY_CODE = os.getenv("FAWRY_SECURITY_CODE", "")
 FAWRY_RETURN_URL = os.getenv("FAWRY_RETURN_URL", "")
+
+# Bosta Delivery
+BOSTA_ENABLED = os.getenv("BOSTA_ENABLED", "False").lower() == "true"
+BOA_API_KEY = os.getenv("BOA_API_KEY", "")
+
+# Email
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@dreamstore.com")
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",

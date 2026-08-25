@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
-import { FaShoppingCart, FaBolt, FaPlus, FaMinus } from "react-icons/fa";
+import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../../services/api";
 
 export default function Card({ card, categories, tags }) {
   const [showPopup, setShowPopup] = useState(false);
@@ -13,7 +14,38 @@ export default function Card({ card, categories, tags }) {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [inWishlist, setInWishlist] = useState(false);
   const navigate = useNavigate();
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlist = async () => {
+      try {
+        const response = await api.get(`/api/wishlist/check/?product_id=${card.id}`);
+        setInWishlist(response.data.in_wishlist);
+      } catch (err) {
+        // Not logged in or error
+      }
+    };
+    if (card.id) {
+      checkWishlist();
+    }
+  }, [card.id]);
+
+  const toggleWishlist = async (e) => {
+    e.stopPropagation();
+    try {
+      if (inWishlist) {
+        await api.delete("/api/wishlist/remove/", { data: { product_id: card.id } });
+        setInWishlist(false);
+      } else {
+        await api.post("/api/wishlist/add/", { product_id: card.id });
+        setInWishlist(true);
+      }
+    } catch (err) {
+      console.error("Wishlist toggle failed:", err);
+    }
+  };
 
   // Build image list: primary + gallery
   const allImages = [card.image, ...(card.gallery_images?.map(g => g.image) || [])].filter(Boolean);
@@ -103,6 +135,13 @@ export default function Card({ card, categories, tags }) {
     <>
       <div className="card">
         <div className="card-carousel" onClick={() => setShowPopup(true)}>
+          <button
+            className={`wishlist-btn ${inWishlist ? "active" : ""}`}
+            onClick={toggleWishlist}
+            aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <FaHeart />
+          </button>
           <img
             className={`card-image${imgLoaded ? " img-ready" : ""}`}
             src={allImages[currentImageIndex]}

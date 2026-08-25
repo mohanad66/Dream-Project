@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { CreditCard, Smartphone, Store } from "lucide-react";
+import { CreditCard, Smartphone, Store, Truck, MapPin } from "lucide-react";
 import CheckoutForm from "../../Components/CheckoutForm";
 import CouponInput from "../../Components/CouponInput";
 import "./css/style.scss";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
 
 const PAYMENT_METHODS = [
   { id: "card", label: "Credit/Debit Card", icon: <CreditCard size={22} />, description: "Pay securely with Visa/Mastercard" },
@@ -11,11 +12,22 @@ const PAYMENT_METHODS = [
   { id: "fawry", label: "Fawry", icon: <Store size={22} />, description: "Pay at any Fawry outlet" },
 ];
 
+const EGYPTIAN_CITIES = [
+  "Cairo", "Giza", "Alexandria", "Qalyubia", "Sharqia", "Dakahlia",
+  "Gharbia", "Monufia", "Beheira", "Kafr El Sheikh", "Damietta",
+  "Port Said", "Ismailia", "Suez", "North Sinai", "South Sinai",
+  "Beni Suef", "Fayoum", "Minya", "Asyut", "Sohag", "Qena",
+  "Luxor", "Aswan", "Red Sea", "New Valley",
+];
+
 export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,10 +59,32 @@ export default function CheckoutPage() {
   );
 
   const discountAmount = appliedCoupon ? parseFloat(appliedCoupon.calculated_discount) || 0 : 0;
-  const finalTotal = Math.max(subtotal - discountAmount, 0);
+  const finalTotal = Math.max(subtotal - discountAmount + deliveryFee, 0);
 
   const handleCouponApply = (couponData) => setAppliedCoupon(couponData);
   const handleCouponRemove = () => setAppliedCoupon(null);
+
+  const handleCityChange = async (city) => {
+    setDeliveryCity(city);
+    if (!city) {
+      setDeliveryFee(0);
+      return;
+    }
+
+    setDeliveryLoading(true);
+    try {
+      const response = await api.post("/api/delivery/fee/", {
+        city: city,
+        delivery_type: "platform",
+      });
+      setDeliveryFee(parseFloat(response.data.fee) || 0);
+    } catch (err) {
+      console.error("Failed to calculate delivery fee:", err);
+      setDeliveryFee(40);
+    } finally {
+      setDeliveryLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -95,6 +129,27 @@ export default function CheckoutPage() {
               />
             </div>
 
+            {/* Delivery Location */}
+            <div className="delivery-section">
+              <div className="delivery-header">
+                <MapPin size={18} />
+                <span>Delivery Location</span>
+              </div>
+              <select
+                className="delivery-city-select"
+                value={deliveryCity}
+                onChange={(e) => handleCityChange(e.target.value)}
+              >
+                <option value="">Select your city</option>
+                {EGYPTIAN_CITIES.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              {deliveryLoading && (
+                <div className="delivery-loading">Calculating delivery fee...</div>
+              )}
+            </div>
+
             <div className="order-totals">
               <div className="total-line">
                 <span>Subtotal ({totalItems} item{totalItems !== 1 ? "s" : ""})</span>
@@ -108,7 +163,7 @@ export default function CheckoutPage() {
               )}
               <div className="total-line">
                 <span>Shipping</span>
-                <span>FREE</span>
+                <span>{deliveryFee > 0 ? `${deliveryFee.toFixed(2)} L.E` : "FREE"}</span>
               </div>
               <div className="total-line total-final">
                 <span>Total</span>
@@ -152,6 +207,7 @@ export default function CheckoutPage() {
               totalItems={totalItems}
               paymentMethod={paymentMethod}
               coupon={appliedCoupon}
+              deliveryFee={deliveryFee}
             />
           </div>
         </div>

@@ -29,6 +29,24 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
+# ===============================================
+# NOTIFICATION HELPER
+# ===============================================
+
+def create_notification(user, notification_type, title, message, link=""):
+    """Create a notification for a user."""
+    try:
+        Notification.objects.create(
+            user=user,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            link=link,
+        )
+    except Exception as e:
+        logger.error(f"Failed to create notification: {e}")
+
 class IsSuperUser(IsAdminUser):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_superuser)
@@ -702,6 +720,7 @@ class CreateOrderView(APIView):
         note = request.data.get("note", "")
         coupon_code = request.data.get("coupon_code")
         discount_amount = request.data.get("discount_amount", 0)
+        delivery_fee = Decimal(str(request.data.get("delivery_fee", 0)))
 
         # Stripe card flow: require payment_intent_id
         if payment_method == "card" and not payment_intent_id:
@@ -744,6 +763,7 @@ class CreateOrderView(APIView):
             shipping_address=shipping_address,
             note=note,
             discount_amount=Decimal(str(discount_amount or 0)),
+            delivery_fee=delivery_fee,
         )
 
         # Apply coupon if provided
@@ -792,6 +812,30 @@ class CreateOrderView(APIView):
             order.payment = payment
             order.save(update_fields=["payment"])
 
+        # Create notification for buyer
+        if order_status == "confirmed":
+            create_notification(
+                request.user,
+                "order_confirmed",
+                "Order Confirmed",
+                f"Your order #{order.pk} has been confirmed and is being processed.",
+                f"/orders/{order.pk}",
+            )
+            from .email_utils import send_order_confirmation_email
+            send_order_confirmation_email(order)
+
+        # Notify sellers
+        for item in order.items.select_related("product__seller__user").all():
+            if item.product and item.product.seller:
+                seller_user = item.product.seller.user
+                create_notification(
+                    seller_user,
+                    "payment_received",
+                    "New Order Received",
+                    f"You have a new order #{order.pk} for {item.product.name}.",
+                    f"/seller/orders",
+                )
+
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -838,15 +882,38 @@ class OrderAdminViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
-        if self.action == "partial_update":
+        if self.action in ("partial_update", "update"):
             return OrderStatusUpdateSerializer
-        return OrderSerializer
+        return AdminOrderSerializer
 
     def partial_update(self, request, *args, **kwargs):
         order = self.get_object()
+        old_status = order.status
         serializer = OrderStatusUpdateSerializer(order, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            new_status = order.status
+
+            # Create notification for status change
+            if old_status != new_status and order.owner:
+                status_messages = {
+                    "confirmed": ("Order Confirmed", f"Your order #{order.pk} has been confirmed."),
+                    "shipped": ("Order Shipped", f"Your order #{order.pk} has been shipped."),
+                    "delivered": ("Order Delivered", f"Your order #{order.pk} has been delivered."),
+                    "cancelled": ("Order Cancelled", f"Your order #{order.pk} has been cancelled."),
+                }
+                if new_status in status_messages:
+                    title, message = status_messages[new_status]
+                    create_notification(
+                        order.owner,
+                        f"order_{new_status}",
+                        title,
+                        message,
+                        f"/orders/{order.pk}",
+                    )
+                    from .email_utils import send_order_status_email
+                    send_order_status_email(order, old_status, new_status)
+
             return Response(OrderSerializer(order).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1211,7 +1278,33 @@ class ProductApprovalView(generics.UpdateAPIView):
     permission_classes = [IsAdminUser]
  
     def perform_update(self, serializer):
+        old_status = serializer.instance.approval_status
         super().perform_update(serializer)
+        new_status = serializer.instance.approval_status
+
+        if old_status != new_status and serializer.instance.seller:
+            seller_user = serializer.instance.seller.user
+            if new_status == "approved":
+                create_notification(
+                    seller_user,
+                    "product_approved",
+                    "Product Approved",
+                    f"Your product '{serializer.instance.name}' has been approved and is now live.",
+                    "/seller/products",
+                )
+                from .email_utils import send_product_approval_email
+                send_product_approval_email(serializer.instance)
+            elif new_status == "rejected":
+                create_notification(
+                    seller_user,
+                    "product_rejected",
+                    "Product Rejected",
+                    f"Your product '{serializer.instance.name}' has been rejected. Reason: {serializer.instance.rejection_reason or 'Not specified'}",
+                    "/seller/products",
+                )
+                from .email_utils import send_product_rejection_email
+                send_product_rejection_email(serializer.instance, serializer.instance.rejection_reason)
+
         if getattr(settings, "ENABLE_CACHING", True):
             cache.clear()
  
@@ -1248,7 +1341,33 @@ class AdminSellerViewSet(viewsets.ModelViewSet):
         return AdminSellerSerializer
 
     def perform_update(self, serializer):
+        old_status = serializer.instance.verification_status
         super().perform_update(serializer)
+        new_status = serializer.instance.verification_status
+
+        if old_status != new_status:
+            seller_user = serializer.instance.user
+            if new_status == "approved":
+                create_notification(
+                    seller_user,
+                    "seller_approved",
+                    "Seller Account Approved",
+                    "Congratulations! Your seller account has been approved. You can now start listing products.",
+                    "/seller/dashboard",
+                )
+                from .email_utils import send_seller_approval_email
+                send_seller_approval_email(serializer.instance)
+            elif new_status == "rejected":
+                create_notification(
+                    seller_user,
+                    "seller_rejected",
+                    "Seller Account Rejected",
+                    f"Your seller account has been rejected. Reason: {serializer.instance.rejection_reason or 'Not specified'}",
+                    "/seller/dashboard",
+                )
+                from .email_utils import send_seller_rejection_email
+                send_seller_rejection_email(serializer.instance, serializer.instance.rejection_reason)
+
         if getattr(settings, "ENABLE_CACHING", True):
             cache.clear()
 
@@ -1570,4 +1689,314 @@ class AdminSellerEarningsView(APIView):
                 "total_commission_30d": str(total_platform_commission),
                 "active_sellers": len(earnings),
             },
+        })
+
+
+# ===============================================
+# WISHLIST VIEWS
+# ===============================================
+
+class WishlistListView(generics.ListAPIView):
+    serializer_class = WishlistItemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return WishlistItem.objects.filter(
+            user=self.request.user
+        ).select_related("product", "product__seller")
+
+
+class WishlistAddView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        product_id = request.data.get("product_id")
+        if not product_id:
+            return Response({"error": "product_id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = Product.objects.get(pk=product_id, is_active=True)
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        item, created = WishlistItem.objects.get_or_create(
+            user=request.user,
+            product=product,
+        )
+
+        if not created:
+            return Response({"message": "Already in wishlist", "in_wishlist": True})
+
+        return Response({"message": "Added to wishlist", "in_wishlist": True}, status=status.HTTP_201_CREATED)
+
+
+class WishlistRemoveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        product_id = request.data.get("product_id")
+        if not product_id:
+            return Response({"error": "product_id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        deleted, _ = WishlistItem.objects.filter(
+            user=request.user,
+            product_id=product_id,
+        ).delete()
+
+        if deleted:
+            return Response({"message": "Removed from wishlist", "in_wishlist": False})
+        return Response({"error": "Not in wishlist"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class WishlistCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        product_id = request.query_params.get("product_id")
+        if not product_id:
+            return Response({"error": "product_id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        in_wishlist = WishlistItem.objects.filter(
+            user=request.user,
+            product_id=product_id,
+        ).exists()
+
+        return Response({"in_wishlist": in_wishlist})
+
+
+class WishlistBulkCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        product_ids = request.data.get("product_ids", [])
+        if not product_ids:
+            return Response({"wishlist_ids": []})
+
+        wishlist_ids = WishlistItem.objects.filter(
+            user=request.user,
+            product_id__in=product_ids,
+        ).values_list("product_id", flat=True)
+
+        return Response({"wishlist_ids": list(wishlist_ids)})
+
+
+# ===============================================
+# PRODUCT REVIEW VIEWS
+# ===============================================
+
+class ProductReviewListView(generics.ListAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        product_id = self.kwargs.get("product_id")
+        return Review.objects.filter(
+            product_id=product_id,
+            is_active=True,
+        ).select_related("user")
+
+
+class ProductReviewStatsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, product_id):
+        from django.db.models import Avg, Count
+
+        reviews = Review.objects.filter(
+            product_id=product_id,
+            is_active=True,
+        )
+
+        stats = reviews.aggregate(
+            average_rating=Avg("rating"),
+            total_reviews=Count("id"),
+        )
+
+        distribution = {}
+        for i in range(1, 6):
+            distribution[str(i)] = reviews.filter(rating=i).count()
+
+        return Response({
+            "average_rating": round(float(stats["average_rating"] or 0), 1),
+            "total_reviews": stats["total_reviews"],
+            "rating_distribution": distribution,
+        })
+
+
+class ReviewCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, product_id):
+        try:
+            product = Product.objects.get(pk=product_id, is_active=True)
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        existing = Review.objects.filter(
+            user=request.user,
+            product=product,
+        ).exists()
+        if existing:
+            return Response({"error": "You already reviewed this product"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = ReviewCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        Review.objects.create(
+            user=request.user,
+            product=product,
+            rating=serializer.validated_data["rating"],
+            title=serializer.validated_data.get("title", ""),
+            comment=serializer.validated_data.get("comment", ""),
+        )
+
+        return Response({"message": "Review created"}, status=status.HTTP_201_CREATED)
+
+
+class ReviewDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, review_id):
+        try:
+            review = Review.objects.get(pk=review_id, user=request.user)
+        except Review.DoesNotExist:
+            return Response({"error": "Review not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        review.delete()
+        return Response({"message": "Review deleted"})
+
+
+# ===============================================
+# NOTIFICATION VIEWS
+# ===============================================
+
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+
+class NotificationCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        total = Notification.objects.filter(user=request.user).count()
+        unread = Notification.objects.filter(user=request.user, is_read=False).count()
+        return Response({"total": total, "unread": unread})
+
+
+class NotificationMarkReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        notification_id = request.data.get("notification_id")
+        if notification_id:
+            updated = Notification.objects.filter(
+                pk=notification_id,
+                user=request.user,
+            ).update(is_read=True)
+            if updated:
+                return Response({"message": "Marked as read"})
+            return Response({"error": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        Notification.objects.filter(
+            user=request.user,
+            is_read=False,
+        ).update(is_read=True)
+        return Response({"message": "All marked as read"})
+
+
+# ===============================================
+# DELIVERY FEE CALCULATION
+# ===============================================
+
+class DeliveryFeeView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        from decimal import Decimal
+
+        district = request.data.get("district", "")
+        city = request.data.get("city", "")
+        delivery_type = request.data.get("delivery_type", "platform")
+
+        if not district and not city:
+            return Response(
+                {"error": "district or city required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        bosta_enabled = getattr(settings, "BOSTA_ENABLED", False)
+        if bosta_enabled:
+            try:
+                import requests as http_requests
+                bosta_api_key = getattr(settings, "BOA_API_KEY", "")
+                bosta_url = "https://backend.portal.bosta.co/api/v1/deliveries/fees"
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {bosta_api_key}",
+                }
+                payload = {
+                    "deliveryAddress": district,
+                    "city": city,
+                    "deliveryType": 1,
+                    "codEnabled": False,
+                }
+                resp = http_requests.post(bosta_url, json=payload, headers=headers, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    fee = Decimal(str(data.get("fee", 0)))
+                    return Response({
+                        "fee": str(fee),
+                        "provider": "bosta",
+                        "estimated_days": "3-5",
+                    })
+            except Exception as e:
+                pass
+
+        fee_map = {
+            "Cairo": 40,
+            "Giza": 40,
+            "Alexandria": 50,
+            "Qalyubia": 50,
+            "Sharqia": 55,
+            "Dakahlia": 55,
+            "Gharbia": 55,
+            "Monufia": 55,
+            "Beheira": 60,
+            "Kafr El Sheikh": 60,
+            "Damietta": 60,
+            "Port Said": 60,
+            "Ismailia": 60,
+            "Suez": 60,
+            "North Sinai": 70,
+            "South Sinai": 70,
+            "Beni Suef": 65,
+            "Fayoum": 65,
+            "Minya": 70,
+            "Asyut": 75,
+            "Sohag": 80,
+            "Qena": 85,
+            "Luxor": 85,
+            "Aswan": 90,
+            "Red Sea": 80,
+            "New Valley": 90,
+        }
+
+        region = city or district
+        fee = 40
+        for key, val in fee_map.items():
+            if key.lower() in region.lower():
+                fee = val
+                break
+
+        if delivery_type == "seller":
+            fee = 0
+
+        return Response({
+            "fee": str(fee),
+            "provider": "flat_rate",
+            "estimated_days": "5-7",
         })
