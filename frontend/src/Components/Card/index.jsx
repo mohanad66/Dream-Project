@@ -8,7 +8,7 @@ import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart } from "react-icons/fa
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 
-export default function Card({ card, categories, tags }) {
+export default function Card({ card, categories = [], tags = [] }) {
   const [showPopup, setShowPopup] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [quantity, setQuantity] = useState(1);

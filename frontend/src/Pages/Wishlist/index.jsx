@@ -69,7 +69,7 @@ export default function WishlistPage() {
         ) : (
           wishlist.map((item) => (
             <div key={item.id} className="wishlist-item">
-              <Card card={item.product_detail} />
+              <Card card={item.product_detail} categories={[]} tags={[]} />
               <button
                 className="wishlist-remove"
                 onClick={() => removeFromWishlist(item.product)}
