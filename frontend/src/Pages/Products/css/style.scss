@@ -950,7 +950,8 @@ $product-breakpoint-xl: 1200px;
 
   .tag-filter-btn {
     font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
+    padding: 0.55rem 0.9rem;
+    min-height: 44px;
   }
 
   .products-grid {
@@ -998,6 +999,7 @@ $product-breakpoint-xl: 1200px;
       .pagination-btn {
         width: 100%;
         max-width: 200px;
+        min-height: 44px;
       }
 
       .page-numbers {

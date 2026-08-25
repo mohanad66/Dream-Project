@@ -164,22 +164,33 @@
   gap: 0.55rem;
 
   .showcase-dot {
-    width: 10px;
-    height: 10px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: none;
     padding: 0;
-    background: rgba(248, 246, 240, 0.35);
+    background: transparent;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    &:hover {
+    &::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(248, 246, 240, 0.35);
+      transition: all 0.3s ease;
+    }
+
+    &:hover::after {
       background: rgba(248, 246, 240, 0.7);
     }
 
-    &.active {
+    &.active::after {
       background: var(--color-primary);
-      transform: scale(1.2);
       box-shadow: 0 0 12px var(--color-primary-alpha);
     }
   }
@@ -209,8 +220,8 @@
   }
 
   .showcase-arrow {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
 
     &.prev {
       left: 0.75rem;
