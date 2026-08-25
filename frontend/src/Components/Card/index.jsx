@@ -106,7 +106,10 @@ export default function Card({ card, categories, tags }) {
             className={`card-image${imgLoaded ? " img-ready" : ""}`}
             src={allImages[currentImageIndex]}
             alt={card.name}
+            width={380}
+            height={210}
             loading="lazy"
+            decoding="async"
             onLoad={() => setImgLoaded(true)}
           />
           {allImages.length > 1 && (
@@ -127,7 +130,10 @@ export default function Card({ card, categories, tags }) {
               <img
                 src={card.seller_avatar}
                 alt=""
-                style={{ width: 20, height: 20, borderRadius: "50%", marginRight: 6, verticalAlign: "middle" }}
+                width={20}
+                height={20}
+                decoding="async"
+                style={{ borderRadius: "50%", marginRight: 6, verticalAlign: "middle" }}
               />
             )}
             {card.seller_name}
@@ -185,7 +191,10 @@ export default function Card({ card, categories, tags }) {
                   <img
                     src={allImages[currentImageIndex]}
                     alt={card.name}
+                    width={600}
+                    height={400}
                     loading="lazy"
+                    decoding="async"
                     style={{ transition: "opacity 0.2s ease", opacity: imgLoaded ? 1 : 0.5 }}
                     onLoad={() => setImgLoaded(true)}
                   />
@@ -210,7 +219,10 @@ export default function Card({ card, categories, tags }) {
                         <img
                           src={card.seller_avatar}
                           alt=""
-                          style={{ width: 20, height: 20, borderRadius: "50%", marginRight: 6, verticalAlign: "middle" }}
+                          width={20}
+                          height={20}
+                          decoding="async"
+                          style={{ borderRadius: "50%", marginRight: 6, verticalAlign: "middle" }}
                         />
                       )}
                       {card.seller_name}

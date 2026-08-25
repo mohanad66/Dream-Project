@@ -262,12 +262,9 @@ const AdminAnalytics = () => {
         <div className="analytics-brand"><div className="analytics-brand-dot" /><span className="analytics-brand-text">Analytics Dashboard</span></div>
         <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
           {TABS.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-              padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
-              whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6,
-              background: activeTab === tab.id ? TOKEN.primary : "var(--bg-hover)",
-              color: activeTab === tab.id ? "#fff" : "var(--text-color)", transition: "all 0.15s",
-            }}><tab.Icon size={14} />{tab.label}</button>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`button button--small ${activeTab === tab.id ? "button--primary" : ""}`}>
+              <tab.Icon size={14} />{tab.label}
+            </button>
           ))}
           <div className="analytics-controls">
             <label htmlFor="days-filter">Period:</label>
@@ -500,13 +497,13 @@ const AdminAnalytics = () => {
                   <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{field.label}</label>
                   {field.type === "select" ? (
                     <select value={couponForm[field.key]} onChange={(e) => setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "var(--text-color)", fontSize: 13, outline: "none" }}>
+                      className="analytics-input">
                       {field.options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                   ) : (
                     <input type={field.type} value={couponForm[field.key]} placeholder={field.placeholder}
                       onChange={(e) => setCouponForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "var(--text-color)", fontSize: 13, outline: "none" }} />
+                      className="analytics-input" />
                   )}
                 </div>
               ))}
@@ -535,7 +532,7 @@ const AdminAnalytics = () => {
                             {c.is_active ? "Active" : "Inactive"}
                           </span>
                         </td>
-                        <td><button className="button button--small" style={{ color: TOKEN.danger, cursor: "pointer" }} onClick={() => deleteCoupon(c.id)}>Delete</button></td>
+                        <td><button className="button button--small button--danger" onClick={() => deleteCoupon(c.id)}>Delete</button></td>
                       </tr>
                     ))}
                   </tbody>

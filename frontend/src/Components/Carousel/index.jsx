@@ -76,6 +76,9 @@ const Carousel = ({ images = [] }) => {
                 src={slide.image}
                 alt={slide.name || `Showcase ${index + 1}`}
                 loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                width={1200}
+                height={500}
               />
             </a>
 

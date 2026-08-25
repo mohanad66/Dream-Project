@@ -8,12 +8,15 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Dream Store",
-        short_name: "Dream",
+        name: "DreamStore — Curated Marketplace",
+        short_name: "DreamStore",
+        description: "Curated marketplace for premium local brands, artisans and independent creators.",
         start_url: "/",
         display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#4CAF50",
+        background_color: "#0b0f17",
+        theme_color: "#0b0f17",
+        orientation: "portrait-primary",
+        categories: ["shopping", "business"],
         icons: [
           {
             src: "/icon-192.png",
@@ -25,6 +28,12 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
           },
+          {
+            src: "/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
     }),
@@ -35,8 +44,6 @@ export default defineConfig({
       "react-dom",
       "react-router-dom",
       "axios",
-      "lucide-react",
-      "react-icons",
     ],
   },
   server: {
@@ -44,7 +51,6 @@ export default defineConfig({
     strictPort: false,
   },
   preview: {
-    // host: '0.0.0.0',  // ✅ ADD THIS - for production preview
     port: 5173,
   },
   build: {
@@ -54,13 +60,24 @@ export default defineConfig({
     minify: "terser",
     cssCodeSplit: true,
     assetsInlineLimit: 4096,
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
-        manualChunks: {
-            "react-vendor": ["react", "react-dom", "react-router-dom"],
-            "ui-vendor": ["react-icons", "lucide-react"],
-          },
+        manualChunks(id) {
+          if (id.includes("node_modules/react-dom")) return "react-vendor";
+          if (id.includes("node_modules/react") && !id.includes("node_modules/react-")) return "react-vendor";
+          if (id.includes("node_modules/react-router")) return "react-vendor";
+          if (id.includes("node_modules/recharts")) return "recharts";
+          if (id.includes("node_modules/react-icons") || id.includes("node_modules/lucide-react")) return "ui-vendor";
+          if (id.includes("node_modules/@fortawesome") || id.includes("node_modules/fancyapps")) return "ui-vendor";
+          if (id.includes("node_modules/axios")) return "axios";
+        },
+      },
+    },
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
       },
     },
   },
