@@ -1,6 +1,7 @@
 // src/Components/Card/index.jsx
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
 import { FaShoppingCart, FaBolt, FaPlus, FaMinus } from "react-icons/fa";
@@ -176,7 +177,7 @@ export default function Card({ card, categories, tags }) {
         </div>
       </div>
 
-      {showPopup && (
+      {showPopup && createPortal(
         <div className="card-popup-overlay" onClick={() => setShowPopup(false)}>
           <div
             className="card-popup-rectangle"
@@ -321,7 +322,8 @@ export default function Card({ card, categories, tags }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
