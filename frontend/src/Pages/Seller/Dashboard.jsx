@@ -28,10 +28,10 @@ const EMPTY_FORM = {
   image: null,
 };
 
-export default function SellerDashboard() {
+export default function SellerDashboard({ initialTab = "overview" }) {
   const { data, isSeller, fetchAllData } = useAuth();
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);

@@ -199,6 +199,16 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/seller/orders" element={
+                <ProtectedRoute>
+                  <SellerDashboard initialTab="orders" />
+                </ProtectedRoute>
+              } />
+              <Route path="/seller/products" element={
+                <ProtectedRoute>
+                  <SellerDashboard initialTab="products" />
+                </ProtectedRoute>
+              } />
               <Route path="/seller/:id" element={<SellerProfilePage />} />
               <Route path="/payment/result" element={<PaymentResult />} />
               <Route

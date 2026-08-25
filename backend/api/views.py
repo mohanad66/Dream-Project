@@ -833,7 +833,7 @@ class CreateOrderView(APIView):
                     "payment_received",
                     "New Order Received",
                     f"You have a new order #{order.pk} for {item.product.name}.",
-                    f"/seller/orders",
+                    f"/seller/dashboard",
                 )
 
         serializer = OrderSerializer(order)
@@ -1290,7 +1290,7 @@ class ProductApprovalView(generics.UpdateAPIView):
                     "product_approved",
                     "Product Approved",
                     f"Your product '{serializer.instance.name}' has been approved and is now live.",
-                    "/seller/products",
+                    "/seller/dashboard",
                 )
                 from .email_utils import send_product_approval_email
                 send_product_approval_email(serializer.instance)
@@ -1300,7 +1300,7 @@ class ProductApprovalView(generics.UpdateAPIView):
                     "product_rejected",
                     "Product Rejected",
                     f"Your product '{serializer.instance.name}' has been rejected. Reason: {serializer.instance.rejection_reason or 'Not specified'}",
-                    "/seller/products",
+                    "/seller/dashboard",
                 )
                 from .email_utils import send_product_rejection_email
                 send_product_rejection_email(serializer.instance, serializer.instance.rejection_reason)
