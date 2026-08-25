@@ -736,9 +736,11 @@ class CreateOrderView(APIView):
                 )
 
         # Create the order
+        # For Stripe: confirmed (payment already verified). For Paymob/Fawry: pending (webhook confirms).
+        order_status = "confirmed" if (payment_intent_id and payment and payment.status == "completed") else "pending"
         order = Order.objects.create(
             owner=request.user,
-            status="confirmed",
+            status=order_status,
             shipping_address=shipping_address,
             note=note,
             discount_amount=Decimal(str(discount_amount or 0)),

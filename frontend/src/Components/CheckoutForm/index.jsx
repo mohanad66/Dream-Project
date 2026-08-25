@@ -272,6 +272,42 @@ export default function CheckoutForm({
     );
   }
 
+  if (paymentMethod === "card") {
+    return (
+      <form id="payment-form" onSubmit={handleCardInit}>
+        <div className="form-group">
+          <label>Email Address</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" />
+        </div>
+
+        <div className="form-group">
+          <label>Shipping Address</label>
+          <textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} placeholder="Enter your shipping address" rows="3" />
+        </div>
+
+        <div className="form-group">
+          <label>Order Notes (Optional)</label>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Special instructions" rows="2" />
+        </div>
+
+        <button type="submit" disabled={processing} id="submit-btn">
+          <span id="button-text">
+            {processing ? (
+              <span className="btn-loading"><Loader2 size={18} className="spin" /> Processing...</span>
+            ) : (
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <CreditCard size={18} />
+                Pay {total.toFixed(2)} L.E
+              </span>
+            )}
+          </span>
+        </button>
+
+        {error && <div id="payment-message" role="alert">{error}</div>}
+      </form>
+    );
+  }
+
   if (paymentMethod === "paymob_wallet") {
     return (
       <form id="payment-form" onSubmit={handleWalletPay}>

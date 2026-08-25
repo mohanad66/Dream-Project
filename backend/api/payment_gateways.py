@@ -174,6 +174,7 @@ class PaymobInitView(APIView):
             # Store payment record
             payment = Payment.objects.create(
                 owner=request.user,
+                user_email=request.user.email or "",
                 method=payment_method,
                 amount=order.total_price,
                 provider_payment_id=str(paymob_order_id),
@@ -270,7 +271,7 @@ class PaymobPayView(APIView):
                     ).order_by("-created_at").first()
 
                 if payment:
-                    payment.status = "completed"
+                    payment.status = "success"
                     payment.provider_payment_id = paymob_order_id or payment.provider_payment_id
                     payment.raw_response = json.dumps(resp_data)
                     payment.save(update_fields=["status", "provider_payment_id", "raw_response"])
@@ -416,6 +417,7 @@ class PaymobWalletPayView(APIView):
             if redirect_url:
                 Payment.objects.create(
                     owner=request.user,
+                    user_email=request.user.email or "",
                     method="paymob_wallet",
                     amount=order.total_price,
                     provider_payment_id=str(paymob_order_id),
@@ -456,7 +458,8 @@ def paymob_webhook(request):
         if paymob_hmac:
             hmac_str = data.get("hmac", "")
             if not hmac_str:
-                logger.warning("Paymob webhook missing HMAC")
+                logger.warning("Paymob webhook missing HMAC — rejecting")
+                return JsonResponse({"error": "missing HMAC"}, status=403)
 
         order_field = data.get("order")
         if isinstance(order_field, dict):
@@ -468,7 +471,7 @@ def paymob_webhook(request):
         if paymob_order_id:
             payment = Payment.objects.filter(provider_payment_id=paymob_order_id).first()
             if payment:
-                payment.status = "completed" if success else "failed"
+                payment.status = "success" if success else "failed"
                 payment.raw_response = json.dumps(data)
                 payment.save(update_fields=["status", "raw_response"])
 
@@ -600,6 +603,7 @@ class FawryCheckoutView(APIView):
 
             payment = Payment.objects.create(
                 owner=request.user,
+                user_email=request.user.email or "",
                 method="fawry",
                 amount=order.total_price,
                 provider_payment_id=fawry_ref,
@@ -648,7 +652,7 @@ def fawry_webhook(request):
 
             if payment:
                 if order_status == "PAID":
-                    payment.status = "completed"
+                    payment.status = "success"
                     if hasattr(payment, "order") and payment.order:
                         payment.order.status = "confirmed"
                         payment.order.save(update_fields=["status"])
