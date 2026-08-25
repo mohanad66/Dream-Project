@@ -19,6 +19,7 @@ export default function Card({ card, categories, tags }) {
 
   // Check if product is in wishlist
   useEffect(() => {
+    if (!card?.id) return;
     const checkWishlist = async () => {
       try {
         const response = await api.get(`/api/wishlist/check/?product_id=${card.id}`);
@@ -27,10 +28,8 @@ export default function Card({ card, categories, tags }) {
         // Not logged in or error
       }
     };
-    if (card.id) {
-      checkWishlist();
-    }
-  }, [card.id]);
+    checkWishlist();
+  }, [card?.id]);
 
   const toggleWishlist = async (e) => {
     e.stopPropagation();
