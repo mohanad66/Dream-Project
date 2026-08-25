@@ -9,18 +9,22 @@ from django.utils import timezone
 User = get_user_model()
 
 
-def make_png(r, g, b, size=100):
+def make_png(r, g, b, w=500, h=400):
+    import uuid
     def chunk(ctype, data):
         c = ctype + data
         return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
     raw = b''
-    for _ in range(size):
-        raw += b'\x00' + bytes([r, g, b]) * size
+    for _ in range(h):
+        raw += b'\x00' + bytes([r, g, b]) * w
     sig = b'\x89PNG\r\n\x1a\n'
-    ihdr = chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0))
+    ihdr = chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
     idat = chunk(b'IDAT', zlib.compress(raw))
     iend = chunk(b'IEND', b'')
-    return ContentFile(sig + ihdr + idat + iend, name=f'img_{r}_{g}_{b}.png')
+    name = f'img_{r}_{g}_{b}_{uuid.uuid4().hex[:8]}.png'
+    f = ContentFile(sig + ihdr + idat + iend, name=name)
+    f.seek(0)
+    return f
 
 
 class Command(BaseCommand):
@@ -304,7 +308,7 @@ class Command(BaseCommand):
 
         ccc = 0
         for i, nm in enumerate(['Summer Collection', 'Tech Deals', 'Handmade Specials', 'New Arrivals', 'Flash Sale', 'Home Makeover']):
-            _, cr = CarouselImg.objects.get_or_create(name=nm, defaults={'image': make_png(201, 162, 75, 200), 'is_active': True, 'order': i})
+            _, cr = CarouselImg.objects.get_or_create(name=nm, defaults={'image': make_png(201, 162, 75, 800, 400), 'is_active': True, 'order': i})
             if cr:
                 ccc += 1
         self.stdout.write(self.style.SUCCESS(f'  ✓ Services, contacts, {ccc} carousel images'))

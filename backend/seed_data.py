@@ -36,24 +36,27 @@ from api.models import (
 # ═══════════════════════════════════════════════════════════
 # HELPER: Create minimal valid PNG (1x1 gold pixel)
 # ═══════════════════════════════════════════════════════════
-def make_png(r, g, b, size=100):
-    """Create a small colored PNG as an InMemoryUploadedFile."""
-    import struct, zlib
+def make_png(r, g, b, w=500, h=400):
+    """Create a valid landscape PNG for Cloudinary upload."""
+    import struct, zlib, uuid
     def chunk(ctype, data):
         c = ctype + data
         return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
 
     raw = b''
-    for _ in range(size):
-        raw += b'\x00' + bytes([r, g, b]) * size
+    for _ in range(h):
+        raw += b'\x00' + bytes([r, g, b]) * w
 
     sig = b'\x89PNG\r\n\x1a\n'
-    ihdr = chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0))
+    ihdr = chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
     idat = chunk(b'IDAT', zlib.compress(raw))
     iend = chunk(b'IEND', b'')
 
     png_bytes = sig + ihdr + idat + iend
-    return ContentFile(png_bytes, name=f'img_{r}_{g}_{b}.png')
+    name = f'img_{r}_{g}_{b}_{uuid.uuid4().hex[:8]}.png'
+    f = ContentFile(png_bytes, name=name)
+    f.seek(0)
+    return f
 
 
 def gold_png():
@@ -558,7 +561,7 @@ carousel_count = 0
 for i, name in enumerate(carousel_data):
     obj, created = CarouselImg.objects.get_or_create(
         name=name,
-        defaults={'image': make_png(201, 162, 75, 200), 'is_active': True, 'order': i}
+        defaults={'image': make_png(201, 162, 75, 800, 400), 'is_active': True, 'order': i}
     )
     if created:
         carousel_count += 1
