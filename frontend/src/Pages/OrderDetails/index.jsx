@@ -269,7 +269,7 @@ export default function OrderDetailsPage() {
           <div className="summary-line">
             <span>Subtotal:</span>
             <span>
-              {(order.subtotal_before_discount || order.items
+              {parseFloat(order.subtotal_before_discount || order.items
                 ?.reduce(
                   (sum, item) =>
                     sum + item.quantity * parseFloat(item.unit_price),
