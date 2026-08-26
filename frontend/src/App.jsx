@@ -13,6 +13,7 @@ import { useAuth } from "./services/auth";
 // 1. EAGER LOADING CORE UI COMPONENTS
 // To prevent CLS, the Navbar and main layout containers should never be lazy-loaded.
 import Navbar from "./Components/Navbar/index.jsx";
+import TopBar from "./Components/TopBar/index.jsx";
 import Footer from "./Components/Footer/index.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute.jsx";
 import ToastProvider from "./Components/Toast/ToastProvider.jsx";
@@ -106,6 +107,7 @@ export default function App() {
         className="app-wrapper"
         style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
       >
+        {shouldShowNavbar && <TopBar />}
         {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
 
         <main style={{ flex: 1 }}>

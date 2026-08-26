@@ -2,47 +2,24 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaHome,
-  FaShoppingCart,
   FaUserCircle,
   FaBoxOpen,
   FaChartBar,
-  FaHeart,
-  FaBell,
 } from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { FaStore, FaStoreAlt, FaUserTie } from "react-icons/fa";
 import { ACCESS_TOKEN } from "../../services/constants";
 import { useAuth } from "../../services/auth";
-import api from "../../services/api";
 import "./css/style.scss";
 
 export default function Navbar({ onLogout }) {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("");
   const { data, isSuperuser, isSeller } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     setActiveLink(location.pathname);
   }, [location]);
-
-  useEffect(() => {
-    const fetchNotificationCount = async () => {
-      try {
-        const response = await api.get("/api/notifications/count/");
-        setUnreadCount(response.data.unread || 0);
-      } catch (err) {
-        // Not logged in or error
-      }
-    };
-
-    const access = localStorage.getItem(ACCESS_TOKEN);
-    if (access && access.trim() !== "") {
-      fetchNotificationCount();
-      const interval = setInterval(fetchNotificationCount, 60000);
-      return () => clearInterval(interval);
-    }
-  }, []);
 
   const access = localStorage.getItem(ACCESS_TOKEN);
   const isLoggedIn = access && access.trim() !== "";
@@ -51,13 +28,10 @@ export default function Navbar({ onLogout }) {
   const navItems = [
     { to: "/", icon: <FaHome />, label: "Home" },
     { to: "/products", icon: <FaStore />, label: "Shop" },
-    { to: "/cart", icon: <FaShoppingCart />, label: "Cart" },
     ...(isLoggedIn
       ? [
-          { to: "/wishlist", icon: <FaHeart />, label: "Wishlist" },
-          { to: "/notifications", icon: <FaBell />, label: "Notifications", badge: unreadCount },
           { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
-          { to: "/orders", icon: <FaBoxOpen />, label: "My Orders" },
+          { to: "/orders", icon: <FaBoxOpen />, label: "Orders" },
         ]
       : []),
     ...(isLoggedIn && !isSeller
@@ -81,12 +55,7 @@ export default function Navbar({ onLogout }) {
               to={item.to}
               className={`nav-link ${activeLink === item.to ? "active" : ""}`}
             >
-              <div className="nav-icon">
-                {item.icon}
-                {item.badge > 0 && (
-                  <span className="nav-badge">{item.badge > 99 ? "99+" : item.badge}</span>
-                )}
-              </div>
+              <div className="nav-icon">{item.icon}</div>
               <span className="nav-label">{item.label}</span>
             </Link>
           ))}
