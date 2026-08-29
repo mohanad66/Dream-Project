@@ -5,9 +5,13 @@ import {
   FaUserCircle,
   FaBoxOpen,
   FaChartBar,
+  FaStore,
+  FaStoreAlt,
+  FaUserTie,
+  FaUsers,
+  FaPlayCircle,
 } from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
-import { FaStore, FaStoreAlt, FaUserTie } from "react-icons/fa";
 import { ACCESS_TOKEN } from "../../services/constants";
 import { useAuth } from "../../services/auth";
 import "./css/style.scss";
@@ -27,7 +31,9 @@ export default function Navbar({ onLogout }) {
 
   const navItems = [
     { to: "/", icon: <FaHome />, label: "Home" },
+    { to: "/shorts", icon: <FaPlayCircle />, label: "Shorts" },
     { to: "/products", icon: <FaStore />, label: "Shop" },
+    { to: "/sellers", icon: <FaUsers />, label: "Sellers" },
     ...(isLoggedIn
       ? [
           { to: "/profile", icon: <FaUserCircle />, label: "Profile" },

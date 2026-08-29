@@ -1,0 +1,75 @@
+// ============================================
+// DreamStore Shorts — full-screen vertical feed
+// ============================================
+
+.shorts-page {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+
+  .shorts-exit {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 30;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+
+    &:hover {
+      background: var(--color-gold);
+      color: #13150c;
+      transform: scale(1.05);
+    }
+  }
+
+  &--loading,
+  &--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  .shorts-loader-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid var(--color-gold-alpha);
+    border-top-color: var(--color-gold);
+    animation: shortsSpin 0.8s linear infinite;
+  }
+
+  .shorts-empty-btn {
+    padding: 0.7rem 1.8rem;
+    border-radius: 24px;
+    border: none;
+    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
+    color: #13150c;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.2s;
+
+    &:hover {
+      filter: brightness(1.06);
+    }
+  }
+}
+
+@keyframes shortsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

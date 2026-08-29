@@ -2004,6 +2004,30 @@ class DeliveryFeeView(APIView):
 
 
 # ===============================================
+# SELLER SEARCH
+# ===============================================
+
+class SellerSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        q = (request.query_params.get("q") or "").strip()
+        sellers = SellerProfile.objects.filter(
+            verification_status="approved", is_active=True
+        ).select_related("user")
+        if q:
+            sellers = sellers.filter(
+                Q(business_name__icontains=q)
+                | Q(user__username__icontains=q)
+                | Q(bio__icontains=q)
+            )
+        sellers = sellers.annotate(fnum=Count("followers")).order_by("-fnum")[:30]
+        return Response(
+            SellerSearchSerializer(sellers, many=True, context={"request": request}).data
+        )
+
+
+# ===============================================
 # PRODUCT LIKES (love / heart)
 # ===============================================
 

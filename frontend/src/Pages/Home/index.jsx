@@ -1,20 +1,21 @@
 import { useEffect, useState, useRef } from "react";
 import Card from "../../Components/Card";
 import Carousel from "../../Components/Carousel";
-import ProductScroller from "../../Components/ProductScroller";
 import "./css/style.scss";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import React from "react";
-import api from "../../services/api";
-import { ACCESS_TOKEN } from "../../services/constants";
 import {
   FaGem,
   FaTruckFast,
   FaShieldHalved,
   FaHeadset,
   FaStar,
+  FaPlay,
+  FaHeart,
+  FaComment,
 } from "react-icons/fa6";
+import { FaShareAlt } from "react-icons/fa";
 
 function useReveal(threshold = 0.12) {
   const ref = useRef(null);
@@ -66,7 +67,6 @@ export default function Home({
   img = [],
 }) {
   const [isLoading, setIsLoading] = useState(true);
-  const [followedProducts, setFollowedProducts] = useState([]);
 
   const latestProducts = Array.isArray(products)
     ? [...products].slice(0, 8)
@@ -76,17 +76,7 @@ export default function Home({
     (p) => p.is_active === true,
   );
 
-  const trendingProducts = [...activeProducts]
-    .sort((a, b) => (b.like_count || 0) - (a.like_count || 0) || (b.average_rating || 0) - (a.average_rating || 0))
-    .slice(0, 10);
-
-  const offerProducts = [...activeProducts]
-    .filter(
-      (p) =>
-        p.effective_price &&
-        parseFloat(p.effective_price) < parseFloat(p.price),
-    )
-    .slice(0, 10);
+  const shortsPreview = [...activeProducts].sort(() => 0.5 - Math.random()).slice(0, 3);
 
   const featuredProducts = [...activeProducts].sort(() => 0.5 - Math.random()).slice(0, 8);
 
@@ -108,20 +98,6 @@ export default function Home({
       setIsLoading(false);
     }
   }, [categories, products]);
-
-  useEffect(() => {
-    const access = localStorage.getItem(ACCESS_TOKEN);
-    if (!access || access.trim() === "") return;
-    const loadFollowed = async () => {
-      try {
-        const res = await api.get("/api/feed/followed/");
-        setFollowedProducts(res.data.products || []);
-      } catch (err) {
-        // Not logged in or error — silent
-      }
-    };
-    loadFollowed();
-  }, []);
 
   if (isLoading) {
     return (
@@ -212,42 +188,41 @@ export default function Home({
         {/* ============ SHOWCASE CAROUSEL ============ */}
         {Array.isArray(img) && img.length > 0 && <Carousel images={img} />}
 
-        {/* ============ TRENDING (scrolling) ============ */}
-        {trendingProducts.length > 0 && (
-          <RevealSection className="product-scrollers" as="div">
-            <ProductScroller
-              eyebrow="Trending Now"
-              title="Loved by Shoppers"
-              items={trendingProducts}
-              categories={categories}
-              tags={tags}
-            />
-          </RevealSection>
-        )}
-
-        {/* ============ SELLER OFFERS (scrolling) ============ */}
-        {offerProducts.length > 0 && (
-          <RevealSection className="product-scrollers" as="div">
-            <ProductScroller
-              eyebrow="Hot Deals"
-              title="Seller Offers"
-              items={offerProducts}
-              categories={categories}
-              tags={tags}
-            />
-          </RevealSection>
-        )}
-
-        {/* ============ FOLLOWED SELLERS (scrolling) ============ */}
-        {followedProducts.length > 0 && (
-          <RevealSection className="product-scrollers" as="div">
-            <ProductScroller
-              eyebrow="From Sellers You Follow"
-              title="Newest From Your Sellers"
-              items={followedProducts}
-              categories={categories}
-              tags={tags}
-            />
+        {/* ============ SHORTS TEASER ============ */}
+        {shortsPreview.length > 0 && (
+          <RevealSection className="shorts-teaser" as="section">
+            <div className="section-heading shorts-teaser-head">
+              <div>
+                <p className="section-eyebrow">Watch &amp; Shop</p>
+                <h2 className="title">Products in Shorts</h2>
+              </div>
+              <Link to="/shorts" className="shorts-teaser-link">
+                <FaPlay /> Watch Shorts
+              </Link>
+            </div>
+            <div className="shorts-teaser-cards">
+              {shortsPreview.map((product) => (
+                <Link
+                  to={`/shorts?p=${product.id}`}
+                  key={product.id}
+                  className="shorts-teaser-card"
+                >
+                  <div className="shorts-teaser-media">
+                    {product.image && <img src={product.image} alt={product.name} loading="lazy" />}
+                    <span className="shorts-teaser-play"><FaPlay /></span>
+                    <div className="shorts-teaser-actions">
+                      <span><FaHeart /> {product.like_count || 0}</span>
+                      <span><FaComment /> {product.comment_count || 0}</span>
+                      <span><FaShareAlt /></span>
+                    </div>
+                  </div>
+                  <div className="shorts-teaser-info">
+                    <strong>{product.seller_name}</strong>
+                    <span>{product.name}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </RevealSection>
         )}
 

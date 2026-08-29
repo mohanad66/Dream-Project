@@ -40,6 +40,8 @@ const SellerProfilePage = lazy(() => import("./Pages/Seller/SellerProfile.jsx"))
 const PaymentResult = lazy(() => import("./Pages/PaymentResult/index.jsx"));
 const NotificationsPage = lazy(() => import("./Pages/Notifications/index.jsx"));
 const WishlistPage = lazy(() => import("./Pages/Wishlist/index.jsx"));
+const ShortsPage = lazy(() => import("./Pages/Shorts/index.jsx"));
+const SellersPage = lazy(() => import("./Pages/Sellers/index.jsx"));
 
 const LoadingFallback = () => (
   <div className="loading-container">
@@ -71,7 +73,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-const HIDE_NAVBAR_ROUTES = ["/checkout", "/login", "/register", "/verify-otp", "/seller-register", "/payment/result"];
+const HIDE_NAVBAR_ROUTES = ["/checkout", "/login", "/register", "/verify-otp", "/seller-register", "/payment/result", "/shorts"];
 
 export default function App() {
   const { data, login, logout, isLoading } = useAuth();
@@ -143,6 +145,21 @@ export default function App() {
                     tags={commonData.tags || []}
                   />
                 }
+              />
+
+              <Route
+                path="/shorts"
+                element={
+                  <ShortsPage
+                    categories={commonData.categories || []}
+                    tags={commonData.tags || []}
+                  />
+                }
+              />
+
+              <Route
+                path="/sellers"
+                element={<SellersPage />}
               />
 
               <Route

@@ -889,3 +889,38 @@ class ProductCommentCreateSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("Comment cannot be empty.")
         return value
+
+
+# ===============================================
+# SELLER SEARCH SERIALIZER
+# ===============================================
+
+class SellerSearchSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    product_count = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
+    is_followed = serializers.SerializerMethodField()
+    verified = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SellerProfile
+        fields = [
+            "id", "user_username", "business_name", "bio",
+            "avatar", "cover_image", "verified", "product_count", "followers_count", "is_followed",
+        ]
+
+    def get_product_count(self, obj):
+        return obj.products.filter(is_active=True, approval_status="approved").count()
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_is_followed(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            return SellerFollower.objects.filter(user=user, seller=obj).exists()
+        return False
+
+    def get_verified(self, obj):
+        return obj.verification_status == "approved"

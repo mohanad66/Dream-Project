@@ -230,6 +230,7 @@ urlpatterns = [
     path("coupons/apply/", CouponApplyView.as_view(), name="coupon-apply"),
 
     # --- Seller public profile ---
+    path("sellers/search/", SellerSearchView.as_view(), name="seller-search"),
     path("sellers/<int:pk>/profile/", SellerPublicProfileView.as_view(), name="seller-public-profile"),
 
     # --- Seller offers ---

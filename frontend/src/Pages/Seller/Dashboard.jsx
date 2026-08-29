@@ -453,6 +453,12 @@ export default function SellerDashboard({ initialTab = "overview" }) {
               <Megaphone className="tab-icon" /> Offers
             </li>
             <li
+              className={activeTab === "store" ? "active" : ""}
+              onClick={() => setActiveTab("store")}
+            >
+              <Store className="tab-icon" /> Store Profile
+            </li>
+            <li
               className={activeTab === "settings" ? "active" : ""}
               onClick={() => setActiveTab("settings")}
             >
@@ -777,7 +783,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
             </div>
           )}
 
-          {activeTab === "settings" && (
+          {activeTab === "store" && (
             <div className="tab-pane fade-in">
               <h1>Store Profile</h1>
               <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
@@ -846,8 +852,12 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   {savingProfile ? "Saving…" : "Save Profile"}
                 </Button>
               </form>
+            </div>
+          )}
 
-              <h1 style={{ marginTop: "2rem" }}>Delivery Settings</h1>
+          {activeTab === "settings" && (
+            <div className="tab-pane fade-in">
+              <h1>Delivery Settings</h1>
               <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
                 Choose how orders are delivered to your customers.
               </p>
