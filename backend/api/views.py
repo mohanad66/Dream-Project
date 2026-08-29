@@ -5,7 +5,8 @@ import stripe
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -693,7 +694,7 @@ class ProductSearchView(APIView):
         paginator = StandardResultsSetPagination()
         paginated = paginator.paginate_queryset(queryset, request)
         serializer = ProductSerializer(
-            paginated, many=True, context={"is_admin": request.user.is_staff}
+            paginated, many=True, context={"request": request, "is_admin": request.user.is_staff}
         )
         return paginator.get_paginated_response(serializer.data)
 
@@ -1519,7 +1520,7 @@ class SellerPublicProfileView(generics.RetrieveAPIView):
         product_page = request.query_params.get("products_page", 1)
         paginator = Paginator(products, 12)
         product_data = ProductSerializer(
-            paginator.get_page(product_page), many=True, context={"is_admin": request.user.is_staff if request.user.is_authenticated else False}
+            paginator.get_page(product_page), many=True, context={"request": request, "is_admin": request.user.is_staff if request.user.is_authenticated else False}
         ).data
 
         offers = SellerOffer.objects.filter(
@@ -1999,4 +2000,147 @@ class DeliveryFeeView(APIView):
             "fee": str(fee),
             "provider": "flat_rate",
             "estimated_days": "5-7",
+        })
+
+
+# ===============================================
+# PRODUCT LIKES (love / heart)
+# ===============================================
+
+class ProductLikeToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, product_id):
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        like, created = ProductLike.objects.get_or_create(user=request.user, product=product)
+        if not created:
+            like.delete()
+            return Response({"liked": False, "like_count": product.like_count})
+
+        return Response({"liked": True, "like_count": product.like_count})
+
+
+# ===============================================
+# PRODUCT COMMENTS
+# ===============================================
+
+class ProductCommentListView(generics.ListAPIView):
+    serializer_class = ProductCommentSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return ProductComment.objects.filter(product_id=self.kwargs["product_id"])
+
+
+class ProductCommentCreateView(generics.CreateAPIView):
+    serializer_class = ProductCommentCreateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ProductCommentDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, comment_id):
+        try:
+            comment = ProductComment.objects.get(pk=comment_id, user=request.user)
+        except ProductComment.DoesNotExist:
+            return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+        comment.delete()
+        return Response({"message": "Comment deleted"})
+
+
+# ===============================================
+# SELLER FOLLOW
+# ===============================================
+
+class SellerFollowToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, seller_id):
+        try:
+            seller = SellerProfile.objects.get(pk=seller_id)
+        except SellerProfile.DoesNotExist:
+            return Response({"error": "Seller not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if seller.user_id == request.user.id:
+            return Response({"error": "You cannot follow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+
+        follow, created = SellerFollower.objects.get_or_create(user=request.user, seller=seller)
+        if not created:
+            follow.delete()
+            return Response({"followed": False, "followers_count": seller.followers.count()})
+
+        return Response({"followed": True, "followers_count": seller.followers.count()})
+
+
+# ===============================================
+# FOLLOWED SELLERS FEED (newest offers from sellers you follow)
+# ===============================================
+
+class FollowedSellersFeedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        followed = SellerFollower.objects.filter(user=request.user).values_list("seller_id", flat=True)
+        products = Product.objects.filter(
+            seller_id__in=followed,
+            is_active=True,
+            approval_status="approved",
+        ).select_related("seller", "category").prefetch_related("tags", "gallery_images").order_by(
+            "-created_at"
+        )[:30]
+
+        offers = SellerOffer.objects.filter(
+            seller_id__in=followed,
+            is_active=True,
+        ).filter(
+            Q(starts_at__isnull=True) | Q(starts_at__lte=timezone.now())
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now())
+        )[:30]
+
+        return Response({
+            "products": ProductSerializer(
+                products, many=True, context={"request": request}
+            ).data,
+            "offers": SellerOfferSerializer(offers, many=True).data,
+        })
+
+
+# ===============================================
+# TRENDING / NEW PRODUCTS FEED (home page scrolling rows)
+# ===============================================
+
+class HomeFeedView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        recent = Product.objects.filter(is_active=True, approval_status="approved").select_related(
+            "seller", "category"
+        ).prefetch_related("tags", "gallery_images").order_by("-created_at")[:30]
+
+        trending = Product.objects.filter(is_active=True, approval_status="approved").select_related(
+            "seller", "category"
+        ).prefetch_related("tags", "gallery_images").annotate(
+            likes=Count("likes")
+        ).order_by("-likes", "-created_at")[:30]
+
+        now = timezone.now()
+        offers = SellerOffer.objects.filter(is_active=True).filter(
+            Q(starts_at__isnull=True) | Q(starts_at__lte=now)
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        ).select_related("seller", "product")[:30]
+
+        return Response({
+            "recent": ProductSerializer(recent, many=True, context={"request": request}).data,
+            "trending": ProductSerializer(trending, many=True, context={"request": request}).data,
+            "offers": SellerOfferSerializer(offers, many=True).data,
         })

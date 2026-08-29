@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../../services/api";
-import { Package, Megaphone, Info, Truck, Store, Calendar, Star, Tag } from "lucide-react";
+import { Package, Megaphone, Info, Truck, Store, Calendar, Star, Tag, Users } from "lucide-react";
+import { ACCESS_TOKEN } from "../../services/constants";
 import "./SellerProfile.scss";
 
 const OFFER_TYPE_COLORS = {
@@ -17,6 +18,8 @@ export default function SellerProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("products");
+  const [followed, setFollowed] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -25,6 +28,8 @@ export default function SellerProfile() {
       try {
         const response = await api.get(`/api/sellers/${id}/profile/`);
         setProfile(response.data);
+        setFollowed(!!response.data.seller.is_followed);
+        setFollowersCount(response.data.seller.followers_count || 0);
       } catch (err) {
         console.error("Failed to fetch seller profile:", err);
         setError("Failed to load seller profile. Please try again later.");
@@ -35,6 +40,21 @@ export default function SellerProfile() {
 
     fetchProfile();
   }, [id]);
+
+  const toggleFollow = async () => {
+    const access = localStorage.getItem(ACCESS_TOKEN);
+    if (!access || access.trim() === "") {
+      window.location.href = "/login";
+      return;
+    }
+    try {
+      const response = await api.post(`/api/sellers/${id}/follow/`);
+      setFollowed(response.data.followed);
+      setFollowersCount(response.data.followers_count);
+    } catch (err) {
+      console.error("Follow toggle failed:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -104,6 +124,10 @@ export default function SellerProfile() {
               <Truck size={15} />
               Delivery: {seller.delivery_type === "platform" ? "Platform" : "Seller"}
             </span>
+            <span className="sp-stat">
+              <Users size={15} />
+              {followersCount} followers
+            </span>
             {seller.average_rating != null && (
               <span className="sp-stat">
                 <Star size={15} />
@@ -111,6 +135,12 @@ export default function SellerProfile() {
               </span>
             )}
           </div>
+          <button
+            className={`sp-follow-btn ${followed ? "is-following" : ""}`}
+            onClick={toggleFollow}
+          >
+            {followed ? "Following ✓" : "Follow"}
+          </button>
         </div>
       </div>
 

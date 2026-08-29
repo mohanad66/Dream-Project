@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
-import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart } from "react-icons/fa";
+import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
+import { ACCESS_TOKEN } from "../../services/constants";
 
 export default function Card({ card, categories = [], tags = [] }) {
   const [showPopup, setShowPopup] = useState(false);
@@ -15,6 +16,11 @@ export default function Card({ card, categories = [], tags = [] }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [inWishlist, setInWishlist] = useState(false);
+  const [liked, setLiked] = useState(!!card?.is_liked);
+  const [likeCount, setLikeCount] = useState(card?.like_count || 0);
+  const [comments, setComments] = useState([]);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
   const navigate = useNavigate();
 
   // Check if product is in wishlist
@@ -44,6 +50,90 @@ export default function Card({ card, categories = [], tags = [] }) {
     } catch (err) {
       console.error("Wishlist toggle failed:", err);
     }
+  };
+
+  const toggleLike = async (e) => {
+    e.stopPropagation();
+    try {
+      const response = await api.post(`/api/products/${card.id}/like/`);
+      setLiked(response.data.liked);
+      setLikeCount(response.data.like_count);
+    } catch (err) {
+      console.error("Like toggle failed:", err);
+    }
+  };
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    try {
+      const shareUrl = typeof window !== "undefined" ? window.location.origin + `/products/${card.id}` : "";
+      const shareData = { title: card.name, text: card.description || card.name, url: shareUrl };
+      if (navigator.share) {
+        navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      // User cancelled share
+    }
+  };
+
+  const loadComments = async (open) => {
+    setCommentsOpen(open);
+    if (!open || comments.length) return;
+    try {
+      const response = await api.get(`/api/products/${card.id}/comments/`);
+      setComments(response.data);
+    } catch (err) {
+      console.error("Failed to load comments:", err);
+    }
+  };
+
+  const submitComment = async (e) => {
+    e.preventDefault();
+    const text = commentText.trim();
+    if (!text) return;
+    try {
+      const response = await api.post("/api/products/comments/create/", {
+        product: card.id,
+        content: text,
+      });
+      setComments((prev) => [...prev, response.data]);
+      setCommentText("");
+    } catch (err) {
+      console.error("Comment failed:", err);
+      alert("Please log in to comment.");
+    }
+  };
+
+  const deleteComment = async (commentId) => {
+    try {
+      await api.delete(`/api/products/comments/${commentId}/delete/`);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (err) {
+      console.error("Delete comment failed:", err);
+    }
+  };
+
+  const renderStars = (rating) => {
+    const r = Math.round(rating);
+    return (
+      <span className="rating-stars">
+        {[1, 2, 3, 4, 5].map((i) =>
+          i <= r ? (
+            <FaStar key={i} className="star filled" />
+          ) : (
+            <FaRegStar key={i} className="star" />
+          )
+        )}
+      </span>
+    );
+  };
+
+  const isLoggedIn = () => {
+    const access = localStorage.getItem(ACCESS_TOKEN);
+    return access && access.trim() !== "";
   };
 
   // Build image list: primary + gallery
@@ -141,6 +231,18 @@ export default function Card({ card, categories = [], tags = [] }) {
           >
             <FaHeart />
           </button>
+          <div className="card-utils">
+            <button
+              className={`like-btn ${liked ? "active" : ""}`}
+              onClick={toggleLike}
+              aria-label={liked ? "Unlike" : "Love this"}
+            >
+              <FaHeart /> <span className="util-count">{likeCount}</span>
+            </button>
+            <button className="share-btn" onClick={handleShare} aria-label="Share">
+              <FaShareAlt />
+            </button>
+          </div>
           <img
             className={`card-image${imgLoaded ? " img-ready" : ""}`}
             src={allImages[currentImageIndex]}
@@ -179,6 +281,21 @@ export default function Card({ card, categories = [], tags = [] }) {
           </Link>
         )}
         <h2>{card.name}</h2>
+        {(card.average_rating > 0 || card.like_count > 0) && (
+          <div className="card-social-row">
+            {card.average_rating > 0 && (
+              <span className="card-rating">
+                {renderStars(card.average_rating)}
+                <em>{card.average_rating}</em>
+              </span>
+            )}
+            {card.comment_count > 0 && (
+              <span className="card-comments-count">
+                <FaComment /> {card.comment_count}
+              </span>
+            )}
+          </div>
+        )}
         {card.effective_price && parseFloat(card.effective_price) < parseFloat(card.price) ? (
           <span className="price" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
             <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>{card.effective_price} L.E</span>
@@ -315,6 +432,79 @@ export default function Card({ card, categories = [], tags = [] }) {
                     <span className="tag">No tags</span>
                   )}
                 </div>
+
+                <div className="popup-social-row">
+                  <button
+                    className={`popup-like-btn ${liked ? "active" : ""}`}
+                    onClick={toggleLike}
+                  >
+                    <FaHeart /> {likeCount} Likes
+                  </button>
+                  <button
+                    className="popup-comment-btn"
+                    onClick={() => loadComments(!commentsOpen)}
+                  >
+                    <FaComment /> Comments ({card.comment_count ?? comments.length})
+                  </button>
+                  <button className="popup-share-btn" onClick={handleShare}>
+                    <FaShareAlt /> Share
+                  </button>
+                </div>
+
+                {commentsOpen && (
+                  <div className="popup-comments">
+                    <div className="comments-list">
+                      {comments.length === 0 && (
+                        <p className="comments-empty">No comments yet. Be the first!</p>
+                      )}
+                      {comments.map((comment) => (
+                        <div key={comment.id} className="comment-item">
+                          <div className="comment-avatar">
+                            {comment.user_avatar ? (
+                              <img src={comment.user_avatar} alt="" />
+                            ) : (
+                              <FaUserCircle />
+                            )}
+                          </div>
+                          <div className="comment-body">
+                            <strong>{comment.user_name}</strong>
+                            <p>{comment.content}</p>
+                            <span className="comment-time">
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {isLoggedIn() && (
+                            <button
+                              className="comment-delete"
+                              onClick={() => deleteComment(comment.id)}
+                              aria-label="Delete comment"
+                            >
+                              <FaTrash />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {isLoggedIn() ? (
+                      <form className="comment-form" onSubmit={submitComment}>
+                        <input
+                          type="text"
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder="Write a comment..."
+                          maxLength={500}
+                        />
+                        <button type="submit">
+                          <FaComment />
+                        </button>
+                      </form>
+                    ) : (
+                      <p className="comments-login-hint">
+                        <Link to="/login">Log in</Link> to join the conversation.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="quantity-selector">
                   <button

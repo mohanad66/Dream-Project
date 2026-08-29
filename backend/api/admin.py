@@ -167,3 +167,21 @@ class NotificationAdmin(ModelAdmin):
     list_filter = ["is_read", "notification_type"]
     search_fields = ["user__username", "title"]
     list_editable = ["is_read"]
+
+
+@admin.register(ProductLike)
+class ProductLikeAdmin(ModelAdmin):
+    list_display = ["user", "product", "created_at"]
+    search_fields = ["user__username", "product__name"]
+
+
+@admin.register(ProductComment)
+class ProductCommentAdmin(ModelAdmin):
+    list_display = ["user", "product", "created_at"]
+    search_fields = ["user__username", "product__name", "content"]
+
+
+@admin.register(SellerFollower)
+class SellerFollowerAdmin(ModelAdmin):
+    list_display = ["user", "seller", "created_at"]
+    search_fields = ["user__username", "seller__business_name"]

@@ -165,6 +165,10 @@ class ProductSerializer(serializers.ModelSerializer):
     seller_name = serializers.CharField(source="seller.business_name", read_only=True)
     seller_avatar = serializers.ImageField(source="seller.avatar", read_only=True, default="")
     effective_price = serializers.SerializerMethodField()
+    like_count = serializers.ReadOnlyField()
+    comment_count = serializers.ReadOnlyField()
+    average_rating = serializers.ReadOnlyField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -185,8 +189,19 @@ class ProductSerializer(serializers.ModelSerializer):
             "seller_avatar",
             "approval_status",
             "rejection_reason",
+            "like_count",
+            "comment_count",
+            "average_rating",
+            "is_liked",
         ]
         read_only_fields = ["seller", "seller_name", "seller_avatar", "approval_status", "rejection_reason"]
+
+    def get_is_liked(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            return ProductLike.objects.filter(user=user, product=obj).exists()
+        return False
 
     def get_effective_price(self, obj):
         from django.utils import timezone
@@ -445,6 +460,8 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
     user_username = serializers.CharField(source="user.username", read_only=True)
     product_count = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
+    is_followed = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerProfile
@@ -452,6 +469,7 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
             "id", "user_username", "business_name", "business_description",
             "avatar", "cover_image", "bio", "delivery_type",
             "created_at", "product_count", "average_rating",
+            "followers_count", "is_followed",
         ]
 
     def get_product_count(self, obj):
@@ -459,6 +477,16 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
 
     def get_average_rating(self, obj):
         return None
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_is_followed(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            return SellerFollower.objects.filter(user=user, seller=obj).exists()
+        return False
 
 
 class SellerDeliveryUpdateSerializer(serializers.ModelSerializer):
@@ -822,3 +850,42 @@ class NotificationSerializer(serializers.ModelSerializer):
 class NotificationCountSerializer(serializers.Serializer):
     total = serializers.IntegerField()
     unread = serializers.IntegerField()
+
+
+# ===============================================
+# PRODUCT LIKES / COMMENTS / SELLER FOLLOW SERIALIZERS
+# ===============================================
+
+class ProductCommentSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(read_only=True)
+    user_name = serializers.SerializerMethodField()
+    user_avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductComment
+        fields = ["id", "product", "content", "user_id", "user_name", "user_avatar", "created_at"]
+        read_only_fields = ["created_at"]
+
+    def get_user_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username
+
+    def get_user_avatar(self, obj):
+        try:
+            avatar = getattr(obj.user, "profile", None)
+            if avatar and avatar.avatar:
+                return self.context.get("request").build_absolute_uri(avatar.avatar.url)
+        except Exception:
+            pass
+        return ""
+
+
+class ProductCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductComment
+        fields = ["product", "content"]
+
+    def validate_content(self, value):
+        value = (value or "").strip()
+        if not value:
+            raise serializers.ValidationError("Comment cannot be empty.")
+        return value

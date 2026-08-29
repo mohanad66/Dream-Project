@@ -288,4 +288,19 @@ urlpatterns = [
 
     # --- Delivery ---
     path("delivery/fee/", DeliveryFeeView.as_view(), name="delivery-fee"),
+
+    # --- Product likes (love / heart) ---
+    path("products/<int:product_id>/like/", ProductLikeToggleView.as_view(), name="product-like"),
+
+    # --- Product comments ---
+    path("products/<int:product_id>/comments/", ProductCommentListView.as_view(), name="product-comments"),
+    path("products/comments/create/", ProductCommentCreateView.as_view(), name="product-comment-create"),
+    path("products/comments/<int:comment_id>/delete/", ProductCommentDeleteView.as_view(), name="product-comment-delete"),
+
+    # --- Seller follow ---
+    path("sellers/<int:seller_id>/follow/", SellerFollowToggleView.as_view(), name="seller-follow"),
+
+    # --- Feeds ---
+    path("feed/home/", HomeFeedView.as_view(), name="home-feed"),
+    path("feed/followed/", FollowedSellersFeedView.as_view(), name="followed-feed"),
 ]

@@ -57,6 +57,15 @@ export default function SellerDashboard({ initialTab = "overview" }) {
   const [paymobWalletNumber, setPaymobWalletNumber] = useState("");
   const [savingPaymob, setSavingPaymob] = useState(false);
 
+  const [profileForm, setProfileForm] = useState({
+    business_name: "",
+    bio: "",
+    business_description: "",
+    avatar: null,
+    cover_image: null,
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+
   const profile = data?.sellerProfile;
 
   useEffect(() => {
@@ -73,6 +82,47 @@ export default function SellerDashboard({ initialTab = "overview" }) {
     refreshProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (profile) {
+      setProfileForm((prev) => ({
+        ...prev,
+        business_name: profile.business_name ?? prev.business_name,
+        bio: profile.bio ?? prev.bio,
+        business_description: profile.business_description ?? prev.business_description,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      const formData = new FormData();
+      if (profileForm.business_name) formData.append("business_name", profileForm.business_name);
+      formData.append("bio", profileForm.bio || "");
+      formData.append("business_description", profileForm.business_description || "");
+      if (profileForm.avatar instanceof File) formData.append("avatar", profileForm.avatar);
+      if (profileForm.cover_image instanceof File) formData.append("cover_image", profileForm.cover_image);
+
+      const res = await api.patch("/api/sellers/me/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Profile updated successfully!");
+      fetchAllData(true);
+      setProfileForm((prev) => ({
+        ...prev,
+        avatar: null,
+        cover_image: null,
+      }));
+    } catch (err) {
+      console.error("Profile update failed:", err);
+      toast.error("Could not update profile. Please try again.");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   useEffect(() => {
     if (!isSeller) return;
@@ -729,7 +779,75 @@ export default function SellerDashboard({ initialTab = "overview" }) {
 
           {activeTab === "settings" && (
             <div className="tab-pane fade-in">
-              <h1>Delivery Settings</h1>
+              <h1>Store Profile</h1>
+              <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
+                Update your business name, cover image, and story.
+              </p>
+
+              <form className="glass-panel-inner" onSubmit={handleSaveProfile} style={{ padding: "1.5rem", borderRadius: "12px", marginBottom: "2rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
+                  <div>
+                    <label className="form-label"><strong>Business Name</strong></label>
+                    <Input
+                      placeholder="Your store name"
+                      value={profileForm.business_name}
+                      onChange={(e) => setProfileForm({ ...profileForm, business_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label"><strong>Short Bio</strong></label>
+                    <Input
+                      placeholder="One-line bio shown on your profile"
+                      value={profileForm.bio}
+                      onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "1.25rem" }}>
+                  <label className="form-label"><strong>About / Description</strong></label>
+                  <Input
+                    textarea
+                    rows="4"
+                    placeholder="Tell customers about your business…"
+                    value={profileForm.business_description}
+                    onChange={(e) => setProfileForm({ ...profileForm, business_description: e.target.value })}
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem", marginTop: "1.25rem" }}>
+                  <FilePicker
+                    label="Cover Image"
+                    accept="image/*"
+                    initialPreview={profile?.cover_image}
+                    onChange={(file) => setProfileForm({ ...profileForm, cover_image: file })}
+                  />
+                  <FilePicker
+                    label="Avatar / Logo"
+                    accept="image/*"
+                    initialPreview={profile?.avatar}
+                    onChange={(file) => setProfileForm({ ...profileForm, avatar: file })}
+                  />
+                </div>
+
+                {(profileForm.cover_image || profileForm.avatar) && (
+                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", flexWrap: "wrap" }}>
+                    {profileForm.cover_image && <img src={URL.createObjectURL(profileForm.cover_image)} alt="cover" style={{ width: 120, height: 60, objectFit: "cover", borderRadius: 8 }} />}
+                    {profileForm.avatar && <img src={URL.createObjectURL(profileForm.avatar)} alt="avatar" style={{ width: 60, height: 60, objectFit: "cover", borderRadius: "50%" }} />}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="gold"
+                  style={{ marginTop: "1.5rem" }}
+                  disabled={savingProfile}
+                >
+                  {savingProfile ? "Saving…" : "Save Profile"}
+                </Button>
+              </form>
+
+              <h1 style={{ marginTop: "2rem" }}>Delivery Settings</h1>
               <p style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
                 Choose how orders are delivered to your customers.
               </p>

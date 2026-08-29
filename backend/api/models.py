@@ -702,6 +702,21 @@ class Product(models.Model, ImageHandlingMixin):
         width, height = self.dimensions
         return round(width / height, 2) if height else 0
 
+    @property
+    def like_count(self):
+        return self.likes.count()
+
+    @property
+    def comment_count(self):
+        return self.comments.count()
+
+    @property
+    def average_rating(self):
+        ratings = self.reviews.values_list("rating", flat=True)
+        if not ratings:
+            return 0
+        return round(sum(ratings) / len(ratings), 1)
+
 
 class ProductImage(models.Model, ImageHandlingMixin):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="gallery_images")
@@ -1213,3 +1228,79 @@ class Notification(models.Model):
             "system": "bell",
         }
         return icons.get(self.notification_type, "bell")
+
+
+# ===============================================
+# PRODUCT LIKES  (love / heart a product)
+# ===============================================
+
+class ProductLike(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="product_likes",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="likes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "product")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} ♥ {self.product}"
+
+
+# ===============================================
+# PRODUCT COMMENTS
+# ===============================================
+
+class ProductComment(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="product_comments",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.user} — {self.product}: {self.content[:40]}"
+
+
+# ===============================================
+# SELLER FOLLOWERS  (follow a seller to see newest offers)
+# ===============================================
+
+class SellerFollower(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="following_sellers",
+    )
+    seller = models.ForeignKey(
+        "SellerProfile",
+        on_delete=models.CASCADE,
+        related_name="followers",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "seller")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} follows {self.seller}"
