@@ -2094,7 +2094,10 @@ class SellerFollowToggleView(APIView):
             return Response({"error": "Seller not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if seller.user_id == request.user.id:
-            return Response({"error": "You cannot follow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"followed": False, "followers_count": seller.followers.count(), "self": True},
+                status=status.HTTP_200_OK,
+            )
 
         follow, created = SellerFollower.objects.get_or_create(user=request.user, seller=seller)
         if not created:
@@ -2130,9 +2133,12 @@ class FollowedSellersFeedView(APIView):
             Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now())
         )[:30]
 
+        seller_id = getattr(getattr(request.user, "seller_profile", None), "id", None)
+        serializer_context = {"request": request, "current_seller_id": seller_id}
+
         return Response({
             "products": ProductSerializer(
-                products, many=True, context={"request": request}
+                products, many=True, context=serializer_context
             ).data,
             "offers": SellerOfferSerializer(offers, many=True).data,
         })
@@ -2153,8 +2159,8 @@ class HomeFeedView(APIView):
         trending = Product.objects.filter(is_active=True, approval_status="approved").select_related(
             "seller", "category"
         ).prefetch_related("tags", "gallery_images").annotate(
-            likes=Count("likes")
-        ).order_by("-likes", "-created_at")[:30]
+            total_likes=Count("likes")
+        ).order_by("-total_likes", "-created_at")[:30]
 
         now = timezone.now()
         offers = SellerOffer.objects.filter(is_active=True).filter(
@@ -2163,8 +2169,14 @@ class HomeFeedView(APIView):
             Q(expires_at__isnull=True) | Q(expires_at__gte=now)
         ).select_related("seller", "product")[:30]
 
+        user = request.user
+        seller_id = None
+        if user.is_authenticated:
+            seller_id = getattr(getattr(user, "seller_profile", None), "id", None)
+        serializer_context = {"request": request, "current_seller_id": seller_id}
+
         return Response({
-            "recent": ProductSerializer(recent, many=True, context={"request": request}).data,
-            "trending": ProductSerializer(trending, many=True, context={"request": request}).data,
+            "recent": ProductSerializer(recent, many=True, context=serializer_context).data,
+            "trending": ProductSerializer(trending, many=True, context=serializer_context).data,
             "offers": SellerOfferSerializer(offers, many=True).data,
         })

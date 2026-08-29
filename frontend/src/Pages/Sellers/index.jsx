@@ -127,12 +127,16 @@ export default function Sellers() {
                     <span><FaBoxOpen /> {seller.product_count} products</span>
                     <span><FaUsers /> {follow.count} followers</span>
                   </div>
-                  <button
-                    className={`seller-card-follow ${follow.followed ? "is-following" : ""}`}
-                    onClick={() => toggleFollow(seller)}
-                  >
-                    {follow.followed ? <><FaCheck /> Following</> : <><FaPlus /> Follow</>}
-                  </button>
+                  {seller.is_self ? (
+                    <span className="seller-card-follow self">Your Store</span>
+                  ) : (
+                    <button
+                      className={`seller-card-follow ${follow.followed ? "is-following" : ""}`}
+                      onClick={() => toggleFollow(seller)}
+                    >
+                      {follow.followed ? <><FaCheck /> Following</> : <><FaPlus /> Follow</>}
+                    </button>
+                  )}
                 </div>
               </div>
             );

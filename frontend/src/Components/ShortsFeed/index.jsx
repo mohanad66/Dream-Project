@@ -52,16 +52,23 @@ export default function ShortsFeed({
 
   // Jump to startIndex once mounted
   useEffect(() => {
-    if (startIndex > 0) {
-      const timer = setTimeout(() => {
-        const el = containerRef.current;
-        if (el) {
-          el.scrollTo({ top: startIndex * el.clientHeight, behavior: "auto" });
-          setActiveIndex(startIndex);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
+    if (startIndex <= 0) return;
+    const el = containerRef.current;
+    const scrollToTarget = () => {
+      if (el) {
+        el.scrollTo({ top: startIndex * el.clientHeight, behavior: "auto" });
+        setActiveIndex(startIndex);
+      }
+    };
+    const t1 = setTimeout(scrollToTarget, 100);
+    const onLoad = () => setTimeout(scrollToTarget, 50);
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", onLoad);
     }
+    return () => {
+      clearTimeout(t1);
+      window.removeEventListener("load", onLoad);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startIndex]);
 
@@ -70,16 +77,25 @@ export default function ShortsFeed({
     return { liked: !!product.is_liked, count: product.like_count || 0 };
   };
 
-  const toggleFollow = async (sellerId) => {
+  const toggleFollow = async (sellerId, productOwn = false) => {
+    if (productOwn) return;
     if (!isLoggedIn()) {
       window.location.href = "/login";
       return;
     }
     try {
       const response = await api.post(`/api/sellers/${sellerId}/follow/`);
+      const data = response.data;
+      if (data.self) {
+        setFollowStates((prev) => ({
+          ...prev,
+          [sellerId]: { followed: true, count: data.followers_count || 0 },
+        }));
+        return;
+      }
       setFollowStates((prev) => ({
         ...prev,
-        [sellerId]: { followed: response.data.followed, count: response.data.followers_count },
+        [sellerId]: { followed: data.followed, count: data.followers_count },
       }));
     } catch (err) {
       console.error("Follow failed:", err);
@@ -220,13 +236,17 @@ export default function ShortsFeed({
                       <FaUserCircle />
                     )}
                   </Link>
-                  <button
-                    className={`shorts-follow ${follow.followed ? "following" : ""}`}
-                    onClick={() => toggleFollow(product.seller)}
-                    aria-label={follow.followed ? "Unfollow seller" : "Follow seller"}
-                  >
-                    {follow.followed ? <FaCheck /> : <FaPlus />}
-                  </button>
+                  {product.is_own_seller ? (
+                    <span className="shorts-follow own" aria-label="Your store">✓</span>
+                  ) : (
+                    <button
+                      className={`shorts-follow ${follow.followed ? "following" : ""}`}
+                      onClick={() => toggleFollow(product.seller, product.is_own_seller)}
+                      aria-label={follow.followed ? "Unfollow seller" : "Follow seller"}
+                    >
+                      {follow.followed ? <FaCheck /> : <FaPlus />}
+                    </button>
+                  )}
                 </div>
               )}
 

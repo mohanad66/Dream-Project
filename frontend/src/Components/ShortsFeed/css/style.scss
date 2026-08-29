@@ -133,6 +133,12 @@
         background: #dc2626;
         color: #fff;
       }
+
+      &.own {
+        background: var(--color-gold);
+        color: #13150c;
+        cursor: default;
+      }
     }
   }
 

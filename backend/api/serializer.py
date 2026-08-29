@@ -169,6 +169,7 @@ class ProductSerializer(serializers.ModelSerializer):
     comment_count = serializers.ReadOnlyField()
     average_rating = serializers.ReadOnlyField()
     is_liked = serializers.SerializerMethodField()
+    is_own_seller = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -193,6 +194,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "comment_count",
             "average_rating",
             "is_liked",
+            "is_own_seller",
         ]
         read_only_fields = ["seller", "seller_name", "seller_avatar", "approval_status", "rejection_reason"]
 
@@ -201,6 +203,12 @@ class ProductSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if user and user.is_authenticated:
             return ProductLike.objects.filter(user=user, product=obj).exists()
+        return False
+
+    def get_is_own_seller(self, obj):
+        current_seller_id = self.context.get("current_seller_id")
+        if current_seller_id is not None:
+            return obj.seller_id == current_seller_id
         return False
 
     def get_effective_price(self, obj):
@@ -462,6 +470,7 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField()
+    is_self = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerProfile
@@ -469,7 +478,7 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
             "id", "user_username", "business_name", "business_description",
             "avatar", "cover_image", "bio", "delivery_type",
             "created_at", "product_count", "average_rating",
-            "followers_count", "is_followed",
+            "followers_count", "is_followed", "is_self",
         ]
 
     def get_product_count(self, obj):
@@ -486,6 +495,14 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if user and user.is_authenticated:
             return SellerFollower.objects.filter(user=user, seller=obj).exists()
+        return False
+
+    def get_is_self(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            seller_id = getattr(getattr(user, "seller_profile", None), "id", None)
+            return seller_id is not None and obj.id == seller_id
         return False
 
 
@@ -900,13 +917,15 @@ class SellerSearchSerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField()
+    is_self = serializers.SerializerMethodField()
     verified = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerProfile
         fields = [
             "id", "user_username", "business_name", "bio",
-            "avatar", "cover_image", "verified", "product_count", "followers_count", "is_followed",
+            "avatar", "cover_image", "verified", "product_count", "followers_count",
+            "is_followed", "is_self",
         ]
 
     def get_product_count(self, obj):
@@ -920,6 +939,14 @@ class SellerSearchSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if user and user.is_authenticated:
             return SellerFollower.objects.filter(user=user, seller=obj).exists()
+        return False
+
+    def get_is_self(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            seller_id = getattr(getattr(user, "seller_profile", None), "id", None)
+            return seller_id is not None and obj.id == seller_id
         return False
 
     def get_verified(self, obj):

@@ -42,6 +42,7 @@ export default function SellerProfile() {
   }, [id]);
 
   const toggleFollow = async () => {
+    if (profile?.seller?.is_self) return;
     const access = localStorage.getItem(ACCESS_TOKEN);
     if (!access || access.trim() === "") {
       window.location.href = "/login";
@@ -135,12 +136,16 @@ export default function SellerProfile() {
               </span>
             )}
           </div>
-          <button
-            className={`sp-follow-btn ${followed ? "is-following" : ""}`}
-            onClick={toggleFollow}
-          >
-            {followed ? "Following ✓" : "Follow"}
-          </button>
+          {seller.is_self ? (
+            <span className="sp-follow-btn self">Your Store</span>
+          ) : (
+            <button
+              className={`sp-follow-btn ${followed ? "is-following" : ""}`}
+              onClick={toggleFollow}
+            >
+              {followed ? "Following ✓" : "Follow"}
+            </button>
+          )}
         </div>
       </div>
 
