@@ -6,10 +6,10 @@ import { ACCESS_TOKEN } from "../../services/constants";
 import "./SellerProfile.scss";
 
 const OFFER_TYPE_COLORS = {
-  discount: "#c9a24b",
+  discount: "#ff6b35",
   flash_sale: "#e06a5d",
   seasonal: "#3fa781",
-  clearance: "#a27c28",
+  clearance: "#e8501b",
 };
 
 export default function SellerProfile() {
@@ -225,9 +225,9 @@ export default function SellerProfile() {
                       <span
                         className="sp-offer-card__badge"
                         style={{
-                          background: `${OFFER_TYPE_COLORS[offer.offer_type] || "#c9a24b"}22`,
-                          color: OFFER_TYPE_COLORS[offer.offer_type] || "#c9a24b",
-                          borderColor: `${OFFER_TYPE_COLORS[offer.offer_type] || "#c9a24b"}44`,
+                          background: `${OFFER_TYPE_COLORS[offer.offer_type] || "#ff6b35"}22`,
+                          color: OFFER_TYPE_COLORS[offer.offer_type] || "#ff6b35",
+                          borderColor: `${OFFER_TYPE_COLORS[offer.offer_type] || "#ff6b35"}44`,
                         }}
                       >
                         <Tag size={12} />

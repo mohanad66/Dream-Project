@@ -1,24 +1,28 @@
 /* ==========================================================================
-   DREAMSTORE — PREMIUM DESIGN SYSTEM
-   Direction: Dark & Elegant
-   Deep navy-charcoal surfaces, champagne-gold accents, serif display type.
-   All component variable names are preserved so the whole app re-skins.
+   INSTABRANDZ — DESIGN SYSTEM 2.0
+   Direction: Clean, high-contrast, conversion-focused.
+   Neutral-white surfaces, warm-orange accent for CTAs/badges/active states,
+   modern sans display type. All component variable names are preserved so the
+   whole app re-skins.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    1. DESIGN TOKENS — LIGHT
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand — bronze/gold reads as premium & established */
-  --color-primary: #a27c28;
-  --color-primary-hover: #8f6c22;
-  --color-primary-active: #7a5c1d;
-  --color-primary-light: #f7f0dd;
-  --color-primary-alpha: rgba(162, 124, 40, 0.12);
-  --color-gold: #c9a24b;
-  --color-gold-hover: #d9b968;
-  --color-gold-deep: #a27c28;
-  --color-gold-alpha: rgba(201, 162, 75, 0.16);
+  /* Brand — warm orange reads as energetic, shoppable & high-conversion */
+  --color-brand: #ff6b35;
+  --color-brand-hover: #f1510f;
+  --color-brand-active: #d94712;
+  --color-primary: #ff6b35;
+  --color-primary-hover: #f1510f;
+  --color-primary-active: #d94712;
+  --color-primary-light: #fff0e8;
+  --color-primary-alpha: rgba(255, 107, 53, 0.12);
+  --color-gold: #ff6b35;
+  --color-gold-hover: #ff8a5c;
+  --color-gold-deep: #e8501b;
+  --color-gold-alpha: rgba(255, 107, 53, 0.16);
 
   --color-secondary: #6b7280;
   --color-secondary-hover: #4b5563;
@@ -29,33 +33,33 @@
   --color-success-hover: #18654b;
   --color-success-light: #e6f4ee;
 
-  --color-danger: #b3403f;
-  --color-danger-hover: #993737;
-  --color-danger-light: #fbecec;
+  --color-danger: #c0392b;
+  --color-danger-hover: #a93226;
+  --color-danger-light: #fdecea;
 
-  --color-warning: #a27c28;
-  --color-warning-hover: #8f6c22;
-  --color-warning-light: #faf3e0;
+  --color-warning: #b45309;
+  --color-warning-hover: #92400e;
+  --color-warning-light: #fef3c7;
 
   /* Neutrals */
   --color-white: #ffffff;
-  --color-gray-50: #faf9f6;
-  --color-gray-100: #f3f1ea;
-  --color-gray-200: #e5e1d5;
-  --color-gray-300: #cfc9b8;
-  --color-gray-400: #a3a090;
-  --color-gray-500: #7d7a6c;
-  --color-gray-600: #5c5a50;
-  --color-gray-700: #3d3b35;
-  --color-gray-800: #26241f;
-  --color-gray-900: #17181a;
+  --color-gray-50: #fafaf9;
+  --color-gray-100: #f4f4f3;
+  --color-gray-200: #e6e6e2;
+  --color-gray-300: #d4d4cf;
+  --color-gray-400: #a8a8a2;
+  --color-gray-500: #7e7e78;
+  --color-gray-600: #5b5b56;
+  --color-gray-700: #3a3a36;
+  --color-gray-800: #232320;
+  --color-gray-900: #151514;
 
   --text-primary: var(--color-gray-900);
   --text-secondary: var(--color-gray-600);
   --text-muted: var(--color-gray-500);
   --text-on-primary: #ffffff;
-  --text-on-dark: #f5f2e8;
-  --text-color: #26241f;
+  --text-on-dark: #f5f5f3;
+  --text-color: #232320;
 
   --primary-color: var(--color-primary);
   --secondary-color: var(--color-secondary);
@@ -66,25 +70,25 @@
   --warning-color: var(--color-warning);
   --info-color: #1d4ed8;
 
-  --bg-body: #f6f4ee;
+  --bg-body: #f6f6f4;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-subtle: #faf9f6;
-  --bg-muted: #f3f1ea;
-  --bg-overlay: rgba(23, 24, 26, 0.55);
-  --bg-primary: #f6f4ee;
-  --bg-secondary: #faf9f6;
-  --bg-tertiary: #efece2;
+  --bg-subtle: #fafaf9;
+  --bg-muted: #efefec;
+  --bg-overlay: rgba(21, 21, 20, 0.55);
+  --bg-primary: #f6f6f4;
+  --bg-secondary: #fafaf9;
+  --bg-tertiary: #ecece8;
   --bg-card: #ffffff;
-  --bg-hover: #f3f1ea;
+  --bg-hover: #f4f4f3;
 
-  --gradient-primary: linear-gradient(135deg, #a27c28 0%, #c9a24b 100%);
+  --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #ff8a5c 100%);
   --gradient-secondary: linear-gradient(135deg, #1f7a5c 0%, #2f9e76 100%);
-  --gradient-accent: linear-gradient(135deg, #8f6c22 0%, #d9b968 100%);
+  --gradient-accent: linear-gradient(135deg, #e8501b 0%, #ff8a5c 100%);
 
-  --border-color: #e5e1d5;
-  --border-color-strong: #cfc9b8;
-  --border-hover: #a3a090;
+  --border-color: #e6e6e2;
+  --border-color-strong: #d4d4cf;
+  --border-hover: #a8a8a2;
   --border-radius-sm: 6px;
   --border-radius-md: 10px;
   --border-radius-lg: 14px;
@@ -111,7 +115,8 @@
   --space-16: 4rem;
   --space-20: 5rem;
 
-  --font-family-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-family-display: "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-brand: "Sora", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -147,11 +152,16 @@
    2. DESIGN TOKENS — DARK (signature elegant look)
    -------------------------------------------------------------------------- */
 :root.dark-theme {
-  --color-primary: #c9a24b;
-  --color-primary-hover: #d9b968;
-  --color-primary-active: #a98c3f;
-  --color-primary-light: #1c2130;
-  --color-primary-alpha: rgba(201, 162, 75, 0.16);
+  --color-brand: #ff6b35;
+  --color-primary: #ff6b35;
+  --color-primary-hover: #ff8a5c;
+  --color-primary-active: #e8501b;
+  --color-primary-light: rgba(255, 107, 53, 0.14);
+  --color-gold: #ff6b35;
+  --color-gold-hover: #ff8a5c;
+  --color-gold-deep: #ff8a5c;
+  --color-gold-alpha: rgba(255, 107, 53, 0.18);
+  --color-primary-alpha: rgba(255, 107, 53, 0.18);
 
   --color-secondary: #8b93a5;
   --color-secondary-hover: #a5adbf;
@@ -166,9 +176,9 @@
   --color-danger-hover: #ec8277;
   --color-danger-light: rgba(224, 106, 93, 0.12);
 
-  --color-warning: #d9a03f;
-  --color-warning-hover: #e5b25a;
-  --color-warning-light: rgba(217, 160, 63, 0.12);
+  --color-warning: #ffb020;
+  --color-warning-hover: #ffc34d;
+  --color-warning-light: rgba(255, 176, 32, 0.14);
 
   --color-gray-50: #0b0f17;
   --color-gray-100: #10141e;
@@ -199,9 +209,9 @@
   --bg-secondary: #0f141f;
   --bg-tertiary: #182136;
 
-  --gradient-primary: linear-gradient(135deg, #a27c28 0%, #d9b968 100%);
+  --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #ff8a5c 100%);
   --gradient-secondary: linear-gradient(135deg, #2f9e76 0%, #57bb93 100%);
-  --gradient-accent: linear-gradient(135deg, #a27c28 0%, #e5c66a 100%);
+  --gradient-accent: linear-gradient(135deg, #e8501b 0%, #ff8a5c 100%);
 
   --border-color: #232d3f;
   --border-color-strong: #344155;
@@ -337,8 +347,8 @@ $success-color: var(--success-color);
 $warning-color: var(--warning-color);
 $info-color: var(--info-color);
 
-$product-primary: var(--product-primary, #c9a24b);
-$product-secondary: var(--product-secondary, #a27c28);
+$product-primary: var(--product-primary, #ff6b35);
+$product-secondary: var(--product-secondary, #e8501b);
 $product-accent: var(--product-accent, #e0e7ff);
 $product-text: var(--product-text, #1e293b);
 $product-light-bg: var(--product-light-bg, #f8fafc);
@@ -349,26 +359,26 @@ $product-success: var(--product-success, #3fa781);
 $product-warning: var(--product-warning, #d9a03f);
 
 $product-shadow-xs:
-  0 1px 2px rgba(162, 124, 40, 0.05),
+  0 1px 2px rgba(232, 80, 27, 0.05),
   0 1px 1px rgba(0, 0, 0, 0.04);
 $product-shadow-sm:
-  0 1px 3px rgba(162, 124, 40, 0.07),
+  0 1px 3px rgba(232, 80, 27, 0.07),
   0 1px 2px rgba(0, 0, 0, 0.06);
 $product-shadow-md:
-  0 4px 10px rgba(162, 124, 40, 0.1),
+  0 4px 10px rgba(232, 80, 27, 0.1),
   0 2px 4px rgba(0, 0, 0, 0.08);
 $product-shadow-lg:
-  0 10px 24px rgba(162, 124, 40, 0.12),
+  0 10px 24px rgba(232, 80, 27, 0.12),
   0 4px 8px rgba(0, 0, 0, 0.1);
 $product-shadow-xl:
-  0 20px 40px rgba(162, 124, 40, 0.15),
+  0 20px 40px rgba(232, 80, 27, 0.15),
   0 10px 20px rgba(0, 0, 0, 0.08);
 $product-shadow-hover:
-  0 25px 50px rgba(162, 124, 40, 0.18),
+  0 25px 50px rgba(232, 80, 27, 0.18),
   0 12px 24px rgba(0, 0, 0, 0.1);
 $product-shadow-colored:
-  0 10px 25px rgba(201, 162, 75, 0.22),
-  0 4px 10px rgba(201, 162, 75, 0.15);
+  0 10px 25px rgba(255, 107, 53, 0.22),
+  0 4px 10px rgba(255, 107, 53, 0.15);
 
 $product-radius-sm: 8px;
 $product-radius-md: 12px;

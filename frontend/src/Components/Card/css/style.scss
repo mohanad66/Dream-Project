@@ -1,5 +1,5 @@
 // ============================================================
-// DreamStore PRODUCT CARD — premium luxury card
+// instaBrandz PRODUCT CARD — premium luxury card
 // Theme-aware via CSS variables, gold accents, serif titles.
 // ============================================================
 
@@ -68,7 +68,7 @@
     text-decoration: none;
     transition: color 0.2s;
     &:hover {
-      color: var(--color-gold-hover, #d9b968);
+      color: var(--color-gold-hover, #ff8a5c);
     }
   }
 
@@ -637,7 +637,7 @@
     opacity: 0;
 
     &:hover {
-      background: rgba(201, 162, 75, 0.85);
+      background: rgba(255, 107, 53, 0.85);
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
       transform: translateY(-50%) scale(1.1);
       color: #13150c;
@@ -690,7 +690,7 @@
       }
 
       &.active::after {
-        background: #d9b968;
+        background: #ff8a5c;
         transform: scale(1.3);
       }
     }
@@ -769,7 +769,7 @@
   }
 
   .share-btn:hover {
-    background: rgba(201, 162, 75, 0.9);
+    background: rgba(255, 107, 53, 0.9);
     color: #13150c;
   }
 }
@@ -1012,9 +1012,9 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(201, 162, 75, 0.5);
+  border: 1px solid rgba(255, 107, 53, 0.5);
   pointer-events: none;
   svg {
-    color: var(--color-gold, #c9a24b);
+    color: var(--color-gold, #ff6b35);
   }
 }

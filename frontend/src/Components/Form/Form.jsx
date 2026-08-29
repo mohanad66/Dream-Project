@@ -129,7 +129,7 @@ export default function Form({ route, method, onLogin, successRedirect }) {
         <h1>{formTitle}</h1>
         <p className="form-subtitle">
           {isLogin
-            ? "Welcome back — continue your journey with DreamStore"
+            ? "Welcome back — continue your journey with instaBrandz"
             : "Create your account and join a curated marketplace"}
         </p>
 

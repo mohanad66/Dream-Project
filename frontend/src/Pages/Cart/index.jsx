@@ -82,8 +82,8 @@ export default function Cart() {
   return (
     <div className="cart-page-container">
       <Helmet>
-        <title>Shopping Cart — DreamStore</title>
-        <meta name="description" content="Review items in your DreamStore shopping cart. Proceed to secure checkout with Paymob or Fawry." />
+        <title>Shopping Cart — instaBrandz</title>
+        <meta name="description" content="Review items in your instaBrandz shopping cart. Proceed to secure checkout with Paymob or Fawry." />
         <link rel="canonical" href="https://dream-project-roan.vercel.app/cart" />
         <meta name="robots" content="noindex" />
       </Helmet>

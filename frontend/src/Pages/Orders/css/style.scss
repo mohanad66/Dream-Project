@@ -1,5 +1,5 @@
 // ============================================================
-// DreamStore ORDERS — premium dark-elegant order history page
+// instaBrandz ORDERS — premium dark-elegant order history page
 // ============================================================
 
 // Theme variables for orders page only
@@ -16,20 +16,20 @@
   --orders-border-light: #f3f1ea;
   --orders-shadow-color: rgba(23, 24, 26, 0.1);
   --orders-status-pending-bg: #faf3e0;
-  --orders-status-pending-text: #a27c28;
+  --orders-status-pending-text: #e8501b;
   --orders-status-confirmed-bg: #e6f4ee;
   --orders-status-confirmed-text: #1f7a5c;
   --orders-status-delivered-bg: #e6f4ee;
   --orders-status-delivered-text: #1f7a5c;
   --orders-status-cancelled-bg: #fbecec;
   --orders-status-cancelled-text: #b3403f;
-  --orders-btn-primary-bg: #a27c28;
-  --orders-btn-primary-hover: #8f6c22;
-  --orders-btn-secondary-bg: #a27c28;
-  --orders-btn-secondary-hover: #8f6c22;
+  --orders-btn-primary-bg: #e8501b;
+  --orders-btn-primary-hover: #f1510f;
+  --orders-btn-secondary-bg: #e8501b;
+  --orders-btn-secondary-hover: #f1510f;
   --orders-spinner-border: #e5e1d5;
-  --orders-spinner-top: #c9a24b;
-  --orders-glow: radial-gradient(80% 60% at 85% -5%, rgba(162, 124, 40, 0.09), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(31, 122, 92, 0.07), transparent 70%);
+  --orders-spinner-top: #ff6b35;
+  --orders-glow: radial-gradient(80% 60% at 85% -5%, rgba(232, 80, 27, 0.09), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(31, 122, 92, 0.07), transparent 70%);
 }
 
 .dark-theme .orders-page-container {
@@ -44,7 +44,7 @@
   --orders-border-color: #232d3f;
   --orders-border-light: #232d3f;
   --orders-shadow-color: rgba(0, 0, 0, 0.35);
-  --orders-status-pending-bg: rgba(217, 160, 63, 0.12);
+  --orders-status-pending-bg: rgba(255, 107, 53, 0.12);
   --orders-status-pending-text: #e5b25a;
   --orders-status-confirmed-bg: rgba(63, 167, 129, 0.12);
   --orders-status-confirmed-text: #57bb93;
@@ -52,13 +52,13 @@
   --orders-status-delivered-text: #57bb93;
   --orders-status-cancelled-bg: rgba(224, 106, 93, 0.12);
   --orders-status-cancelled-text: #ec8277;
-  --orders-btn-primary-bg: #c9a24b;
-  --orders-btn-primary-hover: #d9b968;
-  --orders-btn-secondary-bg: #c9a24b;
-  --orders-btn-secondary-hover: #d9b968;
+  --orders-btn-primary-bg: #ff6b35;
+  --orders-btn-primary-hover: #ff8a5c;
+  --orders-btn-secondary-bg: #ff6b35;
+  --orders-btn-secondary-hover: #ff8a5c;
   --orders-spinner-border: #232d3f;
-  --orders-spinner-top: #d9b968;
-  --orders-glow: radial-gradient(80% 60% at 85% -5%, rgba(201, 162, 75, 0.1), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(63, 167, 129, 0.07), transparent 70%);
+  --orders-spinner-top: #ff8a5c;
+  --orders-glow: radial-gradient(80% 60% at 85% -5%, rgba(255, 107, 53, 0.1), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(63, 167, 129, 0.07), transparent 70%);
 }
 
 // Orders page styles (isolated - won't affect main website)

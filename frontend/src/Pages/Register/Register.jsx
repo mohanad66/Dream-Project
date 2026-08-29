@@ -6,8 +6,8 @@ export default function Register() {
   return (
     <div className="login-page">
       <Helmet>
-        <title>Create Account — DreamStore</title>
-        <meta name="description" content="Create your DreamStore account to shop curated products from premium local brands and independent creators." />
+        <title>Create Account — instaBrandz</title>
+        <meta name="description" content="Create your instaBrandz account to shop curated products from premium local brands and independent creators." />
         <link rel="canonical" href="https://dream-project-roan.vercel.app/register" />
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>

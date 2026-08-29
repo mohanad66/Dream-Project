@@ -1,12 +1,12 @@
 //============================================================
-// DreamStore ADD ITEM MODAL — premium dark-elegant
+// instaBrandz ADD ITEM MODAL — premium dark-elegant
 // Theme-aware via global CSS variables, champagne-gold accents.
 // All class names used by the JSX are preserved.
 //============================================================
 
 // Legacy SCSS vars kept for compatibility
-$primary-color: #a27c28;
-$primary-hover: #d9b968;
+$primary-color: #e8501b;
+$primary-hover: #ff8a5c;
 $success-color: #198754;
 $danger-color: #dc3545;
 $white: #ffffff;
@@ -446,7 +446,7 @@ $shadow: var(--shadow-xl);
   gap: 6px;
   padding: 4px 10px;
   background: var(--color-primary-alpha);
-  border: 1px solid rgba(201, 162, 75, 0.45);
+  border: 1px solid rgba(255, 107, 53, 0.45);
   border-radius: var(--border-radius-full);
   font-size: 14px;
   color: var(--color-gold-deep);

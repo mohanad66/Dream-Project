@@ -8,13 +8,13 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "DreamStore — Curated Marketplace",
-        short_name: "DreamStore",
-        description: "Curated marketplace for premium local brands, artisans and independent creators.",
+        name: "instaBrandz — Watch Shorts, Shop Sellers, Buy Fast",
+        short_name: "instaBrandz",
+        description: "Multi-seller marketplace with short-video discovery. Watch shorts from brands and shop their storefronts.",
         start_url: "/",
         display: "standalone",
-        background_color: "#0b0f17",
-        theme_color: "#c9a24b",
+        background_color: "#ffffff",
+        theme_color: "#FF6B35",
         orientation: "portrait-primary",
         categories: ["shopping", "business"],
         icons: [

@@ -181,10 +181,10 @@ export default function Products() {
   return (
     <>
       <Helmet>
-        <title>Products - Dream Store | Shop Quality Items Online</title>
+        <title>Products - instaBrandz | Shop Quality Items Online</title>
         <meta
           name="description"
-          content="Browse our wide range of products at Dream Store. Find electronics, fashion, home goods and more with advanced filtering and search."
+          content="Browse our wide range of products at instaBrandz. Find electronics, fashion, home goods and more with advanced filtering and search."
         />
         <meta
           name="keywords"
@@ -193,11 +193,11 @@ export default function Products() {
         <link rel="canonical" href="https://dream-project-roan.vercel.app/products" />
         <meta
           property="og:title"
-          content="Products - Dream Store | Shop Quality Items Online"
+          content="Products - instaBrandz | Shop Quality Items Online"
         />
         <meta
           property="og:description"
-          content="Browse our wide range of products at Dream Store."
+          content="Browse our wide range of products at instaBrandz."
         />
         <meta property="og:url" content="https://dream-project-roan.vercel.app/products" />
         <meta property="og:type" content="website" />
@@ -205,12 +205,12 @@ export default function Products() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "CollectionPage",
-        "name": "DreamStore Products",
-        "description": "Browse our wide range of products at Dream Store.",
+        "name": "instaBrandz Products",
+        "description": "Browse our wide range of products at instaBrandz.",
         "url": "https://dream-project-roan.vercel.app/products",
         "mainEntity": {
           "@type": "ItemList",
-          "name": "DreamStore Products",
+          "name": "instaBrandz Products",
           "numberOfItems": products.length,
           "itemListElement": products.slice(0, 50).map((p, i) => ({
             "@type": "ListItem",

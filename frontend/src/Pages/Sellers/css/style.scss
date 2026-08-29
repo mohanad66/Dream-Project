@@ -1,5 +1,5 @@
 // ============================================
-// DreamStore Sellers Search
+// instaBrandz Sellers Search
 // ============================================
 
 .sellers-page {
@@ -126,7 +126,7 @@
 
   &-cover {
     height: 90px;
-    background: linear-gradient(135deg, rgba(201, 162, 75, 0.15), rgba(201, 162, 75, 0.05));
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 107, 53, 0.05));
 
     img {
       width: 100%;
@@ -243,7 +243,7 @@
     transition: all 0.2s;
 
     &:hover {
-      background: rgba(201, 162, 75, 0.12);
+      background: rgba(255, 107, 53, 0.12);
     }
 
     &.is-following {

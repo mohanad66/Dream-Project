@@ -90,7 +90,7 @@
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.35s;
 
   .caption-index {
-    font-family: "Playfair Display", serif;
+    font-family: "Sora", sans-serif;
     font-size: 2.6rem;
     font-weight: 700;
     line-height: 1;
@@ -105,7 +105,7 @@
   }
 
   h3 {
-    font-family: "Playfair Display", serif;
+    font-family: "Sora", sans-serif;
     font-size: clamp(1.4rem, 2.6vw, 2.2rem);
     font-weight: 600;
     color: #f8f6f0;
@@ -127,7 +127,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  border: 1px solid rgba(201, 162, 75, 0.35);
+  border: 1px solid rgba(255, 107, 53, 0.35);
   background: rgba(11, 15, 23, 0.55);
   backdrop-filter: blur(10px);
   color: var(--color-primary);

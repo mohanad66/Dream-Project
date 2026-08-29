@@ -1,14 +1,14 @@
 /* ============================================================
-   DreamStore CART — premium dark-elegant
-   Theme-aware via --cart-* vars, Playfair serif gold titles,
+   instaBrandz CART — premium dark-elegant
+   Theme-aware via --cart-* vars, Sora sans gold titles,
    gold accents on surfaces, steppers, and CTAs.
    ============================================================ */
 
 /* ---------- Light Theme ---------- */
 .light-theme {
-  --cart-primary: #a27c28;
-  --cart-primary-dark: #8f6c22;
-  --cart-secondary: #c9a24b;
+  --cart-primary: #e8501b;
+  --cart-primary-dark: #f1510f;
+  --cart-secondary: #ff6b35;
   --cart-accent: #f7f0dd;
   --cart-text: #26241f;
   --cart-text-light: #5c5a50;
@@ -20,7 +20,7 @@
   --cart-error: #b3403f;
   --cart-success: #1f7a5c;
   --cart-success-dark: #18654b;
-  --cart-warning: #a27c28;
+  --cart-warning: #e8501b;
   --cart-primary-rgb: 162, 124, 40;
   --cart-secondary-rgb: 201, 162, 75;
   --cart-theme-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -37,10 +37,10 @@
 
 /* ---------- Dark Theme ---------- */
 .dark-theme {
-  --cart-primary: #c9a24b;
-  --cart-primary-dark: #d9b968;
-  --cart-secondary: #d9b968;
-  --cart-accent: #a27c28;
+  --cart-primary: #ff6b35;
+  --cart-primary-dark: #ff8a5c;
+  --cart-secondary: #ff8a5c;
+  --cart-accent: #e8501b;
   --cart-text: #f5f6f8;
   --cart-text-light: #e2e5ec;
   --cart-light-bg: #1a2233;

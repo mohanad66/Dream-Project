@@ -60,14 +60,14 @@ const LoadingFallback = () => (
           width: 52,
           height: 52,
           border: "3px solid var(--border-color, #232d3f)",
-          borderTop: "3px solid #c9a24b",
+          borderTop: "3px solid #ff6b35",
           borderRadius: "50%",
           animation: "spin 0.8s linear infinite",
           margin: "auto",
         }}
       />
       <p style={{ color: "var(--text-primary, #f0efe8)", fontSize: 14, margin: 0, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-        DreamStore
+        instaBrandz
       </p>
     </div>
   </div>

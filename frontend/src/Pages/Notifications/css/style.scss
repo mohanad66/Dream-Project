@@ -18,8 +18,8 @@
   &__spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(201, 162, 75, 0.2);
-    border-top-color: #c9a24b;
+    border: 3px solid rgba(255, 107, 53, 0.2);
+    border-top-color: #ff6b35;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
@@ -35,7 +35,7 @@
   justify-content: space-between;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(201, 162, 75, 0.15);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.15);
 
   &__left {
     display: flex;
@@ -46,13 +46,13 @@
       font-size: 1.5rem;
       font-weight: 600;
       margin: 0;
-      color: #c9a24b;
+      color: #ff6b35;
     }
   }
 }
 
 .notifications-badge {
-  background: #c9a24b;
+  background: #ff6b35;
   color: #13150c;
   font-size: 0.75rem;
   font-weight: 700;
@@ -67,8 +67,8 @@
   align-items: center;
   gap: 0.5rem;
   background: transparent;
-  border: 1px solid rgba(201, 162, 75, 0.3);
-  color: #c9a24b;
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  color: #ff6b35;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -76,8 +76,8 @@
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(201, 162, 75, 0.1);
-    border-color: #c9a24b;
+    background: rgba(255, 107, 53, 0.1);
+    border-color: #ff6b35;
   }
 }
 
@@ -121,16 +121,16 @@
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(201, 162, 75, 0.2);
+    border-color: rgba(255, 107, 53, 0.2);
   }
 
   &.unread {
-    background: rgba(201, 162, 75, 0.05);
-    border-color: rgba(201, 162, 75, 0.15);
+    background: rgba(255, 107, 53, 0.05);
+    border-color: rgba(255, 107, 53, 0.15);
 
     .notifications-item__icon {
-      background: rgba(201, 162, 75, 0.15);
-      color: #c9a24b;
+      background: rgba(255, 107, 53, 0.15);
+      color: #ff6b35;
     }
   }
 

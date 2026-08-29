@@ -113,15 +113,15 @@ export default function Home({
   return (
     <>
       <Helmet>
-        <title>DreamStore — Curated Marketplace for Premium & Local Brands</title>
+        <title>instaBrandz — Curated Marketplace for Premium & Local Brands</title>
         <meta
           name="description"
-          content="DreamStore is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators."
+          content="instaBrandz is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators."
         />
         <link rel="canonical" href="https://dream-project-roan.vercel.app/" />
         <meta
           property="og:title"
-          content="DreamStore — Curated Marketplace for Premium & Local Brands"
+          content="instaBrandz — Curated Marketplace for Premium & Local Brands"
         />
         <meta
           property="og:description"
@@ -240,10 +240,10 @@ export default function Home({
           </RevealSection>
         )}
 
-        {/* ============ WHY DREAMSTORE ============ */}
+        {/* ============ WHY instaBrandz ============ */}
         <RevealSection className="features" as="section">
           <div className="section-heading">
-            <p className="section-eyebrow">Why DreamStore</p>
+            <p className="section-eyebrow">Why instaBrandz</p>
             <h2 className="title">Built for the Next Generation of Commerce</h2>
           </div>
           <div className="features-grid">
@@ -346,7 +346,7 @@ export default function Home({
               <FaStar />
               <FaStar />
             </div>
-            <h2>Become a Part of the DreamStore Story</h2>
+            <h2>Become a Part of the instaBrandz Story</h2>
             <p>
               Join a fast-growing marketplace loved by shoppers and backed by a
               team obsessed with quality and trust.

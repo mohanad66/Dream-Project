@@ -10,7 +10,7 @@ const VALUES = [
   {
     icon: <FaGem />,
     title: "Curated Quality",
-    text: "Every product is hand-reviewed by our curation team, so only the most exceptional pieces earn a place in DreamStore.",
+    text: "Every product is hand-reviewed by our curation team, so only the most exceptional pieces earn a place in instaBrandz.",
   },
   {
     icon: <FaShieldHalved />,
@@ -47,13 +47,13 @@ export default function About() {
   return (
     <>
       <Helmet>
-        <title>About DreamStore — The Story Behind the Marketplace</title>
+        <title>About instaBrandz — The Story Behind the Marketplace</title>
         <meta
           name="description"
-          content="DreamStore is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators. Discover our story."
+          content="instaBrandz is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators. Discover our story."
         />
         <link rel="canonical" href="https://dream-project-roan.vercel.app/about" />
-        <meta property="og:title" content="About DreamStore — The Story Behind the Marketplace" />
+        <meta property="og:title" content="About instaBrandz — The Story Behind the Marketplace" />
         <meta
           property="og:description"
           content="A curated marketplace built on taste, trust and craft."
@@ -74,11 +74,11 @@ export default function About() {
           <div className="hero-content">
             <p className="hero-eyebrow">
               <span className="eyebrow-line" />
-              About DreamStore
+              About instaBrandz
               <span className="eyebrow-line" />
             </p>
             <h1 className="hero-title">
-              The Story Behind <em className="gold-text">DreamStore</em>
+              The Story Behind <em className="gold-text">instaBrandz</em>
             </h1>
             <p className="hero-subtitle">
               A curated marketplace connecting discerning shoppers with the
@@ -114,7 +114,7 @@ export default function About() {
                 </h2>
               </div>
               <p className="story-copy">
-                DreamStore began with a simple belief: exceptional products
+                instaBrandz began with a simple belief: exceptional products
                 deserve a home that celebrates them. Too often, gifted local
                 brands and independent artisans are crowded out of the
                 mainstream — invisible behind mass-produced shelves and
@@ -176,7 +176,7 @@ export default function About() {
             <div className="hero-glow hero-glow--one" />
           </div>
           <div className="cta-content">
-            <h2>Become Part of the DreamStore Story</h2>
+            <h2>Become Part of the instaBrandz Story</h2>
             <p>
               Whether you shop or sell, you are part of a community obsessed
               with quality, trust and craft.

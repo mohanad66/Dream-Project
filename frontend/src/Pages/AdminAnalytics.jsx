@@ -442,7 +442,7 @@ const AdminAnalytics = () => {
         {activeTab === "commission" && (<>
           <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
             <KPICard label="Total Revenue (30d)" value={fmtL(sellerEarnings.summary?.total_revenue_30d)} sub="All seller revenue" accent={TOKEN.primary} icon={<DollarSign size={18} color="#22c55e" />} />
-            <KPICard label="Platform Commission (30d)" value={fmtL(sellerEarnings.summary?.total_commission_30d)} sub="Commission earned" accent={TOKEN.warning} icon={<DollarSign size={18} color="#c9a24b" />} />
+            <KPICard label="Platform Commission (30d)" value={fmtL(sellerEarnings.summary?.total_commission_30d)} sub="Commission earned" accent={TOKEN.warning} icon={<DollarSign size={18} color="#ff6b35" />} />
             <KPICard label="Active Sellers" value={sellerEarnings.earnings?.length || 0} sub="Registered sellers" accent={TOKEN.success} icon={<Users2 size={18} color="#3b82f6" />} />
           </div>
           <div style={{ display: "flex", gap: 16, padding: "14px 20px", borderRadius: 10, background: "var(--bg-card, rgba(255,255,255,0.04))", border: "1px solid var(--border-color)", flexWrap: "wrap" }}>

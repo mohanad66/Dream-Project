@@ -1,5 +1,5 @@
 // ============================================
-// DreamStore YouTube Shorts-style vertical feed
+// instaBrandz YouTube Shorts-style vertical feed
 // ============================================
 
 .shorts-feed {
@@ -9,7 +9,7 @@
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  background: radial-gradient(circle at 20% 20%, rgba(201, 162, 75, 0.06), transparent 40%);
+  background: radial-gradient(circle at 20% 20%, rgba(255, 107, 53, 0.06), transparent 40%);
   overscroll-behavior: contain;
 
   &::-webkit-scrollbar {

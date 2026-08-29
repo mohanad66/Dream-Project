@@ -7,7 +7,7 @@ import {
   FaFacebookF,
   FaInstagram,
   FaXTwitter,
-  FaGem,
+  FaPlay,
 } from "react-icons/fa6";
 import "./css/style.scss";
 
@@ -40,9 +40,11 @@ export default function Footer({ contacts = [], categories = [] }) {
         <div className="footer-brand">
           <div className="footer-logo">
             <span className="footer-logo-mark">
-              <FaGem />
+              <FaPlay />
             </span>
-            <span className="footer-logo-name">DreamStore</span>
+            <span className="footer-logo-name">
+              insta<span className="brand-accent">Brandz</span>
+            </span>
           </div>
           <p className="footer-tagline">
             A curated marketplace connecting discerning shoppers with premium
@@ -126,8 +128,8 @@ export default function Footer({ contacts = [], categories = [] }) {
             <ul>
               <li>
                 <span className="footer-contact-label">Email</span>
-                <a href="mailto:support@dreamstore.com" className="footer-contact-value">
-                  support@dreamstore.com
+                <a href="mailto:support@instaBrandz.com" className="footer-contact-value">
+                  support@instaBrandz.com
                 </a>
               </li>
               <li>
@@ -143,7 +145,7 @@ export default function Footer({ contacts = [], categories = [] }) {
 
       <div className="footer-bottom">
         <p>
-          © {new Date().getFullYear()} DreamStore. All rights reserved. Crafted
+          © {new Date().getFullYear()} instaBrandz. All rights reserved. Crafted
           with care for our community.
         </p>
         <div className="footer-badges">

@@ -207,7 +207,7 @@ export default function ShortsFeed({
     try {
       const key = type === "offer" ? "o" : "p";
       const shareUrl = `${window.location.origin}/shorts?${key}=${item.id}`;
-      const text = item.title || item.name || "DreamStore";
+      const text = item.title || item.name || "instaBrandz";
       if (navigator.share) {
         navigator.share({ title: text, text: item.description || text, url: shareUrl });
       } else {
@@ -253,7 +253,7 @@ export default function ShortsFeed({
       {renderSellerAvatar(sellerId, avatar)}
       <div className="shorts-brand-text">
         <Link to={sellerId ? `/seller/${sellerId}` : "/sellers"} className="shorts-brand-name">
-          {sellerName || "DreamStore Seller"}
+          {sellerName || "instaBrandz Seller"}
           {verified && <span className="shorts-verified" title="Verified Seller">✓</span>}
         </Link>
         <span className="shorts-brand-sub">
