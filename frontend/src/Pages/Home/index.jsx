@@ -1,366 +1,380 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Card from "../../Components/Card";
-import Carousel from "../../Components/Carousel";
 import "./css/style.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import React from "react";
+import api from "../../services/api";
 import {
-  FaGem,
-  FaTruckFast,
-  FaShieldHalved,
-  FaHeadset,
-  FaStar,
+  FaSearch,
+  FaShoppingCart,
   FaPlay,
-  FaHeart,
-  FaComment,
+  FaFire,
+  FaCheckCircle,
+  FaStar,
+  FaArrowRight,
+  FaTag,
+  FaMobileAlt,
+  FaTshirt,
+  FaHome,
+  FaGem,
+  FaUtensils,
+  FaBook,
+  FaGamepad,
+  FaHeartbeat,
+  FaBaby,
+  FaDog,
+  FaCar,
+  FaUserPlus,
+} from "react-icons/fa";
+import {
+  FaShieldHalved,
+  FaTruckFast,
+  FaRotateLeft,
 } from "react-icons/fa6";
-import { FaShareAlt } from "react-icons/fa";
 
-function useReveal(threshold = 0.12) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add("revealed"); obs.unobserve(el); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return ref;
-}
+const CATEGORY_ICONS = [
+  [/electron|mobile|phone|computer|laptop|tech|gadget/i, <FaMobileAlt />],
+  [/fashion|clothing|apparel|wear|shirt|shoe/i, <FaTshirt />],
+  [/home|furniture|decor|kitchen|living/i, <FaHome />],
+  [/beauty|cosmetic|skincare|makeup|perfume|jewel/i, <FaGem />],
+  [/food|grocer|cooking/i, <FaUtensils />],
+  [/book|station|office/i, <FaBook />],
+  [/game|toy|console/i, <FaGamepad />],
+  [/sport|fitness|health|wellness/i, <FaHeartbeat />],
+  [/baby|kids|toddler/i, <FaBaby />],
+  [/pet|animal/i, <FaDog />],
+  [/auto|car|vehicle|motor/i, <FaCar />],
+];
 
-function RevealSection({ children, className = "", as: Tag = "div", ...props }) {
-  const ref = useReveal();
-  return <Tag ref={ref} className={`reveal ${className}`} {...props}>{children}</Tag>;
-}
+const getCategoryIcon = (name = "") => {
+  for (const [re, icon] of CATEGORY_ICONS) if (re.test(name)) return icon;
+  return <FaTag />;
+};
 
-const FEATURES = [
-  {
-    icon: <FaGem />,
-    title: "Curated Quality",
-    text: "Every product is vetted by our team — only the finest brands and artisans make the cut.",
-  },
-  {
-    icon: <FaTruckFast />,
-    title: "Fast Delivery",
-    text: "Reliable nationwide fulfilment with real-time tracking on every order.",
-  },
-  {
-    icon: <FaShieldHalved />,
-    title: "Secure Payments",
-    text: "Bank-grade encryption and verified gateways protect every transaction from click to delivery.",
-  },
-  {
-    icon: <FaHeadset />,
-    title: "Dedicated Support",
-    text: "A real team of specialists ready to assist you at every step of your journey.",
-  },
+const TRUST_ITEMS = [
+  { icon: <FaTruckFast />, label: "Fast delivery" },
+  { icon: <FaShieldHalved />, label: "Secure Paymob & Fawry" },
+  { icon: <FaRotateLeft />, label: "Easy returns" },
 ];
 
 export default function Home({
   categories = [],
   products = [],
   tags = [],
-  img = [],
 }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const [homeProducts, setHomeProducts] = useState(Array.isArray(products) ? products : []);
+  const [sellers, setSellers] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
+  const [query, setQuery] = useState("");
 
-  const latestProducts = Array.isArray(products)
-    ? [...products].slice(0, 8)
-    : [];
-
-  const activeProducts = (Array.isArray(products) ? products : []).filter(
-    (p) => p.is_active === true,
-  );
-
-  const shortsPreview = [...activeProducts].sort(() => 0.5 - Math.random()).slice(0, 3);
-
-  const featuredProducts = [...activeProducts].sort(() => 0.5 - Math.random()).slice(0, 8);
-
-  const uniqueBrands = [
-    ...new Set(activeProducts.filter((p) => p.seller_name).map((p) => p.seller_name)),
-  ].slice(0, 8);
-
-  const sellerCount = new Set(
-    (Array.isArray(products) ? products : []).map((p) => p.seller_name),
-  ).size;
-
+  // Fresher/richer product set specifically for the shopfront (page_size = 40)
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 900);
-    return () => clearTimeout(timer);
+    let active = true;
+    api
+      .get("/api/products/?page_size=40")
+      .then((res) => {
+        if (!active) return;
+        const list = Array.isArray(res.data)
+          ? res.data
+          : res.data?.results || [];
+        if (list.length > 0) setHomeProducts(list);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (categories.length > 0 || products.length > 0) {
-      setIsLoading(false);
+    if (Array.isArray(products) && products.length > 0) {
+      setHomeProducts(products);
     }
-  }, [categories, products]);
+  }, [products]);
 
-  if (isLoading) {
+  // Featured sellers — approved, active, most-followed first
+  useEffect(() => {
+    let active = true;
+    api
+      .get("/api/sellers/search/")
+      .then((res) => {
+        if (active && Array.isArray(res.data)) {
+          setSellers(res.data.slice(0, 12));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Cart count badge
+  const refreshCart = useCallback(() => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCartCount((cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0));
+  }, []);
+
+  useEffect(() => {
+    refreshCart();
+    window.addEventListener("cart-updated", refreshCart);
+    window.addEventListener("storage", refreshCart);
+    return () => {
+      window.removeEventListener("cart-updated", refreshCart);
+      window.removeEventListener("storage", refreshCart);
+    };
+  }, [refreshCart]);
+
+  const activeProducts = useMemo(
+    () => (Array.isArray(homeProducts) ? homeProducts.filter((p) => p.is_active) : []),
+    [homeProducts],
+  );
+
+  // Shorts rail — products with real videos first, then any live product
+  const shorts = useMemo(() => {
+    const withVideo = activeProducts.filter((p) => p.video);
+    const rest = activeProducts.filter((p) => !p.video);
+    return [...withVideo, ...rest].slice(0, 12);
+  }, [activeProducts]);
+
+  // Trending grid — most-liked first
+  const trending = useMemo(
+    () =>
+      [...activeProducts]
+        .sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
+        .slice(0, 12),
+    [activeProducts],
+  );
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    navigate(q ? `/products?search=${encodeURIComponent(q)}` : "/products");
+  };
+
+  const renderStars = (rating) => {
+    const r = Math.round(rating || 0);
     return (
-      <div className="home-loading">
-        <div className="home-loading-mark">
-          <FaGem />
-        </div>
-        <p>Curating your experience…</p>
-      </div>
+      <span className="home-stars">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <FaStar key={i} className={i <= r ? "filled" : ""} />
+        ))}
+      </span>
     );
-  }
+  };
 
   return (
     <>
       <Helmet>
-        <title>instaBrandz — Curated Marketplace for Premium & Local Brands</title>
+        <title>instaBrandz — Watch Shorts, Shop Sellers, Buy Fast</title>
         <meta
           name="description"
-          content="instaBrandz is a curated marketplace connecting discerning shoppers with premium local brands, artisans and independent creators."
+          content="instaBrandz is Egypt's multi-seller marketplace with short-video discovery. Watch shorts from real brands, shop their storefronts and check out with Paymob and Fawry."
         />
         <link rel="canonical" href="https://dream-project-roan.vercel.app/" />
-        <meta
-          property="og:title"
-          content="instaBrandz — Curated Marketplace for Premium & Local Brands"
-        />
+        <meta property="og:title" content="instaBrandz — Watch Shorts, Shop Sellers, Buy Fast" />
         <meta
           property="og:description"
-          content="Discover a curated marketplace of premium local brands, artisans and independent creators."
+          content="Watch short videos from real brands, then shop their storefronts with secure Paymob and Fawry checkout."
         />
         <meta property="og:url" content="https://dream-project-roan.vercel.app/" />
         <meta property="og:type" content="website" />
       </Helmet>
 
       <div className="home">
-        {/* ============ HERO ============ */}
-        <section className="hero-section">
-          <div className="hero-bg" aria-hidden="true">
-            <div className="hero-glow hero-glow--one" />
-            <div className="hero-glow hero-glow--two" />
-            <div className="hero-grid" />
-          </div>
+        {/* ============ APP-HEADER: logo + search + cart ============ */}
+        <header className="home-header">
+          <Link to="/" className="home-logo" aria-label="instaBrandz home">
+            <span className="home-logo-mark">
+              <FaPlay />
+            </span>
+            <span className="home-logo-name">
+              insta<span className="brand-accent">Brandz</span>
+            </span>
+          </Link>
 
-          <div className="hero-content">
-            <p className="hero-eyebrow">
-              <span className="eyebrow-line" />
-              The Marketplace of Tomorrow
-              <span className="eyebrow-line" />
-            </p>
-            <h1 className="hero-title">
-              Discover <em className="gold-text">Exceptional</em> Local Brands
-            </h1>
-            <p className="hero-subtitle">
-              A curated marketplace connecting discerning shoppers with the
-              region's most promising artisans, designers and independent
-              creators.
-            </p>
+          <form className="home-search" onSubmit={handleSearch} role="search">
+            <FaSearch className="home-search-icon" />
+            <input
+              type="search"
+              placeholder="Search products, brands…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search products"
+            />
+            <button type="submit">Search</button>
+          </form>
 
-            <div className="hero-actions">
-              <Link to="/products" className="btn-primary">
-                Explore the Collection
-              </Link>
-              <Link to="/seller-register" className="btn-secondary">
-                Sell With Us
-              </Link>
-            </div>
+          <Link to="/cart" className="home-cart" aria-label="Shopping cart">
+            <FaShoppingCart />
+            {cartCount > 0 && <span className="home-cart-count">{cartCount > 99 ? "99+" : cartCount}</span>}
+          </Link>
+        </header>
 
-            <div className="hero-proof">
-              <div className="proof-stat">
-                <strong>{(Array.isArray(products) ? products.length : 0) || "100"}+</strong>
-                <span>Products</span>
-              </div>
-              <div className="proof-stat">
-                <strong>{categories.length || "24"}+</strong>
-                <span>Categories</span>
-              </div>
-              <div className="proof-stat">
-                <strong>{sellerCount || "50"}+</strong>
-                <span>Partner Brands</span>
-              </div>
-              <div className="proof-stat">
-                <strong>4.9/5</strong>
-                <span>Customer Rating</span>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ============ TRUST STRIP ============ */}
+        <div className="home-trust">
+          {TRUST_ITEMS.map((t, i) => (
+            <span key={i} className="home-trust-item">
+              {t.icon} {t.label}
+            </span>
+          ))}
+        </div>
 
-        {/* ============ SHOWCASE CAROUSEL ============ */}
-        {Array.isArray(img) && img.length > 0 && <Carousel images={img} />}
-
-        {/* ============ SHORTS TEASER ============ */}
-        {shortsPreview.length > 0 && (
-          <RevealSection className="shorts-teaser" as="section">
-            <div className="section-heading shorts-teaser-head">
+        {/* ============ SHORTS RAIL ============ */}
+        {shorts.length > 0 && (
+          <section className="home-section home-shorts">
+            <div className="section-bar">
               <div>
                 <p className="section-eyebrow">Watch &amp; Shop</p>
-                <h2 className="title">Products in Shorts</h2>
+                <h2 className="title">Shorts</h2>
               </div>
-              <Link to="/shorts" className="shorts-teaser-link">
-                <FaPlay /> Watch Shorts
+              <Link to="/shorts" className="section-link">
+                Watch all <FaArrowRight />
               </Link>
             </div>
-            <div className="shorts-teaser-cards">
-              {shortsPreview.map((product) => (
-                <Link
-                  to={`/shorts?p=${product.id}`}
-                  key={product.id}
-                  className="shorts-teaser-card"
-                >
-                  <div className="shorts-teaser-media">
-                    {product.image && <img src={product.image} alt={product.name} loading="lazy" />}
-                    <span className="shorts-teaser-play"><FaPlay /></span>
-                    <div className="shorts-teaser-actions">
-                      <span><FaHeart /> {product.like_count || 0}</span>
-                      <span><FaComment /> {product.comment_count || 0}</span>
-                      <span><FaShareAlt /></span>
-                    </div>
+            <div className="home-shorts-rail">
+              {shorts.map((p) => (
+                <Link to={`/shorts?p=${p.id}`} key={p.id} className="shorts-rail-card">
+                  <div className="shorts-rail-media">
+                    {p.video ? (
+                      <video
+                        src={p.video}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        title={p.name}
+                      />
+                    ) : (
+                      p.image && <img src={p.image} alt={p.name} loading="lazy" decoding="async" />
+                    )}
+                    <span className="shorts-rail-play">
+                      <FaPlay />
+                    </span>
+                    {p.like_count > 0 && (
+                      <span className="shorts-rail-likes">
+                        <FaFire /> {p.like_count}
+                      </span>
+                    )}
                   </div>
-                  <div className="shorts-teaser-info">
-                    <strong>{product.seller_name}</strong>
-                    <span>{product.name}</span>
-                  </div>
+                  <span className="shorts-rail-seller">
+                    {p.seller_avatar ? (
+                      <img src={p.seller_avatar} alt="" loading="lazy" />
+                    ) : (
+                      <span className="shorts-rail-avatar-fallback">
+                        {(p.seller_name || "?").charAt(0)}
+                      </span>
+                    )}
+                    <em>{p.seller_name || "Seller"}</em>
+                  </span>
                 </Link>
               ))}
             </div>
-          </RevealSection>
+          </section>
         )}
 
-        {/* ============ BRAND STRIP ============ */}
-        {uniqueBrands.length > 0 && (
-          <RevealSection className="featured-brands" as="section">
-            <p className="brands-label">Trusted by leading local brands</p>
-            <div className="brands-list">
-              {uniqueBrands.map((brand, idx) => (
-                <span key={idx} className="brand-badge">
-                  {brand}
-                </span>
-            ))}
-          </div>
-          </RevealSection>
-        )}
-
-        {/* ============ WHY instaBrandz ============ */}
-        <RevealSection className="features" as="section">
-          <div className="section-heading">
-            <p className="section-eyebrow">Why instaBrandz</p>
-            <h2 className="title">Built for the Next Generation of Commerce</h2>
-          </div>
-          <div className="features-grid">
-            {FEATURES.map((f, i) => (
-              <div className="feature-card" key={i}>
-                <div className="feature-icon">{f.icon}</div>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
-              </div>
-            ))}
-          </div>
-        </RevealSection>
-
-        {/* ============ CATEGORIES ============ */}
-        <RevealSection className="categories" as="section">
-          <div className="section-heading">
-            <p className="section-eyebrow">Browse by Category</p>
-            <h2 className="title">Shop the Finest Selection</h2>
+        {/* ============ CATEGORY STRIP ============ */}
+        <section className="home-section home-categories">
+          <div className="section-bar">
+            <div>
+              <p className="section-eyebrow">Browse</p>
+              <h2 className="title">Categories</h2>
+            </div>
           </div>
           {Array.isArray(categories) && categories.length > 0 ? (
-            <div className="categories-grid">
-              {categories.map((category) => (
+            <div className="home-category-strip">
+              {categories.map((cat) => (
                 <Link
-                  to={`/products?category=${category.id}`}
-                  key={category.id}
-                  className="category"
+                  to={`/products?category=${cat.id}`}
+                  key={cat.id}
+                  className="category-chip"
                 >
-                  <h3>{category.name}</h3>
-                  <span className="category-arrow">→</span>
+                  <span className="category-chip-icon">{getCategoryIcon(cat.name)}</span>
+                  <span className="category-chip-name">{cat.name}</span>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="empty">
-              <h2>Categories are coming soon</h2>
-            </div>
+            <p className="home-empty">Categories are coming soon.</p>
           )}
-        </RevealSection>
+        </section>
 
-        {/* ============ FEATURED PRODUCTS ============ */}
-        <RevealSection className="cards-container" as="section">
-          <div className="section-heading">
-            <p className="section-eyebrow">Handpicked for You</p>
-            <h2 className="title">Featured Products</h2>
+        {/* ============ FEATURED SELLERS ============ */}
+        {sellers.length > 0 && (
+          <section className="home-section home-sellers">
+            <div className="section-bar">
+              <div>
+                <p className="section-eyebrow">Meet your shopkeepers</p>
+                <h2 className="title">Featured Sellers</h2>
+              </div>
+              <Link to="/sellers" className="section-link">
+                All sellers <FaArrowRight />
+              </Link>
+            </div>
+            <div className="home-sellers-row">
+              {sellers.map((s) => (
+                <Link to={`/seller/${s.id}`} key={s.id} className="seller-badge">
+                  <span className="seller-badge-avatar">
+                    {s.avatar ? (
+                      <img src={s.avatar} alt={s.business_name} loading="lazy" />
+                    ) : (
+                      <span className="seller-badge-fallback">
+                        {(s.business_name || "?").charAt(0)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="seller-badge-name">
+                    {s.business_name}
+                    {s.verified && <FaCheckCircle className="verified-badge" />}
+                  </span>
+                  <span className="seller-badge-rating">
+                    {renderStars(s.average_rating)}
+                    <em>{s.average_rating ? Number(s.average_rating).toFixed(1) : "New"}</em>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============ TRENDING PRODUCTS ============ */}
+        <section className="home-section home-trending">
+          <div className="section-bar">
+            <div>
+              <p className="section-eyebrow">Most loved right now</p>
+              <h2 className="title">Trending Now</h2>
+            </div>
+            <Link to="/products" className="section-link">
+              Shop everything <FaArrowRight />
+            </Link>
           </div>
-          {featuredProducts.length > 0 ? (
+          {trending.length > 0 ? (
             <div className="cards-grid">
-              {featuredProducts.map((product) => (
-                <Card
-                  key={product.id}
-                  card={product}
-                  categories={categories}
-                  tags={tags}
-                />
+              {trending.map((product) => (
+                <Card key={product.id} card={product} categories={categories} tags={tags} />
               ))}
             </div>
           ) : (
-            <div className="empty">
-              <h2>There isn't any Products</h2>
+            <div className="home-empty">
+              <p>No products yet — check back soon.</p>
             </div>
           )}
-        </RevealSection>
+        </section>
 
-        {/* ============ LATEST PRODUCTS ============ */}
-        <RevealSection className="cards-container" as="section">
-          <div className="section-heading">
-            <p className="section-eyebrow">Fresh Arrivals</p>
-            <h2 className="title">Our Latest Products</h2>
+        {/* ============ SELLER CTA ============ */}
+        <section className="home-cta">
+          <div className="home-cta-inner">
+            <span className="home-cta-icon">
+              <FaUserPlus />
+            </span>
+            <div className="home-cta-text">
+              <h2>Got a brand? Start selling today.</h2>
+              <p>Upload your products, add short videos, and let shoppers find you in the feed.</p>
+            </div>
+            <Link to="/seller-register" className="home-cta-btn">
+              Become a Seller
+            </Link>
           </div>
-          {latestProducts.length > 0 ? (
-            <div className="cards-grid">
-              {latestProducts
-                .filter((product) => product.is_active === true)
-                .map((product) => (
-                  <Card
-                    key={product.id}
-                    card={product}
-                    categories={categories}
-                    tags={tags}
-                  />
-                ))}
-            </div>
-          ) : (
-            <div className="empty">
-              <h2>There isn't any Products</h2>
-            </div>
-          )}
-        </RevealSection>
-
-        {/* ============ CTA BANNER ============ */}
-        <RevealSection className="cta-banner" as="section">
-          <div className="cta-banner-bg" aria-hidden="true">
-            <div className="hero-glow hero-glow--one" />
-          </div>
-          <div className="cta-content">
-            <div className="cta-stars">
-              <FaStar />
-              <FaStar />
-              <FaStar />
-              <FaStar />
-              <FaStar />
-            </div>
-            <h2>Become a Part of the instaBrandz Story</h2>
-            <p>
-              Join a fast-growing marketplace loved by shoppers and backed by a
-              team obsessed with quality and trust.
-            </p>
-            <div className="cta-actions">
-              <Link to="/products" className="btn-primary">
-                Start Shopping
-              </Link>
-              <Link to="/seller-register" className="btn-ghost">
-                Become a Seller
-              </Link>
-            </div>
-          </div>
-        </RevealSection>
+        </section>
       </div>
     </>
   );

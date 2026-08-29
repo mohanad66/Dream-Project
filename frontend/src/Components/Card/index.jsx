@@ -254,6 +254,9 @@ export default function Card({ card, categories = [], tags = [] }) {
             onLoad={() => setImgLoaded(true)}
           />
           {card.video && <span className="card-video-badge"><FaVideo /> Video</span>}
+          {card.sold_today > 0 && (
+            <span className="card-sold-badge"><FaFire /> {card.sold_today} sold today</span>
+          )}
           {allImages.length > 1 && (
             <>
               <button className="carousel-btn prev" onClick={prevImage}>❮</button>

@@ -409,7 +409,18 @@ def create_public_list_view(
 
             # Optimize queries
             if model == Product:
-                queryset = queryset.select_related("seller__user").prefetch_related("tags", "gallery_images")
+                today = timezone.now().date()
+                queryset = (
+                    queryset.select_related("seller__user")
+                    .prefetch_related("tags", "gallery_images")
+                    .annotate(
+                        sold_today=Count(
+                            "order_items",
+                            filter=Q(order_items__order__created_at__date=today),
+                            distinct=True,
+                        )
+                    )
+                )
 
             if filter_active:
                 queryset = queryset.filter(is_active=True)

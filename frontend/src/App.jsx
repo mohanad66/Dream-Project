@@ -98,6 +98,8 @@ export default function App() {
     [location.pathname],
   );
 
+  const isHome = location.pathname === "/";
+
   const commonData = data || {};
   if (isLoading) {
     return <LoadingFallback />;
@@ -109,7 +111,7 @@ export default function App() {
         className="app-wrapper"
         style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
       >
-        {shouldShowNavbar && <TopBar />}
+        {shouldShowNavbar && !isHome && <TopBar />}
         {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
 
         <main style={{ flex: 1 }}>

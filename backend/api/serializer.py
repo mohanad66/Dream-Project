@@ -170,6 +170,7 @@ class ProductSerializer(serializers.ModelSerializer):
     like_count = serializers.ReadOnlyField()
     comment_count = serializers.ReadOnlyField()
     average_rating = serializers.ReadOnlyField()
+    sold_today = serializers.IntegerField(read_only=True, default=0)
     is_liked = serializers.SerializerMethodField()
     is_own_seller = serializers.SerializerMethodField()
 
@@ -197,6 +198,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "like_count",
             "comment_count",
             "average_rating",
+            "sold_today",
             "is_liked",
             "is_own_seller",
         ]
