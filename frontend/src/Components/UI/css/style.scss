@@ -275,6 +275,12 @@ select.input-custom {
     height: 180px;
     object-fit: cover;
     display: block;
+
+    &--video {
+      object-fit: contain;
+      background: #000;
+      height: 220px;
+    }
   }
 
   &__name {

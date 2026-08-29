@@ -11,10 +11,16 @@ import {
   FaCheck,
   FaUserCircle,
   FaPlus,
+  FaPlay,
+  FaPercent,
+  FaEye,
 } from "react-icons/fa";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
 import "./css/style.scss";
+
+const isOffer = (item) =>
+  !!(item && (item.offer_type !== undefined || item.discount_percent !== undefined || (item.title && item.product === null)));
 
 export default function ShortsFeed({
   items = [],
@@ -30,7 +36,9 @@ export default function ShortsFeed({
   const [commentOpenId, setCommentOpenId] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [videoPaused, setVideoPaused] = useState({});
   const containerRef = useRef(null);
+  const videoRefs = useRef({});
 
   const isLoggedIn = () => {
     const access = localStorage.getItem(ACCESS_TOKEN);
@@ -71,6 +79,35 @@ export default function ShortsFeed({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startIndex]);
+
+  // Play the active video, pause the rest
+  useEffect(() => {
+    Object.entries(videoRefs.current).forEach(([id, video]) => {
+      if (!video) return;
+      const slideIndex = items.findIndex((it) => it._type !== "offer" && String(it.id) === String(id));
+      const shouldPlay = slideIndex === activeIndex && !videoPaused[id];
+      if (shouldPlay) {
+        const p = video.play();
+        if (p && p.catch) p.catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, [activeIndex, items, videoPaused]);
+
+  const toggleVideo = (product, index) => {
+    const video = videoRefs.current[product.id];
+    if (!video) return;
+    if (index === activeIndex) {
+      if (video.paused) {
+        video.play().catch(() => {});
+        setVideoPaused((prev) => ({ ...prev, [product.id]: false }));
+      } else {
+        video.pause();
+        setVideoPaused((prev) => ({ ...prev, [product.id]: true }));
+      }
+    }
+  };
 
   const getLikeState = (product) => {
     if (likeStates[product.id] !== undefined) return likeStates[product.id];
@@ -166,11 +203,13 @@ export default function ShortsFeed({
     }
   };
 
-  const handleShare = async (product) => {
+  const handleShare = async (item, type) => {
     try {
-      const shareUrl = `${window.location.origin}/shorts?p=${product.id}`;
+      const key = type === "offer" ? "o" : "p";
+      const shareUrl = `${window.location.origin}/shorts?${key}=${item.id}`;
+      const text = item.title || item.name || "DreamStore";
       if (navigator.share) {
-        navigator.share({ title: product.name, text: product.description || product.name, url: shareUrl });
+        navigator.share({ title: text, text: item.description || text, url: shareUrl });
       } else {
         await navigator.clipboard.writeText(shareUrl);
         alert("Link copied to clipboard!");
@@ -199,120 +238,231 @@ export default function ShortsFeed({
 
   const images = (product) => [product.image, ...(product.gallery_images?.map((g) => g.image) || [])].filter(Boolean);
 
-  return (
-    <div className={`shorts-feed ${onEnd ? "has-caption" : ""}`} ref={containerRef} style={{ height }}>
-      {items.map((product, index) => {
-        const like = getLikeState(product);
-        const follow = getFollowState(product.seller);
-        const productComments = comments[product.id] || [];
-        const imgs = images(product);
-        return (
-          <div className="shorts-slide" key={product.id}>
-            <div className="shorts-media">
-              {imgs[0] ? (
-                <img
-                  src={imgs[0]}
-                  alt={product.name}
-                  loading={index > 1 ? "lazy" : "eager"}
-                  decoding="async"
-                />
-              ) : (
-                <div className="shorts-placeholder">
-                  <FaShoppingCart size={48} />
-                </div>
-              )}
+  const renderSellerAvatar = (sellerId, avatar, size = "avatar") => (
+    <Link
+      to={sellerId ? `/seller/${sellerId}` : "/sellers"}
+      className={`shorts-seller-avatar ${size}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {avatar ? <img src={avatar} alt="" /> : <FaUserCircle />}
+    </Link>
+  );
+
+  const renderBrandRow = (sellerId, sellerName, avatar, verified, ownSeller, follow) => (
+    <div className="shorts-brand-row">
+      {renderSellerAvatar(sellerId, avatar)}
+      <div className="shorts-brand-text">
+        <Link to={sellerId ? `/seller/${sellerId}` : "/sellers"} className="shorts-brand-name">
+          {sellerName || "DreamStore Seller"}
+          {verified && <span className="shorts-verified" title="Verified Seller">✓</span>}
+        </Link>
+        <span className="shorts-brand-sub">
+          {ownSeller ? (
+            <em>Your Store</em>
+          ) : (
+            <button
+              className={`shorts-inline-follow ${follow.followed ? "following" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFollow(sellerId, ownSeller);
+              }}
+            >
+              {follow.followed ? <><FaCheck /> Following</> : <><FaPlus /> Follow</>}
+            </button>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+
+  const renderOfferSlide = (offer, index) => {
+    const imagesList = [offer.image, offer.product_image].filter(Boolean);
+    const bg = imagesList[0];
+
+    return (
+      <div className="shorts-slide shorts-slide--offer" key={`offer-${offer.id}`}>
+        <div className="shorts-media">
+          {bg ? (
+            <img src={bg} alt={offer.title} loading={index > 1 ? "lazy" : "eager"} decoding="async" />
+          ) : (
+            <div className="shorts-placeholder">
+              <FaPercent size={48} />
             </div>
-            <div className="shorts-gradient top" />
-            <div className="shorts-gradient bottom" />
+          )}
+        </div>
+        <div className="shorts-gradient top" />
+        <div className="shorts-gradient bottom" />
 
-            {/* Right action rail */}
-            <div className="shorts-rail">
-              {product.seller && (
-                <div className="shorts-seller">
-                  <Link to={`/seller/${product.seller}`} className="shorts-seller-avatar">
-                    {product.seller_avatar ? (
-                      <img src={product.seller_avatar} alt="" />
-                    ) : (
-                      <FaUserCircle />
-                    )}
-                  </Link>
-                  {product.is_own_seller ? (
-                    <span className="shorts-follow own" aria-label="Your store">✓</span>
-                  ) : (
-                    <button
-                      className={`shorts-follow ${follow.followed ? "following" : ""}`}
-                      onClick={() => toggleFollow(product.seller, product.is_own_seller)}
-                      aria-label={follow.followed ? "Unfollow seller" : "Follow seller"}
-                    >
-                      {follow.followed ? <FaCheck /> : <FaPlus />}
-                    </button>
-                  )}
-                </div>
-              )}
+        <div className="shorts-offer-body">
+          <span className="shorts-offer-chip">
+            <FaPercent /> LIMITED OFFER
+          </span>
+          {offer.discount_percent && (
+            <span className="shorts-offer-discount">-{offer.discount_percent}%</span>
+          )}
+          <h2 className="shorts-offer-title">{offer.title}</h2>
+          {offer.description && <p className="shorts-offer-desc">{offer.description}</p>}
+          {offer.original_price != null && (
+            <p className="shorts-offer-price">From {offer.original_price} L.E</p>
+          )}
+          <div className="shorts-offer-actions">
+            <Link to={offer.product ? `/products?focus=${offer.product}` : "/products"} className="shorts-offer-cta">
+              Shop the deal <FaEye />
+            </Link>
+          </div>
+          <div className="shorts-offer-brand">
+            {renderBrandRow(
+              offer.seller,
+              offer.seller_name,
+              offer.seller_avatar,
+              offer.seller_verified,
+              false,
+              getFollowState(offer.seller),
+            )}
+          </div>
+        </div>
 
-              <button
-                className={`shorts-rail-btn like ${like.liked ? "active" : ""}`}
-                onClick={() => toggleLike(product)}
-                aria-label="Like"
-              >
-                <FaHeart />
-                {like.count > 0 && <span>{like.count}</span>}
-              </button>
+        <div className="shorts-rail">
+          <button className="shorts-rail-btn" onClick={() => handleShare(offer, "offer")} aria-label="Share offer">
+            <FaShareAlt />
+          </button>
+        </div>
 
-              <button
-                className="shorts-rail-btn"
-                onClick={() => toggleComments(product)}
-                aria-label="Comments"
-              >
-                <FaComment />
-                {(product.comment_count || productComments.length) > 0 && (
-                  <span>{product.comment_count || productComments.length}</span>
-                )}
-              </button>
+        <div className="shorts-progress">
+          {items.map((_, i) => (
+            <span key={i} className={`short-progress-bar ${i === index ? "current" : ""} ${i < index ? "done" : ""}`} />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
-              <button className="shorts-rail-btn" onClick={() => handleShare(product)} aria-label="Share">
-                <FaShareAlt />
-              </button>
+  const renderProductSlide = (product, index) => {
+    const like = getLikeState(product);
+    const imgs = images(product);
+    const hasVideo = !!product.video;
+    const useVideo = hasVideo && product._type !== "forced-image";
+    const effective = parseFloat(product.effective_price);
+    const original = parseFloat(product.price);
+    const isSale = product.effective_price && effective < original;
 
-              <button className="shorts-rail-btn cart" onClick={() => addToCart(product)} aria-label="Add to cart">
-                <FaShoppingCart />
-              </button>
+    return (
+      <div className="shorts-slide" key={product.id}>
+        <div className="shorts-media" onClick={() => toggleVideo(product, index)}>
+          {useVideo ? (
+            <video
+              ref={(el) => { videoRefs.current[product.id] = el; }}
+              src={product.video}
+              poster={imgs[0]}
+              preload="metadata"
+              muted
+              loop
+              playsInline
+              autoPlay={index === 0}
+              onEnded={() => { /* loop keeps playing */ }}
+            />
+          ) : imgs[0] ? (
+            <img
+              src={imgs[0]}
+              alt={product.name}
+              loading={index > 1 ? "lazy" : "eager"}
+              decoding="async"
+            />
+          ) : (
+            <div className="shorts-placeholder">
+              <FaShoppingCart size={48} />
             </div>
-
-            {/* Bottom info */}
-            <div className="shorts-footer">
-              <Link to={`/seller/${product.seller}`} className="shorts-brand">
-                {product.seller_name}
-              </Link>
-              {product.average_rating > 0 && (
-                <span className="shorts-rating">
-                  {renderStars(product.average_rating)}
-                  <em>{product.average_rating}</em>
-                </span>
+          )}
+          {useVideo && (
+            <>
+              <span className="shorts-video-badge"><FaPlay /> Watch</span>
+              {videoPaused[product.id] && (
+                <span className="shorts-video-paused"><FaPlay /></span>
               )}
-              <h2 className="shorts-title">{product.name}</h2>
-              {product.effective_price && parseFloat(product.effective_price) < parseFloat(product.price) ? (
-                <div className="shorts-price">
+            </>
+          )}
+        </div>
+        <div className="shorts-gradient top" />
+        <div className="shorts-gradient bottom" />
+
+        {/* Seller branding */}
+        <div className="shorts-top-bar">
+          {renderBrandRow(product.seller, product.seller_name, product.seller_avatar, product.seller_verified, product.is_own_seller, getFollowState(product.seller))}
+        </div>
+
+        {/* Right action rail */}
+        <div className="shorts-rail">
+          <button
+            className={`shorts-rail-btn like ${like.liked ? "active" : ""}`}
+            onClick={() => toggleLike(product)}
+            aria-label="Like"
+          >
+            <FaHeart />
+            {like.count > 0 && <span>{like.count}</span>}
+          </button>
+
+          <button
+            className="shorts-rail-btn"
+            onClick={() => toggleComments(product)}
+            aria-label="Comments"
+          >
+            <FaComment />
+            {(product.comment_count || (comments[product.id] || []).length) > 0 && (
+              <span>{product.comment_count || (comments[product.id] || []).length}</span>
+            )}
+          </button>
+
+          <button className="shorts-rail-btn" onClick={() => handleShare(product, "product")} aria-label="Share">
+            <FaShareAlt />
+          </button>
+
+          <button className="shorts-rail-btn cart" onClick={() => addToCart(product)} aria-label="Add to cart">
+            <FaShoppingCart />
+          </button>
+        </div>
+
+        {/* Bottom info */}
+        <div className="shorts-footer">
+          {product.average_rating > 0 && (
+            <span className="shorts-rating">
+              {renderStars(product.average_rating)}
+              <em>{product.average_rating}</em>
+            </span>
+          )}
+          <h2 className="shorts-title">{product.name}</h2>
+          {product.description && <p className="shorts-desc">{product.description}</p>}
+          <div className="shorts-buy-row">
+            <div className="shorts-price">
+              {isSale ? (
+                <>
                   <span className="shorts-price-now">{product.effective_price} L.E</span>
                   <span className="shorts-price-was">{product.price} L.E</span>
-                </div>
+                </>
               ) : (
-                <div className="shorts-price">
-                  <span className="shorts-price-now">{product.price} L.E</span>
-                </div>
+                <span className="shorts-price-now">{product.price} L.E</span>
               )}
-              {product.description && <p className="shorts-desc">{product.description}</p>}
             </div>
-
-            {/* Progress indicator */}
-            <div className="shorts-progress">
-              {items.map((_, i) => (
-                <span key={i} className={`short-progress-bar ${i === index ? "current" : ""} ${i < index ? "done" : ""}`} />
-              ))}
-            </div>
+            <button className="shorts-buy-btn" onClick={() => addToCart(product)}>
+              <FaShoppingCart /> Add to Cart
+            </button>
           </div>
-        );
-      })}
+        </div>
+
+        {/* Progress indicator */}
+        <div className="shorts-progress">
+          {items.map((_, i) => (
+            <span key={i} className={`short-progress-bar ${i === index ? "current" : ""} ${i < index ? "done" : ""}`} />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`shorts-feed ${onEnd ? "has-caption" : ""}`} ref={containerRef} style={{ height }}>
+      {items.map((item, index) =>
+        isOffer(item) ? renderOfferSlide(item, index) : renderProductSlide(item, index)
+      )}
 
       {onEnd && items.length > 0 && (
         <div className="shorts-end">
@@ -332,33 +482,40 @@ export default function ShortsFeed({
               <button onClick={() => setCommentOpenId(null)} aria-label="Close">✕</button>
             </div>
             <div className="shorts-comments-list">
-              {productComments.length === 0 && <p className="shorts-comments-empty">No comments yet. Be the first!</p>}
-              {productComments.map((comment) => {
-                const target = items.find((p) => p.id === commentOpenId);
+              {(() => {
+                const activeComments = comments[commentOpenId] || [];
                 return (
-                  <div className="shorts-comment" key={comment.id}>
-                    <div className="shorts-comment-avatar">
-                      {comment.user_avatar ? <img src={comment.user_avatar} alt="" /> : <FaUserCircle />}
-                    </div>
-                    <div className="shorts-comment-body">
-                      <strong>{comment.user_name}</strong>
-                      <p>{comment.content}</p>
-                      <span>{new Date(comment.created_at).toLocaleDateString()}</span>
-                    </div>
-                    {target && isLoggedIn() && (
-                      <button className="shorts-comment-delete" onClick={() => deleteComment(target.id, comment.id)} aria-label="Delete">
-                        <FaTrash />
-                      </button>
-                    )}
-                  </div>
+                  <>
+                    {activeComments.length === 0 && <p className="shorts-comments-empty">No comments yet. Be the first!</p>}
+                    {activeComments.map((comment) => {
+                      const target = items.find((p) => p && !isOffer(p) && p.id === commentOpenId);
+                      return (
+                        <div className="shorts-comment" key={comment.id}>
+                          <div className="shorts-comment-avatar">
+                            {comment.user_avatar ? <img src={comment.user_avatar} alt="" /> : <FaUserCircle />}
+                          </div>
+                          <div className="shorts-comment-body">
+                            <strong>{comment.user_name}</strong>
+                            <p>{comment.content}</p>
+                            <span>{new Date(comment.created_at).toLocaleDateString()}</span>
+                          </div>
+                          {target && isLoggedIn() && (
+                            <button className="shorts-comment-delete" onClick={() => deleteComment(target.id, comment.id)} aria-label="Delete">
+                              <FaTrash />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
                 );
-              })}
+              })()}
             </div>
             <form
               className="shorts-comments-form"
               onSubmit={(e) => {
                 e.preventDefault();
-                submitComment(items.find((p) => p.id === commentOpenId));
+                submitComment(items.find((p) => p && !isOffer(p) && p.id === commentOpenId));
               }}
             >
               <input

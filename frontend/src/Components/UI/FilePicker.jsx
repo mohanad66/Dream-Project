@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { FaImage } from "react-icons/fa6";
+import { FaImage, FaVideo } from "react-icons/fa6";
 
 const FilePicker = ({
   label,
@@ -8,6 +8,7 @@ const FilePicker = ({
   accept = "image/*",
   initialPreview,
   value,
+  isVideo = false,
 }) => {
   const inputRef = useRef(null);
   const [preview, setPreview] = useState(null);
@@ -22,7 +23,26 @@ const FilePicker = ({
     }
   };
 
-  const showImage = preview || (initialPreview && !preview ? initialPreview : null);
+  const showPreview = preview || (!preview && initialPreview ? initialPreview : null);
+
+  const renderPreview = () => {
+    if (isVideo) {
+      return showPreview ? (
+        <video className="filepicker__preview filepicker__preview--video" src={showPreview} muted playsInline controls />
+      ) : (
+        <span className="filepicker__placeholder">
+          <FaVideo /> Click to choose a video
+        </span>
+      );
+    }
+    return showPreview ? (
+      <img className="filepicker__preview" src={showPreview} alt="Preview" />
+    ) : (
+      <span className="filepicker__placeholder">
+        <FaImage /> Click to choose an image
+      </span>
+    );
+  };
 
   return (
     <div className="field-custom">
@@ -39,13 +59,7 @@ const FilePicker = ({
           onChange={handleChange}
           hidden
         />
-        {showImage ? (
-          <img className="filepicker__preview" src={showImage} alt="Preview" />
-        ) : (
-          <span className="filepicker__placeholder">
-            <FaImage /> Click to choose an image
-          </span>
-        )}
+        {renderPreview()}
       </button>
       {value?.name ? (
         <p className="filepicker__name">{value.name}</p>

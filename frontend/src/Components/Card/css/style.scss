@@ -995,3 +995,26 @@
     animation: none;
   }
 }
+
+/* ---------- Video badge ---------- */.card-video-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 50px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(201, 162, 75, 0.5);
+  pointer-events: none;
+  svg {
+    color: var(--color-gold, #c9a24b);
+  }
+}

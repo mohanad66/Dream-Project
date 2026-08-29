@@ -20,32 +20,42 @@ export default function Shorts({
       setLoading(true);
       try {
         const access = localStorage.getItem(ACCESS_TOKEN);
-        const followed = access && access.trim() !== "";
+        const hasToken = access && access.trim() !== "";
 
-        const [homeRes] = await Promise.all([
-          api.get("/api/feed/home/"),
-        ]);
+        const [homeRes] = await Promise.all([api.get("/api/feed/home/")]);
 
-        const combined = [];
-        if (followed) {
+        let followedProducts = [];
+        let followedOffers = [];
+        if (hasToken) {
           try {
             const followedRes = await api.get("/api/feed/followed/");
-            combined.push(...(followedRes.data.products || []));
+            followedProducts = followedRes.data.products || [];
+            followedOffers = followedRes.data.offers || [];
           } catch (err) {}
         }
 
+        // Popular (most liked) first regardless of follows, then recent,
+        // then followed sellers, then offers as brand slides.
+        const combined = [];
         combined.push(...(homeRes.data.trending || []));
         combined.push(...(homeRes.data.recent || []));
+        combined.push(...followedProducts);
 
-        // Deduplicate by id
         const seen = new Set();
-        const unique = combined.filter((p) => {
+        const uniqueProducts = combined.filter((p) => {
           if (!p?.id || seen.has(p.id)) return false;
           seen.add(p.id);
           return true;
         });
 
-        setItems(unique);
+        const offers = [
+          ...(followedOffers.length ? followedOffers : []),
+          ...(homeRes.data.offers || []),
+        ]
+          .filter((o) => o && o.id)
+          .filter((o, i, arr) => arr.findIndex((x) => x.id === o.id) === i);
+
+        setItems([...uniqueProducts, ...offers]);
       } catch (err) {
         console.error("Failed to load shorts feed:", err);
       } finally {
@@ -56,8 +66,8 @@ export default function Shorts({
     loadFeed();
   }, []);
 
-  const targetId = searchParams.get("p");
-  const startIndex = targetId ? Math.max(0, items.findIndex((p) => String(p.id) === targetId)) : 0;
+  const targetId = searchParams.get("p") || searchParams.get("o");
+  const startIndex = targetId ? Math.max(0, items.findIndex((it) => String(it.id) === String(targetId))) : 0;
 
   if (loading) {
     return (

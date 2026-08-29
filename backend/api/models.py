@@ -594,6 +594,11 @@ class Product(models.Model, ImageHandlingMixin):
         blank=False,
         help_text="Upload product image (width must be equal to or greater than height)",
     )
+    video = models.FileField(
+        upload_to="products/videos/",
+        blank=True,
+        help_text="Optional promotional video (MP4/WebM) shown in the Shorts feed.",
+    )
     name = models.CharField(
         max_length=70, unique=True, help_text="Product name (must be unique)"
     )

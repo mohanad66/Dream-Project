@@ -162,8 +162,10 @@ class ProductSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    video = serializers.FileField(allow_empty_file=False, required=False)
     seller_name = serializers.CharField(source="seller.business_name", read_only=True)
     seller_avatar = serializers.ImageField(source="seller.avatar", read_only=True, default="")
+    seller_verified = serializers.SerializerMethodField()
     effective_price = serializers.SerializerMethodField()
     like_count = serializers.ReadOnlyField()
     comment_count = serializers.ReadOnlyField()
@@ -180,6 +182,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "price",
             "effective_price",
             "image",
+            "video",
             "gallery_images",
             "uploaded_images",
             "category",
@@ -188,6 +191,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "seller",
             "seller_name",
             "seller_avatar",
+            "seller_verified",
             "approval_status",
             "rejection_reason",
             "like_count",
@@ -197,6 +201,10 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_own_seller",
         ]
         read_only_fields = ["seller", "seller_name", "seller_avatar", "approval_status", "rejection_reason"]
+
+    def get_seller_verified(self, obj):
+        seller = obj.seller
+        return bool(seller and seller.verification_status == "approved")
 
     def get_is_liked(self, obj):
         request = self.context.get("request")
@@ -446,16 +454,21 @@ class CouponValidateSerializer(serializers.Serializer):
 class SellerOfferSerializer(serializers.ModelSerializer):
     seller_name = serializers.CharField(source="seller.business_name", read_only=True)
     seller_avatar = serializers.ImageField(source="seller.avatar", read_only=True)
+    seller_verified = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerOffer
         fields = [
-            "id", "seller", "seller_name", "seller_avatar",
+            "id", "seller", "seller_name", "seller_avatar", "seller_verified",
             "title", "description", "offer_type", "product",
             "discount_percent", "original_price", "image",
             "is_active", "starts_at", "expires_at", "created_at",
         ]
         read_only_fields = ["seller", "created_at"]
+
+    def get_seller_verified(self, obj):
+        seller = obj.seller
+        return bool(seller and seller.verification_status == "approved")
 
     def validate(self, attrs):
         offer_type = attrs.get("offer_type", self.instance and self.instance.offer_type)

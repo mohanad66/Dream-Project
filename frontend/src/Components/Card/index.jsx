@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
-import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle } from "react-icons/fa";
+import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle, FaVideo } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
@@ -253,6 +253,7 @@ export default function Card({ card, categories = [], tags = [] }) {
             decoding="async"
             onLoad={() => setImgLoaded(true)}
           />
+          {card.video && <span className="card-video-badge"><FaVideo /> Video</span>}
           {allImages.length > 1 && (
             <>
               <button className="carousel-btn prev" onClick={prevImage}>❮</button>

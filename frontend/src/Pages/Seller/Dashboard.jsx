@@ -26,6 +26,7 @@ const EMPTY_FORM = {
   price: "",
   category: "",
   image: null,
+  video: null,
 };
 
 export default function SellerDashboard({ initialTab = "overview" }) {
@@ -217,6 +218,9 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       formData.append("price", parseFloat(newProduct.price));
       formData.append("category", newProduct.category);
       formData.append("image", newProduct.image);
+      if (newProduct.video) {
+        formData.append("video", newProduct.video);
+      }
 
       await api.post("/api/sellers/products/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -244,6 +248,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       price: product.price != null ? String(product.price) : "",
       category: product.category != null ? String(product.category) : "",
       image: null,
+      video: null,
     });
     setShowEditModal(true);
   };
@@ -264,6 +269,9 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       formData.append("category", editForm.category);
       if (editForm.image) {
         formData.append("image", editForm.image);
+      }
+      if (editForm.video) {
+        formData.append("video", editForm.video);
       }
 
       await api.patch(`/api/sellers/products/${editingProduct.id}/`, formData, {
@@ -972,6 +980,16 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   setNewProduct({ ...newProduct, image: file })
                 }
               />
+              <FilePicker
+                label="Product Video (optional)"
+                hint="MP4 or WebM — this plays in the Shorts feed and drives engagement."
+                accept="video/mp4,video/webm,video/*"
+                isVideo
+                value={newProduct.video}
+                onChange={(file) =>
+                  setNewProduct({ ...newProduct, video: file })
+                }
+              />
             </div>
             <div className="modal-actions">
               <Button
@@ -1049,6 +1067,17 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                 value={editForm.image}
                 onChange={(file) =>
                   setEditForm({ ...editForm, image: file })
+                }
+              />
+              <FilePicker
+                label="Product Video (optional)"
+                hint="Leave unchanged to keep the current video. This plays in the Shorts feed."
+                accept="video/mp4,video/webm,video/*"
+                isVideo
+                initialPreview={editingProduct.video}
+                value={editForm.video}
+                onChange={(file) =>
+                  setEditForm({ ...editForm, video: file })
                 }
               />
             </div>

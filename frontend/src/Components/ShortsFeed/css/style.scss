@@ -44,6 +44,14 @@
     background: #0a0e16;
   }
 
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #0a0e16;
+    cursor: pointer;
+  }
+
   .shorts-placeholder {
     display: flex;
     align-items: center;
@@ -52,6 +60,55 @@
     height: 100%;
     color: rgba(255, 255, 255, 0.25);
     background: #0a0e16;
+  }
+
+  .shorts-video-badge {
+    position: absolute;
+    top: 2.2rem;
+    right: 0.9rem;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 50px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(6px);
+  }
+
+  .shorts-video-paused {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.9rem;
+    pointer-events: none;
+    animation: shortsPulse 0.3s ease;
+  }
+}
+
+@keyframes shortsPulse {
+  from {
+    transform: translate(-50%, -50%) scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
   }
 }
 
@@ -182,6 +239,115 @@
   100% { transform: scale(1); }
 }
 
+/* ---------- Seller branding (top) ---------- */
+.shorts-top-bar {
+  position: absolute;
+  top: 1.7rem;
+  left: 1.1rem;
+  right: 1.1rem;
+  z-index: 5;
+  display: flex;
+  pointer-events: none;
+}
+
+.shorts-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  pointer-events: none;
+
+  .shorts-seller-avatar {
+    pointer-events: auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid var(--color-gold);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 1.4rem;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .shorts-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .shorts-brand-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    pointer-events: auto;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      color: var(--color-gold);
+    }
+
+    .shorts-verified {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--color-success);
+      color: #fff;
+      font-size: 0.6rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .shorts-brand-sub {
+    pointer-events: auto;
+  }
+
+  .shorts-inline-follow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.9rem;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
+    color: #13150c;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.2s;
+
+    &:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    &.following {
+      background: #dc2626;
+      color: #fff;
+    }
+  }
+}
+
 /* ---------- Bottom info ---------- */
 .shorts-footer {
   position: absolute;
@@ -259,6 +425,56 @@
     }
   }
 
+  .shorts-buy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+
+    .shorts-price {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0;
+
+      .shorts-price-now {
+        font-family: var(--font-family-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-gold);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+      }
+
+      .shorts-price-was {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.55);
+        text-decoration: line-through;
+      }
+    }
+
+    .shorts-buy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 50px;
+      border: none;
+      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
+      color: #13150c;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: filter 0.2s, transform 0.2s;
+
+      &:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+    }
+  }
+
   .shorts-desc {
     font-size: 0.9rem;
     line-height: 1.5;
@@ -269,6 +485,112 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin: 0;
+  }
+}
+
+/* ---------- Offer slides ---------- */
+.shorts-slide--offer {
+  background: #0a0e16;
+
+  .shorts-offer-body {
+    position: relative;
+    z-index: 4;
+    max-width: 460px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+
+    .shorts-offer-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
+      color: #13150c;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-shadow: none;
+    }
+
+    .shorts-offer-discount {
+      font-family: var(--font-family-display);
+      font-size: 2.6rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--color-gold);
+      text-shadow: 0 3px 14px rgba(0, 0, 0, 0.6);
+    }
+
+    .shorts-offer-title {
+      font-family: var(--font-family-display);
+      font-size: 1.5rem;
+      line-height: 1.2;
+      margin: 0;
+      color: #fff;
+    }
+
+    .shorts-offer-desc {
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.85);
+      margin: 0;
+      max-width: 400px;
+    }
+
+    .shorts-offer-price {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+
+    .shorts-offer-actions {
+      margin-top: 0.4rem;
+
+      .shorts-offer-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1.6rem;
+        border-radius: 50px;
+        background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
+        color: #13150c;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: filter 0.2s, transform 0.2s;
+
+        &:hover {
+          filter: brightness(1.08);
+          transform: translateY(-1px);
+        }
+      }
+    }
+
+    .shorts-offer-brand {
+      margin-top: 0.75rem;
+
+      .shorts-brand-row {
+        justify-content: center;
+      }
+
+      .shorts-brand-name {
+        color: #fff;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .shorts-rail {
+    bottom: 2.5rem;
+    right: 0.75rem;
   }
 }
 
