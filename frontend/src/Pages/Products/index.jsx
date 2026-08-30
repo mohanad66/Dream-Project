@@ -233,7 +233,10 @@ export default function Products() {
         },
       }) }} />
       <div className="products-container">
-        <h1>Our Products</h1>
+        <div className="products-heading">
+          <h1>Explore</h1>
+          <p>Watch, discover and shop products from verified sellers.</p>
+        </div>
 
         <div className="filters">
           {/* Search — with immediate visual feedback */}
@@ -380,7 +383,18 @@ export default function Products() {
 
         {/* Product Grid */}
         <div className="products-grid">
-          {products.length > 0 ? (
+          {isSearching && products.length === 0 ? (
+            <>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="product-skeleton-card">
+                  <div className="product-skeleton-card__media" />
+                  <div className="product-skeleton-card__line w60" />
+                  <div className="product-skeleton-card__line w40" />
+                  <div className="product-skeleton-card__line w80" />
+                </div>
+              ))}
+            </>
+          ) : products.length > 0 ? (
             products.map((product) => (
               <Card
                 key={product.id}

@@ -1,41 +1,31 @@
 // ============================================
-// instaBrandz TopBar — fixed top-right utility icons
-// Cart, Wishlist, Notifications
+// instaBrandz TopBar — moved INTO the top header actions on desktop,
+// and hidden on mobile (cart lives on the bottom tab / header).
 // ============================================
 
 .topbar {
   position: fixed;
   top: 0;
   right: 0;
-  z-index: 1000;
-  padding: 12px 16px;
+  z-index: 1040;
+  padding: 10px 14px;
   pointer-events: none;
+
+  @media (min-width: 769px) {
+    display: none;
+  }
 }
 
 .topbar-inner {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(11, 15, 23, 0.82);
+  background: var(--bg-elevated);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border-radius: 16px;
-  padding: 8px 10px;
-  border: 1px solid rgba(14, 165, 164, 0.22);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  pointer-events: auto;
-
-  :root.light-theme & {
-    background: rgba(255, 255, 255, 0.86);
-    border-color: rgba(14, 165, 164, 0.25);
-    box-shadow:
-      0 8px 32px rgba(23, 24, 26, 0.12),
-      0 2px 8px rgba(23, 24, 26, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  }
+  border-radius: 14px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
 }
 
 .topbar-btn {
@@ -44,27 +34,20 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 11px;
   text-decoration: none;
   color: var(--text-muted);
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    color: var(--color-gold);
-    background: rgba(14, 165, 164, 0.1);
+    color: var(--color-primary);
+    background: var(--color-primary-alpha);
     transform: translateY(-1px);
   }
 
   &.active {
-    color: var(--color-gold);
-    background: linear-gradient(135deg, rgba(14, 165, 164, 0.2), rgba(14, 165, 164, 0.08));
-
-    .topbar-icon {
-      filter: drop-shadow(0 0 4px rgba(14, 165, 164, 0.4));
-    }
+    color: var(--color-primary);
+    background: var(--color-primary-alpha);
   }
 }
 
@@ -83,8 +66,8 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background: #dc2626;
-  color: white;
+  background: var(--color-danger);
+  color: #fff;
   font-size: 0.6rem;
   font-weight: 700;
   border-radius: 8px;
@@ -92,19 +75,10 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-  border: 2px solid rgba(11, 15, 23, 0.9);
-
-  :root.light-theme & {
-    border-color: rgba(255, 255, 255, 0.9);
-  }
+  border: 2px solid var(--bg-elevated);
 }
 
-// Responsive
 @media (max-width: 480px) {
-  .topbar {
-    padding: 8px 10px;
-  }
-
   .topbar-btn {
     width: 36px;
     height: 36px;

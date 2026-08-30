@@ -411,7 +411,11 @@ export default function Card({ card, categories = [], tags = [] }) {
                       {card.seller_name}
                     </Link>
                   )}
-                  <h2>{card.name}</h2>
+<h2 className="card-title">
+          <Link to={`/product/${card.id}`} className="card-title__link" onClick={(e) => e.stopPropagation()}>
+            {card.name}
+          </Link>
+        </h2>
                   {card.price && (
                     <p className="card-price">
                       {card.effective_price && parseFloat(card.effective_price) < parseFloat(card.price) ? (

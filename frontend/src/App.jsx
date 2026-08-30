@@ -42,6 +42,8 @@ const NotificationsPage = lazy(() => import("./Pages/Notifications/index.jsx"));
 const WishlistPage = lazy(() => import("./Pages/Wishlist/index.jsx"));
 const ShortsPage = lazy(() => import("./Pages/Shorts/index.jsx"));
 const SellersPage = lazy(() => import("./Pages/Sellers/index.jsx"));
+const UploadPage = lazy(() => import("./Pages/Upload/index.jsx"));
+const ProductDetail = lazy(() => import("./Pages/ProductDetail/index.jsx"));
 
 const LoadingFallback = () => (
   <div className="loading-container">
@@ -178,6 +180,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/upload"
+                element={
+                  <ProtectedRoute>
+                    <UploadPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/profile"
                 element={
                   <ProtectedRoute>
@@ -231,6 +241,15 @@ export default function App() {
                 </ProtectedRoute>
               } />
               <Route path="/seller/:id" element={<SellerProfilePage />} />
+              <Route
+                path="/product/:id"
+                element={
+                  <ProductDetail
+                    categories={commonData.categories || []}
+                    tags={commonData.tags || []}
+                  />
+                }
+              />
               <Route path="/payment/result" element={<PaymentResult />} />
               <Route
                 path="/notifications"

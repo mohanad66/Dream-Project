@@ -1,11 +1,184 @@
 // ============================================
-// instaBrandz Bottom Tab Bar
-// Proper sticky bottom tab bar with solid blurred background.
-// Full-width on mobile, centered on larger screens. Content pages add
-// matching bottom padding so nothing is ever hidden behind it.
+// instaBrandz Navigation
+// Desktop/tablet: sticky top header (brand + links + auth + upload CTA).
+// Mobile: full-width bottom tab bar with a raised center "Upload" action.
 // ============================================
 
-// Navbar Container — full-width fixed bottom bar
+/* ================= DESKTOP / TABLET — TOP HEADER ================= */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky, 1020);
+  background: color-mix(in srgb, var(--bg-body) 82%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-xs);
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: var(--header-height, 68px);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+  }
+
+  &__brand {
+    flex-shrink: 0;
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  &__account {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  &__auth {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.site-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+  }
+
+  &.active {
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+    font-weight: 600;
+  }
+}
+
+.site-upload-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+
+  &:hover {
+    filter: brightness(1.05);
+    box-shadow: var(--shadow-lg);
+    color: #fff;
+  }
+
+  &__icon {
+    display: inline-flex;
+  }
+}
+
+.site-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+  }
+}
+
+.site-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+  }
+}
+
+.site-auth {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.05rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+
+  &--login {
+    color: var(--text-primary);
+    border: 1px solid var(--border-color-strong);
+
+    &:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+  }
+
+  &--register {
+    background: var(--color-primary);
+    color: var(--text-on-primary);
+
+    &:hover {
+      background: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
+      color: var(--text-on-primary);
+    }
+  }
+}
+
+/* Brand wordmark marker color overrides */
+.site-header .brand-wordmark__mark {
+  background: var(--gradient-primary);
+  color: #fff;
+}
+
+/* ================= MOBILE — BOTTOM TAB BAR ================= */
 .performant-navbar {
   position: fixed;
   inset: auto 0 0 0;
@@ -16,20 +189,30 @@
     max(12px, env(safe-area-inset-right))
     calc(6px + env(safe-area-inset-bottom))
     max(12px, env(safe-area-inset-left));
-  background: rgba(13, 16, 26, 0.94);
+  background: var(--bg-elevated);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -10px 30px var(--bg-overlay);
 
-  :root.light-theme & {
-    background: rgba(255, 255, 255, 0.94);
-    border-top-color: rgba(21, 21, 20, 0.08);
-    box-shadow: 0 -10px 30px rgba(23, 24, 26, 0.12);
+  @media (min-width: 769px) {
+    display: none;
   }
 }
 
-// Navbar Disc — constrain item row width, no glass card anymore
+.only-mobile {
+  @media (min-width: 769px) {
+    display: none;
+  }
+}
+
+/* Desktop header hidden below tablet */
+.site-header {
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
 .navbar-disc {
   width: 100%;
   max-width: 620px;
@@ -37,7 +220,6 @@
   position: relative;
 }
 
-// Navigation Items
 .nav-items {
   display: flex;
   justify-content: space-between;
@@ -47,7 +229,6 @@
   z-index: 2;
 }
 
-// Navigation Links
 .nav-link {
   display: flex;
   flex-direction: column;
@@ -59,31 +240,28 @@
   min-width: 0;
   padding: 7px 6px;
   border-radius: 14px;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
 
   &:hover {
     color: var(--text-primary);
-    background: rgba(14, 165, 164, 0.08);
+    background: var(--color-primary-alpha);
   }
 
   &.active {
-    color: var(--color-gold, #0ea5a4);
+    color: var(--color-primary);
 
     .nav-icon {
-      color: var(--color-gold, #0ea5a4);
-      background: rgba(14, 165, 164, 0.14);
+      color: var(--color-primary);
+      background: var(--color-primary-alpha);
     }
 
     .nav-label {
       font-weight: 600;
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-primary);
     }
   }
 }
 
-// Navigation Icon
 .nav-icon {
   position: relative;
   display: flex;
@@ -93,9 +271,7 @@
   height: 30px;
   border-radius: 10px;
   font-size: 1.15rem;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease;
   color: var(--text-muted);
 
   .nav-badge {
@@ -105,7 +281,7 @@
     min-width: 18px;
     height: 18px;
     padding: 0 5px;
-    background: #dc2626;
+    background: var(--color-danger);
     color: white;
     font-size: 0.65rem;
     font-weight: 700;
@@ -117,7 +293,6 @@
   }
 }
 
-// Navigation Label
 .nav-label {
   font-size: 0.68rem;
   font-weight: 500;
@@ -126,19 +301,48 @@
   color: inherit;
 }
 
-// Active Indicator — subtle orange dot above active tab
+/* Raised center upload action */
+.nav-center-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+  flex: 1 1 0;
+  min-width: 0;
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    background: var(--gradient-primary);
+    color: #fff;
+    font-size: 1.15rem;
+    box-shadow: 0 8px 20px var(--color-primary-alpha);
+    transition: transform 0.2s ease;
+  }
+
+  &:active &__icon {
+    transform: scale(0.94);
+  }
+}
+
 .active-indicator {
   position: absolute;
   top: 0;
   width: 32px;
   height: 3px;
   border-radius: 0 0 3px 3px;
-  background: linear-gradient(90deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
+  background: var(--gradient-primary);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
+  display: none;
 }
 
-// Logout Button
 .nav-logout {
   display: flex;
   flex-direction: column;
@@ -155,7 +359,7 @@
 
   &:hover {
     color: var(--color-danger);
-    background: rgba(224, 106, 93, 0.1);
+    background: var(--color-danger-light);
   }
 
   .logout-icon {
@@ -163,7 +367,6 @@
   }
 }
 
-// Auth Buttons
 .nav-auth {
   display: flex;
   flex-direction: column;
@@ -185,8 +388,8 @@
 
   &.nav-register {
     color: #ffffff;
-    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
-    box-shadow: 0 4px 16px rgba(14, 165, 164, 0.35);
+    background: var(--gradient-primary);
+    box-shadow: 0 4px 16px var(--color-primary-alpha);
 
     &:hover {
       filter: brightness(1.06);
@@ -202,9 +405,10 @@
 // Accessibility
 .nav-link:focus,
 .nav-logout:focus,
-.nav-auth:focus {
-  outline: 2px solid var(--color-gold);
-  outline-offset: 2px;
+.nav-auth:focus,
+.nav-center-cta:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 // Reduced motion support
@@ -215,8 +419,19 @@
   .nav-icon,
   .logout-icon,
   .auth-icon,
-  .active-indicator {
+  .active-indicator,
+  .site-header,
+  .site-nav-link,
+  .site-auth,
+  .site-upload-cta,
+  .nav-center-cta__icon {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .site-header__inner {
+    padding: 0 2rem;
   }
 }

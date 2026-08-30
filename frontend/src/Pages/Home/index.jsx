@@ -9,7 +9,6 @@ import { resolveMediaUrl } from "../../utils/media";
 import { cleanProducts, cleanSellers } from "../../utils/cleanData";
 import {
   FaSearch,
-  FaShoppingCart,
   FaPlay,
   FaFire,
   FaCheckCircle,
@@ -28,12 +27,11 @@ import {
   FaDog,
   FaCar,
   FaUserPlus,
+  FaVideo,
+  FaHandsHelping,
+  FaShieldAlt,
 } from "react-icons/fa";
-import {
-  FaShieldHalved,
-  FaTruckFast,
-  FaRotateLeft,
-} from "react-icons/fa6";
+import { FaTruckFast, FaRotateLeft } from "react-icons/fa6";
 
 const CATEGORY_ICONS = [
   [/electron|mobile|phone|computer|laptop|tech|gadget/i, <FaMobileAlt />],
@@ -56,8 +54,14 @@ const getCategoryIcon = (name = "") => {
 
 const TRUST_ITEMS = [
   { icon: <FaTruckFast />, label: "Fast delivery" },
-  { icon: <FaShieldHalved />, label: "Secure Paymob & Fawry" },
+  { icon: <FaShieldAlt />, label: "Secure Paymob & Fawry" },
   { icon: <FaRotateLeft />, label: "Easy returns" },
+];
+
+const HOW_IT_WORKS = [
+  { icon: <FaVideo />, title: "Watch", text: "Discover products through short videos from real Egyptian sellers." },
+  { icon: <FaSearch />, title: "Shop", text: "Like what you see? Tap to view details, compare prices and save favorites." },
+  { icon: <FaHandsHelping />, title: "Buy", text: "Check out instantly with Paymob or Fawry — fast, secure and local." },
 ];
 
 export default function Home({
@@ -68,10 +72,8 @@ export default function Home({
   const navigate = useNavigate();
   const [homeProducts, setHomeProducts] = useState(Array.isArray(products) ? products : []);
   const [sellers, setSellers] = useState([]);
-  const [cartCount, setCartCount] = useState(0);
   const [query, setQuery] = useState("");
 
-  // Fresher/richer product set specifically for the shopfront (page_size = 40)
   useEffect(() => {
     let active = true;
     api
@@ -85,9 +87,7 @@ export default function Home({
         if (clean.length > 0) setHomeProducts(clean);
       })
       .catch(() => {});
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -96,7 +96,6 @@ export default function Home({
     }
   }, [products]);
 
-  // Featured sellers — approved, active, most-followed first
   useEffect(() => {
     let active = true;
     api
@@ -107,40 +106,20 @@ export default function Home({
         }
       })
       .catch(() => {});
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
-
-  // Cart count badge
-  const refreshCart = useCallback(() => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartCount((cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0));
-  }, []);
-
-  useEffect(() => {
-    refreshCart();
-    window.addEventListener("cart-updated", refreshCart);
-    window.addEventListener("storage", refreshCart);
-    return () => {
-      window.removeEventListener("cart-updated", refreshCart);
-      window.removeEventListener("storage", refreshCart);
-    };
-  }, [refreshCart]);
 
   const activeProducts = useMemo(
     () => (Array.isArray(homeProducts) ? homeProducts.filter((p) => p.is_active) : []),
     [homeProducts],
   );
 
-  // Shorts rail — products with real videos first, then any live product
   const shorts = useMemo(() => {
     const withVideo = activeProducts.filter((p) => p.video);
     const rest = activeProducts.filter((p) => !p.video);
     return [...withVideo, ...rest].slice(0, 12);
   }, [activeProducts]);
 
-  // Trending grid — most-liked first
   const trending = useMemo(
     () =>
       [...activeProducts]
@@ -170,58 +149,78 @@ export default function Home({
     <>
       <Helmet>
         <title>instaBrandz — Watch Shorts, Shop Sellers, Buy Fast</title>
-        <meta
-          name="description"
-          content="instaBrandz is Egypt's multi-seller marketplace with short-video discovery. Watch shorts from real brands, shop their storefronts and check out with Paymob and Fawry."
-        />
+        <meta name="description" content="instaBrandz is Egypt's multi-seller marketplace with short-video discovery. Watch shorts from real brands, shop their storefronts and check out with Paymob and Fawry." />
         <link rel="canonical" href="https://dream-project-roan.vercel.app/" />
         <meta property="og:title" content="instaBrandz — Watch Shorts, Shop Sellers, Buy Fast" />
-        <meta
-          property="og:description"
-          content="Watch short videos from real brands, then shop their storefronts with secure Paymob and Fawry checkout."
-        />
+        <meta property="og:description" content="Watch short videos from real brands, then shop their storefronts with secure Paymob and Fawry checkout." />
         <meta property="og:url" content="https://dream-project-roan.vercel.app/" />
         <meta property="og:type" content="website" />
       </Helmet>
 
       <div className="home">
-        {/* ============ APP-HEADER: logo + search + cart ============ */}
-        <header className="home-header">
-          <Link to="/" className="home-logo" aria-label="instaBrandz home">
-            <span className="home-logo-mark">
-              <FaPlay />
-            </span>
-            <span className="home-logo-name">
-              insta<span className="brand-accent">Brandz</span>
-            </span>
-          </Link>
 
-          <form className="home-search" onSubmit={handleSearch} role="search">
-            <FaSearch className="home-search-icon" />
-            <input
-              type="search"
-              placeholder="Search products, brands…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search products"
-            />
-            <button type="submit">Search</button>
-          </form>
+        {/* ============ HERO ============ */}
+        <section className="home-hero">
+          <div className="home-hero__text">
+            <span className="home-hero__eyebrow">Discover brands through video</span>
+            <h1 className="home-hero__title">
+              Watch.<br /> Discover.<br /> Shop.
+            </h1>
+            <p className="home-hero__sub">
+              Watch short product videos from real Egyptian sellers, discover what you love, and shop directly from the feed — all powered by Paymob and Fawry.
+            </p>
 
-          <Link to="/cart" className="home-cart" aria-label="Shopping cart">
-            <FaShoppingCart />
-            {cartCount > 0 && <span className="home-cart-count">{cartCount > 99 ? "99+" : cartCount}</span>}
-          </Link>
-        </header>
+            <form className="home-search home-search--hero" onSubmit={handleSearch} role="search">
+              <FaSearch className="home-search-icon" />
+              <input
+                type="search"
+                placeholder="Search products, brands…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search products"
+              />
+              <button type="submit">Search</button>
+            </form>
 
-        {/* ============ TRUST STRIP ============ */}
-        <div className="home-trust">
-          {TRUST_ITEMS.map((t, i) => (
-            <span key={i} className="home-trust-item">
-              {t.icon} {t.label}
-            </span>
-          ))}
-        </div>
+            <div className="home-hero__trust">
+              {TRUST_ITEMS.map((t, i) => (
+                <span key={i}>
+                  {t.icon} {t.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {shorts.length > 0 && (
+            <div className="home-hero__visual">
+              {shorts.slice(0, 3).map((p, i) => (
+                <Link
+                  key={p.id}
+                  to={`/shorts?p=${p.id}`}
+                  className={`hero-thumb hero-thumb--${i + 1}`}
+                  aria-label={`Watch short: ${p.name}`}
+                >
+                  <div className="hero-thumb__media">
+                    {p.video ? (
+                      <video src={resolveMediaUrl(p.video)} muted playsInline preload="metadata" />
+                    ) : p.image ? (
+                      <img src={resolveMediaUrl(p.image)} alt={p.name} loading="lazy" />
+                    ) : null}
+                    <span className="hero-thumb__play"><FaPlay /></span>
+                    {p.seller_avatar && (
+                      <img
+                        className="hero-thumb__avatar"
+                        src={resolveMediaUrl(p.seller_avatar)}
+                        alt=""
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* ============ SHORTS RAIL ============ */}
         {shorts.length > 0 && (
@@ -229,7 +228,7 @@ export default function Home({
             <div className="section-bar">
               <div>
                 <p className="section-eyebrow">Watch &amp; Shop</p>
-                <h2 className="title">Shorts</h2>
+                <h2 className="title">Trending Shorts</h2>
               </div>
               <Link to="/shorts" className="section-link">
                 Watch all <FaArrowRight />
@@ -247,16 +246,12 @@ export default function Home({
                         preload="metadata"
                         title={p.name}
                       />
-                    ) : (
-                      p.image && <img src={resolveMediaUrl(p.image)} alt={p.name} loading="lazy" decoding="async" />
-                    )}
-                    <span className="shorts-rail-play">
-                      <FaPlay />
-                    </span>
+                    ) : p.image ? (
+                      <img src={resolveMediaUrl(p.image)} alt={p.name} loading="lazy" decoding="async" />
+                    ) : null}
+                    <span className="shorts-rail-play"><FaPlay /></span>
                     {p.like_count > 0 && (
-                      <span className="shorts-rail-likes">
-                        <FaFire /> {p.like_count}
-                      </span>
+                      <span className="shorts-rail-likes"><FaFire /> {p.like_count}</span>
                     )}
                   </div>
                   <span className="shorts-rail-seller">
@@ -286,11 +281,7 @@ export default function Home({
           {Array.isArray(categories) && categories.length > 0 ? (
             <div className="home-category-strip">
               {categories.map((cat) => (
-                <Link
-                  to={`/products?category=${cat.id}`}
-                  key={cat.id}
-                  className="category-chip"
-                >
+                <Link to={`/products?category=${cat.id}`} key={cat.id} className="category-chip">
                   <span className="category-chip-icon">{getCategoryIcon(cat.name)}</span>
                   <span className="category-chip-name">{cat.name}</span>
                 </Link>
@@ -299,6 +290,26 @@ export default function Home({
           ) : (
             <p className="home-empty">Categories are coming soon.</p>
           )}
+        </section>
+
+        {/* ============ HOW IT WORKS ============ */}
+        <section className="home-section home-how">
+          <div className="section-bar">
+            <div>
+              <p className="section-eyebrow">Simple &amp; local</p>
+              <h2 className="title">How instaBrandz works</h2>
+            </div>
+          </div>
+          <div className="home-how__grid">
+            {HOW_IT_WORKS.map((step, i) => (
+              <div key={i} className="home-how__card">
+                <span className="home-how__icon">{step.icon}</span>
+                <span className="home-how__num">{i + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* ============ FEATURED SELLERS ============ */}
@@ -320,9 +331,7 @@ export default function Home({
                     {s.avatar ? (
                       <img src={resolveMediaUrl(s.avatar)} alt={s.business_name} loading="lazy" />
                     ) : (
-                      <span className="seller-badge-fallback">
-                        {(s.business_name || "?").charAt(0)}
-                      </span>
+                      <span className="seller-badge-fallback">{(s.business_name || "?").charAt(0)}</span>
                     )}
                   </span>
                   <span className="seller-badge-name">
@@ -357,25 +366,19 @@ export default function Home({
               ))}
             </div>
           ) : (
-            <div className="home-empty">
-              <p>No products yet — check back soon.</p>
-            </div>
+            <div className="home-empty"><p>No products yet — check back soon.</p></div>
           )}
         </section>
 
         {/* ============ SELLER CTA ============ */}
         <section className="home-cta">
           <div className="home-cta-inner">
-            <span className="home-cta-icon">
-              <FaUserPlus />
-            </span>
+            <span className="home-cta-icon"><FaUserPlus /></span>
             <div className="home-cta-text">
               <h2>Got a brand? Start selling today.</h2>
               <p>Upload your products, add short videos, and let shoppers find you in the feed.</p>
             </div>
-            <Link to="/seller-register" className="home-cta-btn">
-              Become a Seller
-            </Link>
+            <Link to="/seller-register" className="home-cta-btn">Become a Seller</Link>
           </div>
         </section>
       </div>

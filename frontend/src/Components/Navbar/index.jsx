@@ -3,13 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import {
   FaHome,
   FaUserCircle,
-  FaBoxOpen,
-  FaChartBar,
+  FaPlayCircle,
   FaStore,
   FaStoreAlt,
-  FaUserTie,
   FaUsers,
-  FaPlayCircle,
+  FaVideo,
 } from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { ACCESS_TOKEN } from "../../services/constants";
@@ -19,7 +17,6 @@ import "./css/style.scss";
 export default function Navbar({ onLogout }) {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("");
-  const { data, isSuperuser, isSeller } = useAuth();
 
   useEffect(() => {
     setActiveLink(location.pathname);
@@ -27,73 +24,149 @@ export default function Navbar({ onLogout }) {
 
   const access = localStorage.getItem(ACCESS_TOKEN);
   const isLoggedIn = access && access.trim() !== "";
-  const isAdmin = isSuperuser || false;
 
-  const navItems = [
-    { to: "/", icon: <FaHome />, label: "Home" },
-    { to: "/shorts", icon: <FaPlayCircle />, label: "Shorts" },
-    { to: "/products", icon: <FaStore />, label: "Shop" },
-    { to: "/sellers", icon: <FaUsers />, label: "Sellers" },
-    ...(isLoggedIn
-      ? [
-          { to: "/profile", icon: <FaUserCircle />, label: "Profile" },
-          { to: "/orders", icon: <FaBoxOpen />, label: "Orders" },
-        ]
-      : []),
-    ...(isLoggedIn && !isSeller
-      ? [{ to: "/seller-register", icon: <FaUserTie />, label: "Sell" }]
-      : []),
-    ...(isLoggedIn && isSeller
-      ? [{ to: "/seller/dashboard", icon: <FaStoreAlt />, label: "Dashboard" }]
-      : []),
-    ...(isAdmin
-      ? [{ to: "/admin/analytics", icon: <FaChartBar />, label: "Analytics" }]
-      : []),
+  const isActive = (to) =>
+    to === "/"
+      ? location.pathname === "/"
+      : location.pathname.startsWith(to);
+
+  // Desktop top-navigation links
+  const desktopLinks = [
+    { to: "/", label: "Home" },
+    { to: "/shorts", label: "Shorts" },
+    { to: "/products", label: "Shop" },
+    { to: "/sellers", label: "Sellers" },
+    ...(isLoggedIn ? [{ to: "/profile", label: "Profile" }] : []),
   ];
 
+  // Mobile bottom-tab links (5 slots, center slot is the upload CTA)
+  const mobileLeft = [
+    { to: "/", icon: <FaHome />, label: "Home" },
+    { to: "/shorts", icon: <FaPlayCircle />, label: "Shorts" },
+  ];
+  const mobileRight = [
+    { to: "/products", icon: <FaStore />, label: "Shop" },
+    { to: "/sellers", icon: <FaUsers />, label: "Sellers" },
+  ];
+
+  const uploadHref = isLoggedIn ? "/upload" : "/login?next=/upload";
+
   return (
-    <nav className="performant-navbar">
-      <div className="navbar-disc">
-        <div className="nav-items">
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`nav-link ${activeLink === item.to ? "active" : ""}`}
-            >
-              <div className="nav-icon">{item.icon}</div>
-              <span className="nav-label">{item.label}</span>
+    <>
+      {/* ============ DESKTOP / TABLET : TOP HEADER ============ */}
+      <header className="site-header">
+        <div className="site-header__inner">
+          <Link to="/" className="site-header__brand brand-wordmark" aria-label="instaBrandz home">
+            <span className="brand-wordmark__mark">
+              <FaVideo />
+            </span>
+            <span className="brand-wordmark__name">
+              insta<span className="brand-wordmark__accent">Brandz</span>
+            </span>
+          </Link>
+
+          <nav className="site-header__nav" aria-label="Primary">
+            {desktopLinks.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`site-nav-link ${isActive(item.to) ? "active" : ""}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {isLoggedIn && (
+              <Link
+                to="/seller/dashboard"
+                className={`site-nav-link ${isActive("/seller") ? "active" : ""}`}
+              >
+                <FaStoreAlt /> Dashboard
+              </Link>
+            )}
+          </nav>
+
+          <div className="site-header__actions">
+            <Link to={uploadHref} className="site-upload-cta">
+              <span className="site-upload-cta__icon">
+                <FaVideo />
+              </span>
+              Upload video
             </Link>
-          ))}
 
-          {isLoggedIn ? (
-            <button
-              className="nav-logout"
-              onClick={() => {
-                onLogout();
-                window.location.reload();
-              }}
-            >
-              <IoLogOut className="logout-icon" />
-              <span className="nav-label">Logout</span>
-            </button>
-          ) : (
-            <>
-              <Link to="/login" className="nav-auth nav-login">
-                <IoLogIn className="auth-icon" />
-                <span className="nav-label">Login</span>
-              </Link>
-              <Link to="/register" className="nav-auth nav-register">
-                <IoPersonAdd className="auth-icon" />
-                <span className="nav-label">Register</span>
-              </Link>
-            </>
-          )}
+            {isLoggedIn ? (
+              <div className="site-header__account">
+                <Link
+                  to="/profile"
+                  className="site-avatar"
+                  aria-label="My profile"
+                  title="My profile"
+                >
+                  <FaUserCircle />
+                </Link>
+                <button
+                  className="site-logout"
+                  onClick={() => {
+                    onLogout();
+                    window.location.reload();
+                  }}
+                  aria-label="Logout"
+                  title="Logout"
+                >
+                  <IoLogOut />
+                </button>
+              </div>
+            ) : (
+              <div className="site-header__auth">
+                <Link to="/login" className="site-auth site-auth--login">
+                  <IoLogIn /> Log in
+                </Link>
+                <Link to="/register" className="site-auth site-auth--register">
+                  <IoPersonAdd /> Sign up
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
+      </header>
 
-        {/* Simple active indicator */}
-        <div className="active-indicator" />
-      </div>
-    </nav>
+      {/* ============ MOBILE : BOTTOM TAB BAR ============ */}
+      <nav className="performant-navbar" aria-label="Mobile">
+        <div className="navbar-disc">
+          <div className="nav-items">
+            {mobileLeft.map((item) => (
+              <NavTabItem key={item.to} item={item} activeLink={activeLink} />
+            ))}
+
+            <Link to={uploadHref} className="nav-center-cta" aria-label="Upload a video">
+              <span className="nav-center-cta__icon">
+                <FaVideo />
+              </span>
+              <span className="nav-label">Upload</span>
+            </Link>
+
+            {mobileRight.map((item) => (
+              <NavTabItem key={item.to} item={item} activeLink={activeLink} />
+            ))}
+          </div>
+
+          <div className="active-indicator" />
+        </div>
+      </nav>
+    </>
+  );
+}
+
+function NavTabItem({ item, activeLink }) {
+  const isActive = item.to === "/"
+    ? activeLink === "/"
+    : activeLink.startsWith(item.to);
+  return (
+    <Link
+      to={item.to}
+      className={`nav-link ${isActive ? "active" : ""}`}
+    >
+      <div className="nav-icon">{item.icon}</div>
+      <span className="nav-label">{item.label}</span>
+    </Link>
   );
 }

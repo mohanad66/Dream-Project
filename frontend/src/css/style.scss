@@ -10,56 +10,57 @@
    1. DESIGN TOKENS — LIGHT
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand — cool teal reads as calm, trustworthy, conversion-friendly */
-  --color-brand: #0ea5a4;
-  --color-brand-hover: #0d9488;
-  --color-brand-active: #0f766e;
-  --color-primary: #0ea5a4;
-  --color-primary-hover: #0d9488;
-  --color-primary-active: #0f766e;
-  --color-primary-light: #e0f7f6;
-  --color-primary-alpha: rgba(14, 165, 164, 0.12);
-  --color-gold: #0ea5a4;
-  --color-gold-hover: #2dd4bf;
-  --color-gold-deep: #0f766e;
-  --color-gold-alpha: rgba(14, 165, 164, 0.16);
+  /* Brand — calm, premium "editorial social-commerce" deep-teal accent.
+     Refined (non-neon) CTA colour on warm "paper" neutrals. */
+  --color-brand: #0b6e6a;
+  --color-brand-hover: #0a5c59;
+  --color-brand-active: #084f4c;
+  --color-primary: #0b6e6a;
+  --color-primary-hover: #0a5c59;
+  --color-primary-active: #084f4c;
+  --color-primary-light: #e3f4f2;
+  --color-primary-alpha: rgba(11, 110, 106, 0.1);
+  --color-gold: #0f766e;
+  --color-gold-hover: #14b8a6;
+  --color-gold-deep: #0a5c59;
+  --color-gold-alpha: rgba(15, 118, 110, 0.14);
 
-  --color-secondary: #6b7280;
-  --color-secondary-hover: #4b5563;
-  --color-secondary-light: #f3f4f6;
-  --color-secondary-alpha: rgba(107, 114, 128, 0.08);
+  --color-secondary: #6b685c;
+  --color-secondary-hover: #525043;
+  --color-secondary-light: #f3f2ec;
+  --color-secondary-alpha: rgba(107, 104, 92, 0.08);
 
   --color-success: #1f7a5c;
   --color-success-hover: #18654b;
   --color-success-light: #e6f4ee;
 
-  --color-danger: #c0392b;
-  --color-danger-hover: #a93226;
-  --color-danger-light: #fdecea;
+  --color-danger: #b54541;
+  --color-danger-hover: #9c3a36;
+  --color-danger-light: #fbeae9;
 
-  --color-warning: #b45309;
-  --color-warning-hover: #92400e;
-  --color-warning-light: #fef3c7;
+  --color-warning: #a65f0b;
+  --color-warning-hover: #8c5009;
+  --color-warning-light: #fdf1df;
 
-  /* Neutrals */
+  /* Neutrals — warm "paper" for a premium editorial feel */
   --color-white: #ffffff;
-  --color-gray-50: #fafaf9;
-  --color-gray-100: #f4f4f3;
-  --color-gray-200: #e6e6e2;
-  --color-gray-300: #d4d4cf;
-  --color-gray-400: #a8a8a2;
-  --color-gray-500: #7e7e78;
-  --color-gray-600: #5b5b56;
-  --color-gray-700: #3a3a36;
-  --color-gray-800: #232320;
-  --color-gray-900: #151514;
+  --color-gray-50: #fbfbf9;
+  --color-gray-100: #f5f5f1;
+  --color-gray-200: #eae9e3;
+  --color-gray-300: #d9d7cf;
+  --color-gray-400: #a6a499;
+  --color-gray-500: #807e72;
+  --color-gray-600: #5f5d52;
+  --color-gray-700: #3c3a30;
+  --color-gray-800: #242319;
+  --color-gray-900: #171610;
 
   --text-primary: var(--color-gray-900);
   --text-secondary: var(--color-gray-600);
   --text-muted: var(--color-gray-500);
   --text-on-primary: #ffffff;
   --text-on-dark: #f5f5f3;
-  --text-color: #232320;
+  --text-color: #242319;
 
   --primary-color: var(--color-primary);
   --secondary-color: var(--color-secondary);
@@ -70,38 +71,43 @@
   --warning-color: var(--color-warning);
   --info-color: #1d4ed8;
 
-  --bg-body: #f6f6f4;
+  --bg-body: #f5f5f1;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-subtle: #fafaf9;
-  --bg-muted: #efefec;
-  --bg-overlay: rgba(21, 21, 20, 0.55);
-  --bg-primary: #f6f6f4;
-  --bg-secondary: #fafaf9;
-  --bg-tertiary: #ecece8;
+  --bg-subtle: #fbfbf9;
+  --bg-muted: #ebeae4;
+  --bg-overlay: rgba(23, 22, 16, 0.55);
+  --bg-primary: #f5f5f1;
+  --bg-secondary: #fbfbf9;
+  --bg-tertiary: #e9e8e1;
   --bg-card: #ffffff;
-  --bg-hover: #f4f4f3;
+  --bg-hover: #f0efe9;
 
-  --gradient-primary: linear-gradient(135deg, #0ea5a4 0%, #2dd4bf 100%);
-  --gradient-secondary: linear-gradient(135deg, #1f7a5c 0%, #2f9e76 100%);
-  --gradient-accent: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
+  --gradient-primary: linear-gradient(120deg, #0b6e6a 0%, #14b8a6 100%);
+  --gradient-secondary: linear-gradient(120deg, #1f7a5c 0%, #2f9e76 100%);
+  --gradient-accent: linear-gradient(120deg, #0a5c59 0%, #14b8a6 100%);
 
-  --border-color: #e6e6e2;
-  --border-color-strong: #d4d4cf;
-  --border-hover: #a8a8a2;
-  --border-radius-sm: 6px;
-  --border-radius-md: 10px;
-  --border-radius-lg: 14px;
-  --border-radius-xl: 18px;
-  --border-radius-2xl: 24px;
+  --border-color: #e6e5de;
+  --border-color-strong: #d4d2c8;
+  --border-hover: #a8a699;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --border-radius-2xl: 28px;
   --border-radius-full: 9999px;
 
-  --shadow-xs: 0 1px 2px rgba(23, 24, 26, 0.05);
-  --shadow-sm: 0 1px 3px rgba(23, 24, 26, 0.06), 0 1px 2px rgba(23, 24, 26, 0.04);
-  --shadow-md: 0 4px 12px rgba(23, 24, 26, 0.08);
-  --shadow-lg: 0 12px 28px rgba(23, 24, 26, 0.1), 0 4px 8px rgba(23, 24, 26, 0.05);
-  --shadow-xl: 0 24px 48px rgba(23, 24, 26, 0.14);
+  --shadow-xs: 0 1px 2px rgba(23, 22, 16, 0.05);
+  --shadow-sm: 0 1px 3px rgba(23, 22, 16, 0.06), 0 1px 2px rgba(23, 22, 16, 0.04);
+  --shadow-md: 0 4px 12px rgba(23, 22, 16, 0.08);
+  --shadow-lg: 0 12px 28px rgba(23, 22, 16, 0.1), 0 4px 8px rgba(23, 22, 16, 0.05);
+  --shadow-xl: 0 24px 48px rgba(23, 22, 16, 0.14);
   --shadow-focus: 0 0 0 3px var(--color-primary-alpha);
+
+  --product-primary-rgb: 11, 110, 106;
+  --product-secondary-rgb: 20, 184, 166;
+
+  --header-height: 68px;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -152,70 +158,73 @@
    2. DESIGN TOKENS — DARK (signature elegant look)
    -------------------------------------------------------------------------- */
 :root.dark-theme {
-  --color-brand: #2dd4bf;
-  --color-primary: #2dd4bf;
-  --color-primary-hover: #5eead4;
-  --color-primary-active: #14b8a6;
-  --color-primary-light: rgba(45, 212, 191, 0.14);
-  --color-gold: #2dd4bf;
-  --color-gold-hover: #5eead4;
-  --color-gold-deep: #5eead4;
-  --color-gold-alpha: rgba(45, 212, 191, 0.18);
-  --color-primary-alpha: rgba(45, 212, 191, 0.18);
+  --color-brand: #3ec7bd;
+  --color-primary: #3ec7bd;
+  --color-primary-hover: #5dd5cc;
+  --color-primary-active: #2fb3a9;
+  --color-primary-light: rgba(62, 199, 189, 0.14);
+  --color-gold: #3ec7bd;
+  --color-gold-hover: #5dd5cc;
+  --color-gold-deep: #7ce3da;
+  --color-gold-alpha: rgba(62, 199, 189, 0.16);
+  --color-primary-alpha: rgba(62, 199, 189, 0.16);
 
-  --color-secondary: #8b93a5;
-  --color-secondary-hover: #a5adbf;
-  --color-secondary-light: #1a2130;
-  --color-secondary-alpha: rgba(139, 147, 165, 0.1);
+  --color-secondary: #8b96ad;
+  --color-secondary-hover: #a4adc2;
+  --color-secondary-light: #1a2132;
+  --color-secondary-alpha: rgba(139, 150, 173, 0.1);
 
   --color-success: #3fa781;
-  --color-success-hover: #57bb93;
+  --color-success-hover: #54b993;
   --color-success-light: rgba(63, 167, 129, 0.12);
 
-  --color-danger: #e06a5d;
-  --color-danger-hover: #ec8277;
-  --color-danger-light: rgba(224, 106, 93, 0.12);
+  --color-danger: #dd6b63;
+  --color-danger-hover: #e8847d;
+  --color-danger-light: rgba(221, 107, 99, 0.12);
 
-  --color-warning: #ffb020;
-  --color-warning-hover: #ffc34d;
-  --color-warning-light: rgba(255, 176, 32, 0.14);
+  --color-warning: #f3a93a;
+  --color-warning-hover: #f7bb62;
+  --color-warning-light: rgba(243, 169, 58, 0.14);
 
-  --color-gray-50: #0b0f17;
-  --color-gray-100: #10141e;
-  --color-gray-200: #161c29;
-  --color-gray-300: #232d3f;
-  --color-gray-400: #344155;
-  --color-gray-500: #5a6a80;
-  --color-gray-600: #8b93a5;
-  --color-gray-700: #b7becb;
-  --color-gray-800: #e2e5ec;
-  --color-gray-900: #f5f6f8;
+  --color-gray-50: #0d1017;
+  --color-gray-100: #12161f;
+  --color-gray-200: #181d29;
+  --color-gray-300: #232b3b;
+  --color-gray-400: #333d53;
+  --color-gray-500: #5b6a85;
+  --color-gray-600: #8b96ad;
+  --color-gray-700: #b8c1d2;
+  --color-gray-800: #e3e7ee;
+  --color-gray-900: #f4f6f9;
 
-  --text-primary: #f0efe8;
-  --text-secondary: #b7becb;
-  --text-muted: #8b93a5;
-  --text-color: #e2e5ec;
+  --text-primary: #f0f1f5;
+  --text-secondary: #b8c1d2;
+  --text-muted: #8b96ad;
+  --text-color: #e3e7ee;
 
   --primary-color: var(--color-primary);
 
-  --bg-body: #0b0f17;
-  --bg-surface: #111726;
-  --bg-elevated: #1b2435;
-  --bg-subtle: #111726;
-  --bg-muted: #161e2f;
-  --bg-card: #1b2435;
-  --bg-hover: #212c41;
-  --bg-primary: #0b0f17;
-  --bg-secondary: #0f141f;
-  --bg-tertiary: #1e2840;
+  --bg-body: #0d1017;
+  --bg-surface: #141926;
+  --bg-elevated: #1a2132;
+  --bg-subtle: #141926;
+  --bg-muted: #1b2233;
+  --bg-card: #1a2132;
+  --bg-hover: #222b40;
+  --bg-primary: #0d1017;
+  --bg-secondary: #10141e;
+  --bg-tertiary: #202a3f;
 
-  --gradient-primary: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
-  --gradient-secondary: linear-gradient(135deg, #2f9e76 0%, #57bb93 100%);
-  --gradient-accent: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%);
+  --gradient-primary: linear-gradient(120deg, #2fb3a9 0%, #3ec7bd 100%);
+  --gradient-secondary: linear-gradient(120deg, #2f9e76 0%, #54b993 100%);
+  --gradient-accent: linear-gradient(120deg, #1e8a82 0%, #3ec7bd 100%);
 
-  --border-color: #232d3f;
-  --border-color-strong: #344155;
-  --border-hover: #47597a;
+  --border-color: #232b3b;
+  --border-color-strong: #333d53;
+  --border-hover: #44506b;
+
+  --product-primary-rgb: 62, 199, 189;
+  --product-secondary-rgb: 124, 227, 218;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -248,8 +257,6 @@
   --product-error: var(--color-danger);
   --product-success: var(--color-success);
   --product-warning: var(--color-warning);
-  --product-primary-rgb: 14, 165, 164;
-  --product-secondary-rgb: 45, 212, 191;
 
   --cart-primary: var(--color-primary);
   --cart-primary-dark: var(--color-primary-hover);
@@ -284,7 +291,7 @@
 /* --------------------------------------------------------------------------
    4. SCSS VARIABLES & MIXINS (kept for page-level compatibility)
    -------------------------------------------------------------------------- */
-$body-bg-color: #f6f4ee;
+$body-bg-color: #f5f5f1;
 $footer-gradient-height: 120px;
 $mobile-breakpoint: 480px;
 $tablet-breakpoint: 768px;
@@ -347,38 +354,38 @@ $success-color: var(--success-color);
 $warning-color: var(--warning-color);
 $info-color: var(--info-color);
 
-$product-primary: var(--product-primary, #0ea5a4);
-$product-secondary: var(--product-secondary, #0d9488);
-$product-accent: var(--product-accent, #e0e7ff);
-$product-text: var(--product-text, #1e293b);
-$product-light-bg: var(--product-light-bg, #f8fafc);
-$product-dark-bg: var(--product-dark-bg, #0f172a);
+$product-primary: var(--product-primary, #0b6e6a);
+$product-secondary: var(--product-secondary, #14b8a6);
+$product-accent: var(--product-accent, #e3f4f2);
+$product-text: var(--product-text, #171610);
+$product-light-bg: var(--product-light-bg, #f5f5f1);
+$product-dark-bg: var(--product-dark-bg, #0d1017);
 $product-bg: var(--product-bg);
-$product-error: var(--product-error, #e06a5d);
+$product-error: var(--product-error, #dd6b63);
 $product-success: var(--product-success, #3fa781);
 $product-warning: var(--product-warning, #d9a03f);
 
 $product-shadow-xs:
-  0 1px 2px rgba(14, 165, 164, 0.05),
+  0 1px 2px rgba(11, 110, 106, 0.05),
   0 1px 1px rgba(0, 0, 0, 0.04);
 $product-shadow-sm:
-  0 1px 3px rgba(14, 165, 164, 0.07),
+  0 1px 3px rgba(11, 110, 106, 0.07),
   0 1px 2px rgba(0, 0, 0, 0.06);
 $product-shadow-md:
-  0 4px 10px rgba(14, 165, 164, 0.1),
+  0 4px 10px rgba(11, 110, 106, 0.1),
   0 2px 4px rgba(0, 0, 0, 0.08);
 $product-shadow-lg:
-  0 10px 24px rgba(14, 165, 164, 0.12),
+  0 10px 24px rgba(11, 110, 106, 0.12),
   0 4px 8px rgba(0, 0, 0, 0.1);
 $product-shadow-xl:
-  0 20px 40px rgba(14, 165, 164, 0.15),
+  0 20px 40px rgba(11, 110, 106, 0.15),
   0 10px 20px rgba(0, 0, 0, 0.08);
 $product-shadow-hover:
-  0 25px 50px rgba(14, 165, 164, 0.18),
+  0 25px 50px rgba(11, 110, 106, 0.18),
   0 12px 24px rgba(0, 0, 0, 0.1);
 $product-shadow-colored:
-  0 10px 25px rgba(14, 165, 164, 0.22),
-  0 4px 10px rgba(14, 165, 164, 0.15);
+  0 10px 25px rgba(11, 110, 106, 0.22),
+  0 4px 10px rgba(11, 110, 106, 0.15);
 
 $product-radius-sm: 8px;
 $product-radius-md: 12px;
@@ -568,10 +575,46 @@ button {
   }
 }
 
-/* Keyboard focus */
+/* Keyboard focus — soft, accessible ring */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: 4px;
+}
+
+/* Brand wordmark */
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-family-brand);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+
+  .brand-wordmark__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--gradient-primary);
+    color: #fff;
+    font-size: 0.8rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .brand-wordmark__name {
+    font-size: 1.05rem;
+
+    .brand-wordmark__accent {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
 }
 
 /* Gold accent utilities */

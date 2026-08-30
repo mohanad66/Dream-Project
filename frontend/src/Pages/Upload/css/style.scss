@@ -1,0 +1,549 @@
+/* ==========================================================================
+   CREATOR STUDIO — VIDEO UPLOAD
+   Editorial social-commerce style. High contrast, calm teal accents.
+   ========================================================================== */
+@import "../../../css/style.scss";
+
+.upload-page {
+  min-height: 100vh;
+  background: var(--bg-body);
+  @include theme-transition;
+
+  &__inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+
+    @media (min-width: 768px) {
+      padding: 3rem 2rem 5rem;
+    }
+  }
+}
+
+.upl-crumbs {
+  margin-bottom: 1.5rem;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+}
+
+.upl-header {
+  margin-bottom: 2rem;
+  max-width: 640px;
+
+  .upl-eyebrow {
+    margin: 0 0 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    line-height: 1.1;
+  }
+
+  .upl-sub {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* ---- Alert (validation / server errors) ---- */
+.upl-alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-light);
+  color: var(--color-danger-hover);
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
+
+  > svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+}
+
+/* ---- Layout ---- */
+.upl-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: 992px) {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 2rem;
+    align-items: start;
+  }
+}
+
+.upl-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  @media (min-width: 992px) {
+    position: sticky;
+    top: calc(var(--header-height, 68px) + 1rem);
+  }
+}
+
+/* ---- Dropzone ---- */
+.upl-dropzone {
+  position: relative;
+  border: 2px dashed var(--border-color-strong);
+  border-radius: var(--border-radius-xl);
+  background: var(--bg-surface);
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+  overflow: hidden;
+
+  &:hover,
+  &.is-dragging {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    box-shadow: var(--shadow-focus);
+  }
+
+  &.has-video {
+    padding: 0.5rem;
+    border-style: solid;
+  }
+
+  .upl-file-input {
+    display: none;
+  }
+
+  .upl-preview {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    border-radius: 14px;
+    background: #000;
+    object-fit: contain;
+  }
+}
+
+.upl-clear {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-danger);
+  }
+}
+
+.upl-dropzone-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.25rem 1rem;
+  gap: 0.35rem;
+
+  .upl-dropzone-icon {
+    width: 64px;
+    height: 64px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .upl-dropzone-title {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+  }
+
+  .upl-dropzone-sub {
+    margin: 0 0 0.9rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .upl-dropzone-meta {
+    margin: 0.75rem 0 0;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+}
+
+.upl-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-muted);
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+  }
+}
+
+/* ---- Poster / thumbnail ---- */
+.upl-poster {
+  .upl-poster-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .upl-poster-box {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 0.75rem;
+  }
+
+  .upl-poster-preview {
+    width: 108px;
+    height: 108px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .upl-poster-ph {
+      color: var(--text-muted);
+      font-size: 1.4rem;
+    }
+  }
+
+  .upl-poster-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+
+    p {
+      flex-basis: 100%;
+      margin: 0.25rem 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+  }
+}
+
+/* ---- Form ---- */
+.upl-form {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-sm);
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.7rem 0.85rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-focus);
+    }
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 110px;
+  }
+}
+
+.upl-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+
+  @media (min-width: 680px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.upl-tags {
+  p {
+    margin: 0 0 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    span {
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+  }
+
+  .upl-tags-empty {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.85rem;
+  }
+
+  .upl-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .upl-tag {
+    border: 1px solid var(--border-color-strong);
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-primary);
+    }
+
+    &.is-on {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--text-on-primary);
+      font-weight: 600;
+    }
+  }
+}
+
+.upl-submit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-start;
+
+  .upl-note {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+}
+
+/* ---- Buttons ---- */
+.upl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &--primary {
+    background: var(--color-primary);
+    color: var(--text-on-primary);
+
+    &:hover {
+      background: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: default;
+    }
+  }
+
+  &--soft {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-color: var(--color-primary-alpha);
+
+    &:hover {
+      background: var(--color-primary);
+      color: var(--text-on-primary);
+    }
+  }
+
+  &--ghost {
+    background: var(--bg-muted);
+    color: var(--text-secondary);
+
+    &:hover {
+      background: var(--border-color-strong);
+      color: var(--text-primary);
+    }
+  }
+
+  &--lg {
+    padding: 0.85rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+/* ---- Gate (login / become seller) ---- */
+.upload-panel {
+  max-width: 560px;
+  margin: 3rem auto;
+  text-align: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-2xl);
+  padding: 2.5rem 2rem;
+  box-shadow: var(--shadow-lg);
+
+  h1 {
+    font-size: 1.6rem;
+    margin: 0.75rem 0 0.5rem;
+  }
+
+  p {
+    color: var(--text-secondary);
+    margin: 0 0 1.25rem;
+    line-height: 1.6;
+  }
+
+  .upload-panel--gate & {
+    color: var(--text-secondary);
+  }
+}
+
+.upl-success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-success-light);
+  color: var(--color-success);
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.upl-success-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.upl-gate-icon {
+  font-size: 3rem;
+  color: var(--color-primary);
+}
+
+.upload-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.upl-form--compact {
+  max-width: 420px;
+  margin: 1.5rem auto;
+  gap: 1rem;
+}
+
+.upl-alt-note {
+  font-size: 0.85rem;
+  margin-top: 1rem;
+
+  a {
+    font-weight: 600;
+  }
+}

@@ -23,8 +23,8 @@
   --product-error: var(--color-danger);
   --product-success: var(--color-success);
   --product-warning: var(--color-warning);
-  --product-primary-rgb: 201, 162, 75;
-  --product-secondary-rgb: 162, 124, 40;
+  --product-primary-rgb: 11, 110, 106;
+  --product-secondary-rgb: 20, 184, 166;
 }
 
 .dark-theme {
@@ -45,14 +45,14 @@
   --product-error: var(--color-danger);
   --product-success: var(--color-success);
   --product-warning: var(--color-warning);
-  --product-primary-rgb: 201, 162, 75;
-  --product-secondary-rgb: 201, 162, 75;
+  --product-primary-rgb: 62, 199, 189;
+  --product-secondary-rgb: 124, 227, 218;
 }
 
 // --- Color Palette ---
 $product-primary: var(--product-primary, var(--color-gold-deep, #0f766e));
 $product-secondary: var(--product-secondary, var(--color-gold-deep, #0f766e));
-$product-accent: var(--product-accent, #f3ead2);
+$product-accent: var(--product-accent, #e3f4f2);
 $product-text: var(--product-text, #1e293b);
 $product-light-bg: var(--product-light-bg, #f8fafc);
 $product-dark-bg: var(--product-dark-bg, #0f172a);
@@ -1057,4 +1057,54 @@ $product-breakpoint-xl: 1200px;
   .products-grid > * {
     animation: none;
   }
+}
+
+/* ---------- Explore page heading + skeleton ---------- */
+.products-heading {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.3rem;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+}
+
+.product-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  padding-bottom: 0.8rem;
+
+  .product-skeleton-card__media {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--border-radius-lg);
+    background: linear-gradient(90deg, var(--bg-muted) 25%, var(--bg-hover) 50%, var(--bg-muted) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .product-skeleton-card__line {
+    height: 14px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--bg-muted) 25%, var(--bg-hover) 50%, var(--bg-muted) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+
+    &.w40 { width: 40%; }
+    &.w60 { width: 60%; }
+    &.w80 { width: 80%; }
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }

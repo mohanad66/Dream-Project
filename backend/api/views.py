@@ -729,6 +729,17 @@ class ProductSearchView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
+class ProductDetailView(generics.RetrieveAPIView):
+    """Public detail for a single active/approved product."""
+    serializer_class = ProductSerializer
+    queryset = (
+        Product.objects.filter(is_active=True, approval_status="approved")
+        .select_related("seller__user")
+        .prefetch_related("tags", "gallery_images")
+    )
+    lookup_field = "pk"
+
+
 get_product = ProductSearchView.as_view()
 
 

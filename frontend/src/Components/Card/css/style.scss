@@ -149,7 +149,7 @@
     }
   }
 
-  // Title
+// Title
   h2 {
     font-family: var(--font-family-display);
     font-size: 1.2rem;
@@ -163,6 +163,14 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .card-title__link {
+    color: var(--text-primary);
+
+    &:hover {
+      color: var(--color-primary);
+    }
   }
 
   .price {

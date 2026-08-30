@@ -8,6 +8,7 @@ from .payment_gateways import *
 
 urlpatterns = [
     # Public endpoints
+    path("products/<int:pk>/", ProductDetailView.as_view(), name="product-detail"),
     path("products/", get_product, name="get_products"),
     path("categories/", get_category, name="get_category"),
     path("carousels/", get_carouselImg, name="get_carouselImg"),
