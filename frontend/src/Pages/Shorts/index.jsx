@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
+import { cleanFeedItems } from "../../utils/cleanData";
 import ShortsFeed from "../../Components/ShortsFeed";
 import "./css/style.scss";
 
@@ -55,7 +56,7 @@ export default function Shorts({
           .filter((o) => o && o.id)
           .filter((o, i, arr) => arr.findIndex((x) => x.id === o.id) === i);
 
-        setItems([...uniqueProducts, ...offers]);
+        setItems(cleanFeedItems([...uniqueProducts, ...offers]));
       } catch (err) {
         console.error("Failed to load shorts feed:", err);
       } finally {

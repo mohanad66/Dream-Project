@@ -145,7 +145,7 @@
   --z-popover: 1060;
   --z-tooltip: 1070;
 
-  --bottom-navbar-height: 120px;
+  --bottom-navbar-height: 96px;
 }
 
 /* --------------------------------------------------------------------------
@@ -200,14 +200,14 @@
 
   --bg-body: #0b0f17;
   --bg-surface: #111726;
-  --bg-elevated: #161e2f;
+  --bg-elevated: #1b2435;
   --bg-subtle: #111726;
-  --bg-muted: #1a2233;
-  --bg-card: #131a29;
-  --bg-hover: #1a2233;
+  --bg-muted: #161e2f;
+  --bg-card: #1b2435;
+  --bg-hover: #212c41;
   --bg-primary: #0b0f17;
   --bg-secondary: #0f141f;
-  --bg-tertiary: #182136;
+  --bg-tertiary: #1e2840;
 
   --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #ff8a5c 100%);
   --gradient-secondary: linear-gradient(135deg, #2f9e76 0%, #57bb93 100%);
@@ -516,6 +516,12 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Content pages with bottom tab bar: reserve space so no content is hidden */
+.tabnav-page {
+  min-height: calc(100vh - var(--bottom-navbar-height, 96px));
+  padding-bottom: calc(var(--bottom-navbar-height, 96px) + env(safe-area-inset-bottom));
 }
 
 h1,

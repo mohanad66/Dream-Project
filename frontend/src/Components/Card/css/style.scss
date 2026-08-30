@@ -8,36 +8,20 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--border-radius-xl);
   padding: 1.25rem;
   max-width: 380px;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
   transition:
     transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.3s ease;
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
   &:hover {
     transform: translateY(-6px);
-    border-color: var(--color-gold);
     box-shadow: var(--shadow-lg);
-
-    &::before {
-      opacity: 1;
-    }
 
     .card-image {
       transform: scale(1.06);
@@ -207,6 +191,7 @@
     min-height: 4rem;
   }
 
+// Neutral tag/badge chips — orange reserved for primary actions
   .tags {
     display: flex;
     flex-wrap: wrap;
@@ -214,8 +199,8 @@
     margin-bottom: 0.9rem;
 
     .tag {
-      background: var(--color-primary-alpha);
-      color: var(--color-primary);
+      background: var(--bg-muted);
+      color: var(--text-secondary);
       font-size: 0.7rem;
       font-weight: 600;
       padding: 0.25rem 0.7rem;
@@ -229,12 +214,8 @@
         color 0.2s ease,
         border-color 0.2s ease;
 
-      :root.dark-theme & {
-        color: var(--color-gold);
-      }
-
       &:hover {
-        border-color: var(--color-gold);
+        border-color: var(--text-muted);
       }
     }
   }
@@ -1012,10 +993,10 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 107, 53, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   pointer-events: none;
 svg {
-    color: var(--color-gold, #ff6b35);
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 
@@ -1029,14 +1010,28 @@ svg {
   gap: 0.4rem;
   padding: 0.3rem 0.7rem;
   border-radius: 50px;
-  background: rgba(255, 107, 53, 0.95);
+  background: rgba(15, 18, 28, 0.72);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px);
   pointer-events: none;
   svg {
-    color: #fff;
+    color: var(--color-success, #3fa781);
   }
+}
+
+/* ---------- Image load fallback ---------- */.card-image-fallback {
+  width: 100%;
+  height: 210px;
+  border-radius: var(--border-radius-lg);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-muted);
+  color: var(--text-faint, var(--text-muted));
+  border: 1px dashed var(--border-color);
 }

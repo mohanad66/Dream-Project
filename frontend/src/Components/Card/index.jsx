@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
-import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle, FaVideo } from "react-icons/fa";
+import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle, FaVideo, FaImage } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
+import { resolveMediaUrl } from "../../utils/media";
 
 export default function Card({ card, categories = [], tags = [] }) {
   const [showPopup, setShowPopup] = useState(false);
@@ -15,6 +16,7 @@ export default function Card({ card, categories = [], tags = [] }) {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const [inWishlist, setInWishlist] = useState(false);
   const [liked, setLiked] = useState(!!card?.is_liked);
   const [likeCount, setLikeCount] = useState(card?.like_count || 0);
@@ -137,7 +139,17 @@ export default function Card({ card, categories = [], tags = [] }) {
   };
 
   // Build image list: primary + gallery
-  const allImages = [card.image, ...(card.gallery_images?.map(g => g.image) || [])].filter(Boolean);
+  const allImages = [
+    resolveMediaUrl(card.image),
+    ...(card.gallery_images?.map((g) => resolveMediaUrl(g.image)) || []),
+  ].filter(Boolean);
+
+  // Hide the seller row when the "seller" is just a copy of the product name
+  const sellerShown =
+    !!card.seller_name &&
+    !!card.seller &&
+    String(card.seller_name).trim().toLowerCase() !==
+      String(card.name || "").trim().toLowerCase();
 
   // Preload adjacent images so navigation feels instant
   useEffect(() => {
@@ -154,12 +166,14 @@ export default function Card({ card, categories = [], tags = [] }) {
   const nextImage = (e) => {
     e.stopPropagation();
     setImgLoaded(false);
+    setImgFailed(false);
     setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
   };
 
   const prevImage = (e) => {
     e.stopPropagation();
     setImgLoaded(false);
+    setImgFailed(false);
     setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
   };
 
@@ -177,6 +191,7 @@ export default function Card({ card, categories = [], tags = [] }) {
 
   const getDescriptionPreview = () => {
     if (!card.description) return "";
+    if (String(card.description).trim() === String(card.name || "").trim()) return "";
     return card.description.length >= 50
       ? `${card.description.substring(0, 50)}...`
       : card.description;
@@ -243,16 +258,23 @@ export default function Card({ card, categories = [], tags = [] }) {
               <FaShareAlt />
             </button>
           </div>
-          <img
-            className={`card-image${imgLoaded ? " img-ready" : ""}`}
-            src={allImages[currentImageIndex]}
-            alt={card.name}
-            width={380}
-            height={210}
-            loading="lazy"
-            decoding="async"
-            onLoad={() => setImgLoaded(true)}
-          />
+          {imgFailed ? (
+            <div className="card-image-fallback" aria-hidden="true">
+              <FaImage size={40} />
+            </div>
+          ) : (
+            <img
+              className={`card-image${imgLoaded ? " img-ready" : ""}`}
+              src={allImages[currentImageIndex]}
+              alt={card.name}
+              width={380}
+              height={210}
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgFailed(true)}
+            />
+          )}
           {card.video && <span className="card-video-badge"><FaVideo /> Video</span>}
           {card.sold_today > 0 && (
             <span className="card-sold-badge"><FaFire /> {card.sold_today} sold today</span>
@@ -269,11 +291,11 @@ export default function Card({ card, categories = [], tags = [] }) {
             </>
           )}
         </div>
-        {card.seller_name && card.seller && (
+        {sellerShown && (
           <Link to={`/seller/${card.seller}`} className="card-brand card-seller-link" onClick={(e) => e.stopPropagation()}>
             {card.seller_avatar && (
               <img
-                src={card.seller_avatar}
+                src={resolveMediaUrl(card.seller_avatar)}
                 alt=""
                 width={20}
                 height={20}
@@ -357,6 +379,7 @@ export default function Card({ card, categories = [], tags = [] }) {
                     decoding="async"
                     style={{ transition: "opacity 0.2s ease", opacity: imgLoaded ? 1 : 0.5 }}
                     onLoad={() => setImgLoaded(true)}
+                    onError={() => setImgFailed(true)}
                   />
                   {allImages.length > 1 && (
                     <>
@@ -373,11 +396,11 @@ export default function Card({ card, categories = [], tags = [] }) {
               </div>
               <div className="popup-left">
                 <div className="popup-header">
-                  {card.seller_name && card.seller && (
+                  {sellerShown && (
                     <Link to={`/seller/${card.seller}`} className="card-brand popup-brand card-seller-link" onClick={(e) => e.stopPropagation()}>
                       {card.seller_avatar && (
                         <img
-                          src={card.seller_avatar}
+                          src={resolveMediaUrl(card.seller_avatar)}
                           alt=""
                           width={20}
                           height={20}

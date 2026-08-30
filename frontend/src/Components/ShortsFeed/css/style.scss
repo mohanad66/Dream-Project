@@ -244,7 +244,7 @@
   position: absolute;
   top: 1.7rem;
   left: 1.1rem;
-  right: 1.1rem;
+  right: 4.5rem;
   z-index: 5;
   display: flex;
   pointer-events: none;
@@ -295,7 +295,7 @@
     font-size: 0.95rem;
     text-decoration: none;
     text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
-    max-width: 100%;
+    max-width: min(56vw, 240px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

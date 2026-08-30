@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from .cache_utils import cache_api_response
+from .content_filter import exclude_junk_products
 from .models import *
 from .serializer import *
 
@@ -428,6 +429,10 @@ def create_public_list_view(
                     queryset = queryset.filter(
                         approval_status=Product.ApprovalStatus.APPROVED
                     ).exclude(seller__is_active=False)
+            if model == Product:
+                # Drop dev placeholder listings (e.g. "wwwww", "wwwweawa",
+                # "BUILD A WEB PRODUCT THAT WORKS", tiny names)
+                queryset = exclude_junk_products(queryset)
             if order_by:
                 queryset = queryset.order_by(order_by)
 
@@ -439,7 +444,10 @@ def create_public_list_view(
             serializer = serializer_class(
                 paginated_queryset,
                 many=True,
-                context={"is_admin": request.user.is_staff},
+                context={
+                    "request": request,
+                    "is_admin": request.user.is_staff,
+                },
             )
 
             response = paginator.get_paginated_response(serializer.data)
@@ -652,9 +660,20 @@ class ProductSearchView(APIView):
                 approval_status=Product.ApprovalStatus.APPROVED,
             )
             .exclude(seller__is_active=False)
+            .annotate(
+                sold_today=Count(
+                    "order_items",
+                    filter=Q(
+                        order_items__order__created_at__date=timezone.now().date()
+                    ),
+                    distinct=True,
+                )
+            )
             .prefetch_related("tags", "gallery_images")
             .select_related("category")
         )
+        # Drop dev placeholder listings (e.g. "wwwww", "wwwweawa")
+        queryset = exclude_junk_products(queryset)
 
         # Text search — name & description
         search = request.query_params.get("search", "").strip()
@@ -2163,11 +2182,16 @@ class HomeFeedView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        recent = Product.objects.filter(is_active=True, approval_status="approved").select_related(
+        base = Product.objects.filter(
+            is_active=True, approval_status="approved"
+        )
+        base = exclude_junk_products(base)
+
+        recent = base.select_related(
             "seller", "category"
         ).prefetch_related("tags", "gallery_images").order_by("-created_at")[:30]
 
-        trending = Product.objects.filter(is_active=True, approval_status="approved").select_related(
+        trending = base.select_related(
             "seller", "category"
         ).prefetch_related("tags", "gallery_images").annotate(
             total_likes=Count("likes")

@@ -17,6 +17,7 @@ import {
 } from "react-icons/fa";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
+import { resolveMediaUrl } from "../../utils/media";
 import "./css/style.scss";
 
 const isOffer = (item) =>
@@ -236,7 +237,10 @@ export default function ShortsFeed({
     );
   };
 
-  const images = (product) => [product.image, ...(product.gallery_images?.map((g) => g.image) || [])].filter(Boolean);
+  const images = (product) => [
+    resolveMediaUrl(product.image),
+    ...(product.gallery_images?.map((g) => resolveMediaUrl(g.image)) || []),
+  ].filter(Boolean);
 
   const renderSellerAvatar = (sellerId, avatar, size = "avatar") => (
     <Link
@@ -244,7 +248,7 @@ export default function ShortsFeed({
       className={`shorts-seller-avatar ${size}`}
       onClick={(e) => e.stopPropagation()}
     >
-      {avatar ? <img src={avatar} alt="" /> : <FaUserCircle />}
+      {avatar ? <img src={resolveMediaUrl(avatar)} alt="" /> : <FaUserCircle />}
     </Link>
   );
 
@@ -276,7 +280,10 @@ export default function ShortsFeed({
   );
 
   const renderOfferSlide = (offer, index) => {
-    const imagesList = [offer.image, offer.product_image].filter(Boolean);
+    const imagesList = [
+      resolveMediaUrl(offer.image),
+      resolveMediaUrl(offer.product_image),
+    ].filter(Boolean);
     const bg = imagesList[0];
 
     return (
@@ -352,7 +359,7 @@ export default function ShortsFeed({
           {useVideo ? (
             <video
               ref={(el) => { videoRefs.current[product.id] = el; }}
-              src={product.video}
+              src={resolveMediaUrl(product.video)}
               poster={imgs[0]}
               preload="metadata"
               muted
@@ -492,7 +499,7 @@ export default function ShortsFeed({
                       return (
                         <div className="shorts-comment" key={comment.id}>
                           <div className="shorts-comment-avatar">
-                            {comment.user_avatar ? <img src={comment.user_avatar} alt="" /> : <FaUserCircle />}
+                            {comment.user_avatar ? <img src={resolveMediaUrl(comment.user_avatar)} alt="" /> : <FaUserCircle />}
                           </div>
                           <div className="shorts-comment-body">
                             <strong>{comment.user_name}</strong>

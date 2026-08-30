@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import React from "react";
 import api from "../../services/api";
+import { resolveMediaUrl } from "../../utils/media";
+import { cleanProducts, cleanSellers } from "../../utils/cleanData";
 import {
   FaSearch,
   FaShoppingCart,
@@ -79,7 +81,8 @@ export default function Home({
         const list = Array.isArray(res.data)
           ? res.data
           : res.data?.results || [];
-        if (list.length > 0) setHomeProducts(list);
+        const clean = cleanProducts(list);
+        if (clean.length > 0) setHomeProducts(clean);
       })
       .catch(() => {});
     return () => {
@@ -100,7 +103,7 @@ export default function Home({
       .get("/api/sellers/search/")
       .then((res) => {
         if (active && Array.isArray(res.data)) {
-          setSellers(res.data.slice(0, 12));
+          setSellers(cleanSellers(res.data).slice(0, 12));
         }
       })
       .catch(() => {});
@@ -238,14 +241,14 @@ export default function Home({
                   <div className="shorts-rail-media">
                     {p.video ? (
                       <video
-                        src={p.video}
+                        src={resolveMediaUrl(p.video)}
                         muted
                         playsInline
                         preload="metadata"
                         title={p.name}
                       />
                     ) : (
-                      p.image && <img src={p.image} alt={p.name} loading="lazy" decoding="async" />
+                      p.image && <img src={resolveMediaUrl(p.image)} alt={p.name} loading="lazy" decoding="async" />
                     )}
                     <span className="shorts-rail-play">
                       <FaPlay />
@@ -258,7 +261,7 @@ export default function Home({
                   </div>
                   <span className="shorts-rail-seller">
                     {p.seller_avatar ? (
-                      <img src={p.seller_avatar} alt="" loading="lazy" />
+                      <img src={resolveMediaUrl(p.seller_avatar)} alt="" loading="lazy" />
                     ) : (
                       <span className="shorts-rail-avatar-fallback">
                         {(p.seller_name || "?").charAt(0)}
@@ -315,7 +318,7 @@ export default function Home({
                 <Link to={`/seller/${s.id}`} key={s.id} className="seller-badge">
                   <span className="seller-badge-avatar">
                     {s.avatar ? (
-                      <img src={s.avatar} alt={s.business_name} loading="lazy" />
+                      <img src={resolveMediaUrl(s.avatar)} alt={s.business_name} loading="lazy" />
                     ) : (
                       <span className="seller-badge-fallback">
                         {(s.business_name || "?").charAt(0)}

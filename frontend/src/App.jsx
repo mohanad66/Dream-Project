@@ -114,7 +114,7 @@ export default function App() {
         {shouldShowNavbar && !isHome && <TopBar />}
         {shouldShowNavbar && <Navbar onLogout={handleLogout} />}
 
-        <main style={{ flex: 1 }}>
+        <main className={shouldShowNavbar ? "tabnav-page" : "tabnav-free"} style={{ flex: 1 }}>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               <Route path="/login" element={<Login onLogin={handleLogin} />} />
