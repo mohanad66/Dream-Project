@@ -253,7 +253,8 @@ export const useAuth = () => {
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         await fetchAllData(true);
-        setAuthData({ isAuthenticated: true });
+        // A 401 during init may have cleared a stale token; downgrade to guest
+        setAuthData({ isAuthenticated: !!localStorage.getItem(ACCESS_TOKEN) });
       } else {
         await fetchAllData(false);
         setAuthData({ isAuthenticated: false });
@@ -262,6 +263,23 @@ export const useAuth = () => {
 
     initialize();
   }, [fetchAllData, setAuthData]);
+
+  // When the API detects an expired/invalid session, drop to guest state.
+  // Public pages stay browsable; ProtectedRoute re-evaluates and shows the
+  // login prompt only where it is actually required.
+  useEffect(() => {
+    const onAuthExpired = () => {
+      setAuthData({
+        isAuthenticated: false,
+        isLoading: false,
+        isSuperuser: false,
+        isSeller: false,
+        data: INITIAL_DATA,
+      });
+    };
+    window.addEventListener("auth-expired", onAuthExpired);
+    return () => window.removeEventListener("auth-expired", onAuthExpired);
+  }, [setAuthData]);
 
   // Expose memoized value to prevent re-renders in components consuming this hook
   return useMemo(

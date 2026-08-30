@@ -37,6 +37,16 @@ export default function ProtectedRoute({ children }) {
     }
   }, [location.state]);
 
+  // Re-evaluate when the API signals an expired/invalid session so users on
+  // truly protected routes are prompted to log in again, while public pages
+  // (which never render this component) stay browsable.
+  useEffect(() => {
+    const onAuthExpired = () =>
+      setAuthState({ isAuthorized: false, isLoading: false });
+    window.addEventListener("auth-expired", onAuthExpired);
+    return () => window.removeEventListener("auth-expired", onAuthExpired);
+  }, []);
+
   if (authState.isLoading) {
     return <div>Loading...</div>;
   }

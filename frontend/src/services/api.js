@@ -126,17 +126,17 @@ api.interceptors.response.use(
 );
 
 /**
- * Helper to handle authentication failures consistently
+ * Handle an expired/invalid session without forcing navigation.
+ *
+ * The store is guest-first: expiring tokens should downgrade the visitor
+ * to a guest silently. Only protected routes (or explicit user actions)
+ * decide when a login prompt is needed, not background API failures.
  */
 function handleAuthFailure() {
   localStorage.removeItem(ACCESS_TOKEN);
   localStorage.removeItem(REFRESH_TOKEN);
   delete api.defaults.headers.common["Authorization"];
-
-  // Avoid redirect loop if already on login page
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login";
-  }
+  window.dispatchEvent(new Event("auth-expired"));
 }
 
 export default api;
