@@ -19,6 +19,7 @@ import {
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
 import { resolveMediaUrl } from "../../utils/media";
+import Card from "../../Components/Card";
 import "./css/style.scss";
 
 export default function ProductDetail({ categories = [], tags = [] }) {
@@ -37,6 +38,7 @@ export default function ProductDetail({ categories = [], tags = [] }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [added, setAdded] = useState(false);
+  const [related, setRelated] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -58,6 +60,25 @@ export default function ProductDetail({ categories = [], tags = [] }) {
       });
     return () => { active = false; };
   }, [id]);
+
+  // Related products from the same category
+  useEffect(() => {
+    const productId = product?.id;
+    const categoryId = product?.category;
+    if (!productId || !categoryId) return;
+    let active = true;
+    api
+      .get(`/api/products/?category=${categoryId}&page_size=12`)
+      .then((res) => {
+        if (!active) return;
+        const results = res?.data?.results || res?.data?.products || [];
+        setRelated(results.filter((p) => String(p.id) !== String(productId)).slice(0, 8));
+      })
+      .catch(() => {
+        if (active) setRelated([]);
+      });
+    return () => { active = false; };
+  }, [product?.id, product?.category]);
 
   useEffect(() => {
     if (!product?.id) return;
@@ -384,6 +405,22 @@ export default function ProductDetail({ categories = [], tags = [] }) {
           )}
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section className="pd-related" aria-label="Related products">
+          <div className="pd-related__head">
+            <h2>You may also like</h2>
+            <Link to={categoryName ? `/category/${product.category}` : "/products"}>
+              {categoryName || "All products"} →
+            </Link>
+          </div>
+          <div className="pd-related__grid">
+            {related.map((p) => (
+              <Card key={p.id} card={p} categories={categories} tags={tags} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

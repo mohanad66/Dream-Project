@@ -6,7 +6,8 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../services/constants.js";
 import "./css/styles.scss";
 import React from "react"; // ✅ add this
 
-export default function Form({ route, method, onLogin, successRedirect }) {
+export default function Form({ route, method, onLogin, successRedirect, next }) {
+  const nextPath = next || successRedirect || "/";
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -63,8 +64,8 @@ export default function Form({ route, method, onLogin, successRedirect }) {
 
         onLogin(userResponse.data);
 
-        if (successRedirect) {
-          navigate(successRedirect);
+        if (nextPath) {
+          navigate(nextPath);
         }
       } else {
         if (!formData.email) {
@@ -76,6 +77,7 @@ export default function Form({ route, method, onLogin, successRedirect }) {
 
         const response = await api.post("/api/auth/register/", payload);
         sessionStorage.setItem("pending_user_id", response.data.user_id);
+        sessionStorage.setItem("pending_next", nextPath);
         navigate("/verify-email");
       }
     } catch (error) {

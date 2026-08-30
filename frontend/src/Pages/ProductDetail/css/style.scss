@@ -563,3 +563,49 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* ---------- Related products ---------- */
+.pd-related {
+  margin-top: 3rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 2rem;
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+
+    h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: -0.01em;
+    }
+
+    a {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-primary);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+}

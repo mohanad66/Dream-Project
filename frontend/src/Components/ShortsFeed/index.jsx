@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   FaHeart,
+  FaRegHeart,
   FaComment,
   FaShareAlt,
   FaShoppingCart,
+  FaShoppingBag,
   FaStar,
   FaRegStar,
   FaTrash,
@@ -14,6 +16,10 @@ import {
   FaPlay,
   FaPercent,
   FaEye,
+  FaBookmark,
+  FaRegBookmark,
+  FaVolumeMute,
+  FaVolumeUp,
 } from "react-icons/fa";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
@@ -38,6 +44,10 @@ export default function ShortsFeed({
   const [commentText, setCommentText] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [videoPaused, setVideoPaused] = useState({});
+  const [muted, setMuted] = useState(true);
+  const [progress, setProgress] = useState({});
+  const [wishlistStates, setWishlistStates] = useState({});
+  const [videoBroken, setVideoBroken] = useState({});
   const containerRef = useRef(null);
   const videoRefs = useRef({});
 
@@ -45,6 +55,19 @@ export default function ShortsFeed({
     const access = localStorage.getItem(ACCESS_TOKEN);
     return access && access.trim() !== "";
   };
+
+  // When the active slide changes, fetch its wishlist state for logged-in users
+  useEffect(() => {
+    const item = items[activeIndex];
+    if (!item || isOffer(item) || !isLoggedIn()) return;
+    api
+      .get(`/api/wishlist/check/?product_id=${item.id}`)
+      .then((res) =>
+        setWishlistStates((prev) => ({ ...prev, [item.id]: !!res.data.in_wishlist })),
+      )
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, items]);
 
   // Track which slide is currently active (for lazy loading / active styles)
   useEffect(() => {
@@ -107,6 +130,48 @@ export default function ShortsFeed({
         video.pause();
         setVideoPaused((prev) => ({ ...prev, [product.id]: true }));
       }
+    }
+  };
+
+  const toggleMute = (product) => {
+    const video = videoRefs.current[product.id];
+    const next = !muted;
+    setMuted(next);
+    if (video) {
+      video.muted = next;
+      if (!next && video.paused) {
+        video.play().catch(() => {});
+        setVideoPaused((prev) => ({ ...prev, [product.id]: false }));
+      }
+    }
+  };
+
+  const handleTimeUpdate = (product, e) => {
+    const video = e.currentTarget;
+    if (!video.duration) return;
+    const pct = (video.currentTime / video.duration) * 100;
+    setProgress((prev) => {
+      const next = Math.floor(pct * 10);
+      if (Math.floor((prev[product.id] || 0) * 10) === next) return prev;
+      return { ...prev, [product.id]: pct };
+    });
+  };
+
+  const toggleWishlist = async (product) => {
+    if (!isLoggedIn()) {
+      window.location.href = "/login?next=/shorts";
+      return;
+    }
+    try {
+      if (wishlistStates[product.id]) {
+        await api.delete("/api/wishlist/remove/", { data: { product_id: product.id } });
+        setWishlistStates((prev) => ({ ...prev, [product.id]: false }));
+      } else {
+        await api.post("/api/wishlist/add/", { product_id: product.id });
+        setWishlistStates((prev) => ({ ...prev, [product.id]: true }));
+      }
+    } catch (err) {
+      console.error("Wishlist toggle failed:", err);
     }
   };
 
@@ -356,17 +421,18 @@ export default function ShortsFeed({
     return (
       <div className="shorts-slide" key={product.id}>
         <div className="shorts-media" onClick={() => toggleVideo(product, index)}>
-          {useVideo ? (
+          {useVideo && !videoBroken[product.id] ? (
             <video
               ref={(el) => { videoRefs.current[product.id] = el; }}
               src={resolveMediaUrl(product.video)}
               poster={imgs[0]}
               preload="metadata"
-              muted
+              muted={muted}
               loop
               playsInline
               autoPlay={index === 0}
-              onEnded={() => { /* loop keeps playing */ }}
+              onTimeUpdate={(e) => handleTimeUpdate(product, e)}
+              onError={() => setVideoBroken((prev) => ({ ...prev, [product.id]: true }))}
             />
           ) : imgs[0] ? (
             <img
@@ -385,6 +451,25 @@ export default function ShortsFeed({
               <span className="shorts-video-badge"><FaPlay /> Watch</span>
               {videoPaused[product.id] && (
                 <span className="shorts-video-paused"><FaPlay /></span>
+              )}
+              {videoBroken[product.id] && (
+                <span className="shorts-video-unavailable">Video unavailable</span>
+              )}
+              <button
+                type="button"
+                className="shorts-mute-btn"
+                aria-label={muted ? "Unmute video" : "Mute video"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleMute(product);
+                }}
+              >
+                {muted ? <FaVolumeMute /> : <FaVolumeUp />}
+              </button>
+              {!videoBroken[product.id] && progress[product.id] > 0 && (
+                <div className="shorts-video-progress">
+                  <span style={{ width: `${Math.min(progress[product.id], 100)}%` }} />
+                </div>
               )}
             </>
           )}
@@ -423,6 +508,15 @@ export default function ShortsFeed({
             <FaShareAlt />
           </button>
 
+          <button
+            className={`shorts-rail-btn save ${wishlistStates[product.id] ? "active" : ""}`}
+            onClick={() => toggleWishlist(product)}
+            aria-label={wishlistStates[product.id] ? "Remove from saved" : "Save product"}
+            title={wishlistStates[product.id] ? "Saved" : "Save"}
+          >
+            {wishlistStates[product.id] ? <FaBookmark /> : <FaRegBookmark />}
+          </button>
+
           <button className="shorts-rail-btn cart" onClick={() => addToCart(product)} aria-label="Add to cart">
             <FaShoppingCart />
           </button>
@@ -449,6 +543,13 @@ export default function ShortsFeed({
                 <span className="shorts-price-now">{product.price} L.E</span>
               )}
             </div>
+            <Link
+              to={`/product/${product.id}`}
+              className="shorts-shop-btn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FaShoppingBag /> Shop now
+            </Link>
             <button className="shorts-buy-btn" onClick={() => addToCart(product)}>
               <FaShoppingCart /> Add to Cart
             </button>

@@ -33,9 +33,11 @@ export default function VerifyEmail() {
         user_id: userId,
         otp_code: otp,
       });
+      const nextPath = sessionStorage.getItem("pending_next") || "/login";
       sessionStorage.removeItem("pending_user_id");
-      setSuccess("Email verified! Redirecting to login...");
-      setTimeout(() => navigate("/login"), 2000);
+      sessionStorage.removeItem("pending_next");
+      setSuccess("Email verified! Redirecting...");
+      setTimeout(() => navigate(nextPath), 2000);
     } catch (err) {
       setError(err.response?.data?.error || "Invalid or expired code");
     } finally {

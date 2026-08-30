@@ -281,7 +281,7 @@ export default function Home({
           {Array.isArray(categories) && categories.length > 0 ? (
             <div className="home-category-strip">
               {categories.map((cat) => (
-                <Link to={`/products?category=${cat.id}`} key={cat.id} className="category-chip">
+                <Link to={`/category/${cat.id}`} key={cat.id} className="category-chip">
                   <span className="category-chip-icon">{getCategoryIcon(cat.name)}</span>
                   <span className="category-chip-name">{cat.name}</span>
                 </Link>

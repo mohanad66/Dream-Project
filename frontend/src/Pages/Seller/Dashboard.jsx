@@ -15,6 +15,7 @@ import {
 import { Megaphone, Settings, Truck, Store } from "lucide-react";
 import "./seller.scss";
 import { useToast } from "../../Components/Toast/useToast";
+import { Link } from "react-router-dom";
 import Button from "../../Components/UI/Button";
 import Input from "../../Components/UI/Input";
 import Select from "../../Components/UI/Select";
@@ -502,6 +503,12 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                 <span className={`status-pill status-pill--${profile?.delivery_type === "seller" ? "active" : ""}`}>
                   {profile?.delivery_type === "seller" ? "Self Delivery" : "Platform Delivery"}
                 </span>
+                <Link
+                  to="/upload"
+                  className="dashboard-upload-btn"
+                >
+                  <FaVideo size={15} /> Upload Video
+                </Link>
               </div>
 
               {profile?.rejection_reason && (

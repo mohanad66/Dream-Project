@@ -44,6 +44,8 @@ const ShortsPage = lazy(() => import("./Pages/Shorts/index.jsx"));
 const SellersPage = lazy(() => import("./Pages/Sellers/index.jsx"));
 const UploadPage = lazy(() => import("./Pages/Upload/index.jsx"));
 const ProductDetail = lazy(() => import("./Pages/ProductDetail/index.jsx"));
+const CategoryPage = lazy(() => import("./Pages/Category/index.jsx"));
+const AboutPage = lazy(() => import("./Pages/About us/index.jsx"));
 
 const LoadingFallback = () => (
   <div className="loading-container">
@@ -173,11 +175,7 @@ export default function App() {
 
               <Route
                 path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <CheckoutPage />
-                  </ProtectedRoute>
-                }
+                element={<CheckoutPage />}
               />
               <Route
                 path="/upload"
@@ -231,9 +229,7 @@ export default function App() {
                 }
               />
               <Route path="/seller/orders" element={
-                <ProtectedRoute>
-                  <SellerDashboard initialTab="orders" />
-                </ProtectedRoute>
+                <Navigate to="/seller/dashboard" replace />
               } />
               <Route path="/seller/products" element={
                 <ProtectedRoute>
@@ -250,6 +246,16 @@ export default function App() {
                   />
                 }
               />
+              <Route
+                path="/category/:id"
+                element={
+                  <CategoryPage
+                    categories={commonData.categories || []}
+                    tags={commonData.tags || []}
+                  />
+                }
+              />
+              <Route path="/about" element={<AboutPage />} />
               <Route path="/payment/result" element={<PaymentResult />} />
               <Route
                 path="/notifications"

@@ -15,55 +15,58 @@ export default function Shorts({
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadFeed = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const access = localStorage.getItem(ACCESS_TOKEN);
+      const hasToken = access && access.trim() !== "";
+
+      const [homeRes] = await Promise.all([api.get("/api/feed/home/")]);
+
+      let followedProducts = [];
+      let followedOffers = [];
+      if (hasToken) {
+        try {
+          const followedRes = await api.get("/api/feed/followed/");
+          followedProducts = followedRes.data.products || [];
+          followedOffers = followedRes.data.offers || [];
+        } catch (err) {}
+      }
+
+      // Popular (most liked) first regardless of follows, then recent,
+      // then followed sellers, then offers as brand slides.
+      const combined = [];
+      combined.push(...(homeRes.data.trending || []));
+      combined.push(...(homeRes.data.recent || []));
+      combined.push(...followedProducts);
+
+      const seen = new Set();
+      const uniqueProducts = combined.filter((p) => {
+        if (!p?.id || seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+      });
+
+      const offers = [
+        ...(followedOffers.length ? followedOffers : []),
+        ...(homeRes.data.offers || []),
+      ]
+        .filter((o) => o && o.id)
+        .filter((o, i, arr) => arr.findIndex((x) => x.id === o.id) === i);
+
+      setItems(cleanFeedItems([...uniqueProducts, ...offers]));
+    } catch (err) {
+      console.error("Failed to load shorts feed:", err);
+      setError(err?.response?.data?.detail || "We couldn't load Shorts right now.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadFeed = async () => {
-      setLoading(true);
-      try {
-        const access = localStorage.getItem(ACCESS_TOKEN);
-        const hasToken = access && access.trim() !== "";
-
-        const [homeRes] = await Promise.all([api.get("/api/feed/home/")]);
-
-        let followedProducts = [];
-        let followedOffers = [];
-        if (hasToken) {
-          try {
-            const followedRes = await api.get("/api/feed/followed/");
-            followedProducts = followedRes.data.products || [];
-            followedOffers = followedRes.data.offers || [];
-          } catch (err) {}
-        }
-
-        // Popular (most liked) first regardless of follows, then recent,
-        // then followed sellers, then offers as brand slides.
-        const combined = [];
-        combined.push(...(homeRes.data.trending || []));
-        combined.push(...(homeRes.data.recent || []));
-        combined.push(...followedProducts);
-
-        const seen = new Set();
-        const uniqueProducts = combined.filter((p) => {
-          if (!p?.id || seen.has(p.id)) return false;
-          seen.add(p.id);
-          return true;
-        });
-
-        const offers = [
-          ...(followedOffers.length ? followedOffers : []),
-          ...(homeRes.data.offers || []),
-        ]
-          .filter((o) => o && o.id)
-          .filter((o, i, arr) => arr.findIndex((x) => x.id === o.id) === i);
-
-        setItems(cleanFeedItems([...uniqueProducts, ...offers]));
-      } catch (err) {
-        console.error("Failed to load shorts feed:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadFeed();
   }, []);
 
@@ -75,6 +78,18 @@ export default function Shorts({
       <div className="shorts-page shorts-page--loading">
         <div className="shorts-loader-spinner" />
         <p>Loading shorts…</p>
+      </div>
+    );
+  }
+
+  if (error && !items.length) {
+    return (
+      <div className="shorts-page shorts-page--error">
+        <h2>We couldn't load Shorts</h2>
+        <p>{error}</p>
+        <button className="shorts-empty-btn" onClick={loadFeed}>
+          Try again
+        </button>
       </div>
     );
   }

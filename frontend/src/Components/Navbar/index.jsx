@@ -24,11 +24,18 @@ export default function Navbar({ onLogout }) {
 
   const access = localStorage.getItem(ACCESS_TOKEN);
   const isLoggedIn = access && access.trim() !== "";
+  const { isSeller } = useAuth();
 
   const isActive = (to) =>
     to === "/"
       ? location.pathname === "/"
       : location.pathname.startsWith(to);
+
+  // Seller entry point: only authenticated sellers get the upload action;
+  // everyone else gets a clearly separated "Sell on instaBrandz" entry.
+  const sellerCta = isLoggedIn && isSeller
+    ? { to: "/upload", label: "Upload video" }
+    : { to: "/seller-register", label: "Sell on instaBrandz" };
 
   // Desktop top-navigation links
   const desktopLinks = [
@@ -39,7 +46,7 @@ export default function Navbar({ onLogout }) {
     ...(isLoggedIn ? [{ to: "/profile", label: "Profile" }] : []),
   ];
 
-  // Mobile bottom-tab links (5 slots, center slot is the upload CTA)
+  // Mobile bottom-tab links (5 slots, center slot is the seller CTA)
   const mobileLeft = [
     { to: "/", icon: <FaHome />, label: "Home" },
     { to: "/shorts", icon: <FaPlayCircle />, label: "Shorts" },
@@ -48,8 +55,6 @@ export default function Navbar({ onLogout }) {
     { to: "/products", icon: <FaStore />, label: "Shop" },
     { to: "/sellers", icon: <FaUsers />, label: "Sellers" },
   ];
-
-  const uploadHref = isLoggedIn ? "/upload" : "/login?next=/upload";
 
   return (
     <>
@@ -75,7 +80,7 @@ export default function Navbar({ onLogout }) {
                 {item.label}
               </Link>
             ))}
-            {isLoggedIn && (
+            {isLoggedIn && isSeller && (
               <Link
                 to="/seller/dashboard"
                 className={`site-nav-link ${isActive("/seller") ? "active" : ""}`}
@@ -86,11 +91,11 @@ export default function Navbar({ onLogout }) {
           </nav>
 
           <div className="site-header__actions">
-            <Link to={uploadHref} className="site-upload-cta">
+            <Link to={sellerCta.to} className="site-upload-cta">
               <span className="site-upload-cta__icon">
                 <FaVideo />
               </span>
-              Upload video
+              {sellerCta.label}
             </Link>
 
             {isLoggedIn ? (
@@ -137,11 +142,13 @@ export default function Navbar({ onLogout }) {
               <NavTabItem key={item.to} item={item} activeLink={activeLink} />
             ))}
 
-            <Link to={uploadHref} className="nav-center-cta" aria-label="Upload a video">
+            <Link to={sellerCta.to} className="nav-center-cta" aria-label={sellerCta.label}>
               <span className="nav-center-cta__icon">
                 <FaVideo />
               </span>
-              <span className="nav-label">Upload</span>
+              <span className="nav-label">
+                {isLoggedIn && isSeller ? "Upload" : "Sell"}
+              </span>
             </Link>
 
             {mobileRight.map((item) => (

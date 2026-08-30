@@ -1,8 +1,11 @@
 import Form from "../../Components/Form/Form";
 import React from "react";
 import { Helmet } from "react-helmet-async";
+import { useSearchParams } from "react-router-dom";
 
 export default function Login({ onLogin }) {
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next");
   return (
     <div className="login-page">
       <Helmet>
@@ -15,7 +18,8 @@ export default function Login({ onLogin }) {
         route="/api/token/"
         method="login"
         onLogin={onLogin}
-        successRedirect="/"
+        successRedirect={next || "/"}
+        next={next}
       />
     </div>
   );

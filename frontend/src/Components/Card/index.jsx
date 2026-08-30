@@ -216,6 +216,7 @@ export default function Card({ card, categories = [], tags = [] }) {
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
+    window.dispatchEvent(new Event("cart-updated"));
     setIsAddedToCart(true);
     setTimeout(() => setIsAddedToCart(false), 2000);
   };
@@ -232,6 +233,7 @@ export default function Card({ card, categories = [], tags = [] }) {
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
+    window.dispatchEvent(new Event("cart-updated"));
     navigate("/checkout");
   };
 

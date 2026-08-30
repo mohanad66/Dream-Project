@@ -3,8 +3,10 @@ import { CreditCard, Smartphone, Store, Truck, MapPin } from "lucide-react";
 import CheckoutForm from "../../Components/CheckoutForm";
 import CouponInput from "../../Components/CouponInput";
 import "./css/style.scss";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
+import { ACCESS_TOKEN } from "../../services/constants";
+import { FaLock, FaClipboardCheck, FaTruckFast, FaShieldHalved } from "react-icons/fa6";
 
 const PAYMENT_METHODS = [
   { id: "card", label: "Credit/Debit Card", icon: <CreditCard size={22} />, description: "Pay securely with Visa/Mastercard" },
@@ -29,6 +31,8 @@ export default function CheckoutPage() {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const navigate = useNavigate();
+
+  const isAuthed = !!localStorage.getItem(ACCESS_TOKEN);
 
   useEffect(() => {
     const items = JSON.parse(localStorage.getItem("cart")) || [];
@@ -174,41 +178,73 @@ export default function CheckoutPage() {
 
           {/* Payment Form Section */}
           <div className="payment-section">
-            <h2>Payment Details</h2>
+            {isAuthed ? (
+              <>
+                <h2>Payment Details</h2>
 
-            {/* Payment Method Selector */}
-            <div className="payment-method-selector">
-              {PAYMENT_METHODS.map((method) => (
-                <label
-                  key={method.id}
-                  className={`payment-method-card ${paymentMethod === method.id ? "selected" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value={method.id}
-                    checked={paymentMethod === method.id}
-                    onChange={() => setPaymentMethod(method.id)}
-                  />
-                  <div className="payment-method-icon">{method.icon}</div>
-                  <div className="payment-method-info">
-                    <span className="payment-method-label">{method.label}</span>
-                    <span className="payment-method-desc">{method.description}</span>
-                  </div>
-                  <div className="payment-method-radio" />
-                </label>
-              ))}
-            </div>
+                {/* Payment Method Selector */}
+                <div className="payment-method-selector">
+                  {PAYMENT_METHODS.map((method) => (
+                    <label
+                      key={method.id}
+                      className={`payment-method-card ${paymentMethod === method.id ? "selected" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment_method"
+                        value={method.id}
+                        checked={paymentMethod === method.id}
+                        onChange={() => setPaymentMethod(method.id)}
+                      />
+                      <div className="payment-method-icon">{method.icon}</div>
+                      <div className="payment-method-info">
+                        <span className="payment-method-label">{method.label}</span>
+                        <span className="payment-method-desc">{method.description}</span>
+                      </div>
+                      <div className="payment-method-radio" />
+                    </label>
+                  ))}
+                </div>
 
-            {/* Checkout Form */}
-            <CheckoutForm
-              cartItems={cartItems}
-              totalAmount={finalTotal}
-              totalItems={totalItems}
-              paymentMethod={paymentMethod}
-              coupon={appliedCoupon}
-              deliveryFee={deliveryFee}
-            />
+                {/* Checkout Form */}
+                <CheckoutForm
+                  cartItems={cartItems}
+                  totalAmount={finalTotal}
+                  totalItems={totalItems}
+                  paymentMethod={paymentMethod}
+                  coupon={appliedCoupon}
+                  deliveryFee={deliveryFee}
+                />
+              </>
+            ) : (
+              <div className="checkout-gate">
+                <div className="checkout-gate__icon">
+                  <FaShieldHalved size={26} />
+                </div>
+                <h2>Log in to complete your order</h2>
+                <p className="checkout-gate__intro">
+                  Your cart is safe and saved. Create a free account (or sign
+                  in) to finish checking out — your items stay in your cart
+                  either way.
+                </p>
+                <ul className="checkout-gate__benefits">
+                  <li><FaLock size={15} /> Secure payment with full order protection</li>
+                  <li><FaTruckFast size={15} /> Track your order from checkout to delivery</li>
+                  <li><FaClipboardCheck size={15} /> Access order history and fast re-ordering</li>
+                </ul>
+                <div className="checkout-gate__actions">
+                  <Link className="checkout-gate__btn checkout-gate__btn--primary" to="/login?next=/checkout">
+                    Log in
+                  </Link>
+                  <Link className="checkout-gate__btn checkout-gate__btn--ghost" to="/register?next=/checkout">
+                    Create a free account
+                  </Link>
+                </div>
+                <p className="checkout-gate__note">
+                  <Link to="/cart">← Back to cart</Link> to review your items.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

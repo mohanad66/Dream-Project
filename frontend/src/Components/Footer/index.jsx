@@ -51,14 +51,7 @@ export default function Footer({ contacts = [], categories = [] }) {
             local brands, artisans and independent creators.
           </p>
           <div className="footer-socials">
-            {(socials.length > 0
-              ? socials
-              : [
-                  { name: "Facebook", value: "#" },
-                  { name: "Instagram", value: "#" },
-                  { name: "Twitter", value: "#" },
-                ]
-            ).map((s, i) => (
+            {socials.map((s, i) => (
               <a
                 key={i}
                 href={s.value.startsWith("http") ? s.value : `https://${s.value}`}
@@ -86,6 +79,9 @@ export default function Footer({ contacts = [], categories = [] }) {
               <Link to="/">Home</Link>
             </li>
             <li>
+              <Link to="/shorts">Shorts</Link>
+            </li>
+            <li>
               <Link to="/products">Shop All</Link>
             </li>
             <li>
@@ -103,7 +99,7 @@ export default function Footer({ contacts = [], categories = [] }) {
             <ul>
               {categoryList.map((cat) => (
                 <li key={cat.id}>
-                  <Link to={`/products?category=${cat.id}`}>{cat.name}</Link>
+                  <Link to={`/category/${cat.id}`}>{cat.name}</Link>
                 </li>
               ))}
             </ul>
@@ -114,6 +110,21 @@ export default function Footer({ contacts = [], categories = [] }) {
               </li>
             </ul>
           )}
+        </div>
+
+        <div className="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li>
+              <Link to="/about">About us</Link>
+            </li>
+            <li>
+              <Link to="/sellers">Find a seller</Link>
+            </li>
+            <li>
+              <Link to="/register">Create an account</Link>
+            </li>
+          </ul>
         </div>
 
         <div className="footer-col footer-contact">
@@ -131,12 +142,6 @@ export default function Footer({ contacts = [], categories = [] }) {
                 <a href="mailto:support@instaBrandz.com" className="footer-contact-value">
                   support@instaBrandz.com
                 </a>
-              </li>
-              <li>
-                <span className="footer-contact-label">Help Center</span>
-                <Link to="/" className="footer-contact-value">
-                  Visit our help page
-                </Link>
               </li>
             </ul>
           )}
