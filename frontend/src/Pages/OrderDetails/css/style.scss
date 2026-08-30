@@ -14,7 +14,7 @@
   --order-border-light: #f3f1ea;
   --order-shadow-color: rgba(23, 24, 26, 0.1);
   --order-status-pending-bg: #faf3e0;
-  --order-status-pending-text: #e8501b;
+  --order-status-pending-text: var(--color-gold-deep, #0f766e);
   --order-status-confirmed-bg: #e6f4ee;
   --order-status-confirmed-text: #1f7a5c;
   --order-status-delivered-bg: #e6f4ee;
@@ -23,10 +23,10 @@
   --order-status-cancelled-text: #b3403f;
   --order-step-bg: #e5e1d5;
   --order-step-completed: #1f7a5c;
-  --order-step-current: #e8501b;
-  --order-btn-primary: #e8501b;
-  --order-btn-primary-hover: #f1510f;
-  --order-glow: radial-gradient(80% 60% at 85% -5%, rgba(232, 80, 27, 0.09), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(31, 122, 92, 0.07), transparent 70%);
+  --order-step-current: var(--color-gold-deep, #0f766e);
+  --order-btn-primary: var(--color-gold-deep, #0f766e);
+  --order-btn-primary-hover: var(--color-brand-hover, #0d9488);
+  --order-glow: radial-gradient(80% 60% at 85% -5%, rgba(14, 165, 164, 0.09), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(31, 122, 92, 0.07), transparent 70%);
 }
 
 .dark-theme .order-details-container {
@@ -39,7 +39,7 @@
   --order-border-color: #232d3f;
   --order-border-light: #232d3f;
   --order-shadow-color: rgba(0, 0, 0, 0.35);
-  --order-status-pending-bg: rgba(255, 107, 53, 0.12);
+  --order-status-pending-bg: rgba(14, 165, 164, 0.12);
   --order-status-pending-text: #e5b25a;
   --order-status-confirmed-bg: rgba(63, 167, 129, 0.12);
   --order-status-confirmed-text: #57bb93;
@@ -49,10 +49,10 @@
   --order-status-cancelled-text: #ec8277;
   --order-step-bg: #232d3f;
   --order-step-completed: #3fa781;
-  --order-step-current: #ff6b35;
-  --order-btn-primary: #ff6b35;
-  --order-btn-primary-hover: #ff8a5c;
-  --order-glow: radial-gradient(80% 60% at 85% -5%, rgba(255, 107, 53, 0.1), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(63, 167, 129, 0.07), transparent 70%);
+  --order-step-current: var(--color-gold, #0ea5a4);
+  --order-btn-primary: var(--color-gold, #0ea5a4);
+  --order-btn-primary-hover: var(--color-gold-hover, #2dd4bf);
+  --order-glow: radial-gradient(80% 60% at 85% -5%, rgba(14, 165, 164, 0.1), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(63, 167, 129, 0.07), transparent 70%);
 }
 
 // Order details page styles (isolated - won't affect main website)
@@ -193,9 +193,9 @@
         white-space: nowrap;
 
         &--platform {
-          background: rgba(255, 107, 53, 0.12);
-          color: #ff6b35;
-          border: 1px solid rgba(255, 107, 53, 0.25);
+          background: rgba(14, 165, 164, 0.12);
+          color: var(--color-gold, #0ea5a4);
+          border: 1px solid rgba(14, 165, 164, 0.25);
         }
 
         &--seller {

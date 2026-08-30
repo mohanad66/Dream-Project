@@ -1,8 +1,8 @@
 /* ==========================================================================
    INSTABRANDZ — DESIGN SYSTEM 2.0
    Direction: Clean, high-contrast, conversion-focused.
-   Neutral-white surfaces, warm-orange accent for CTAs/badges/active states,
-   modern sans display type. All component variable names are preserved so the
+   Cool teal accent for CTAs/badges/active states — calm, trustworthy, and
+   encouraging for shoppers. All component variable names are preserved so the
    whole app re-skins.
    ========================================================================== */
 
@@ -10,19 +10,19 @@
    1. DESIGN TOKENS — LIGHT
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand — warm orange reads as energetic, shoppable & high-conversion */
-  --color-brand: #ff6b35;
-  --color-brand-hover: #f1510f;
-  --color-brand-active: #d94712;
-  --color-primary: #ff6b35;
-  --color-primary-hover: #f1510f;
-  --color-primary-active: #d94712;
-  --color-primary-light: #fff0e8;
-  --color-primary-alpha: rgba(255, 107, 53, 0.12);
-  --color-gold: #ff6b35;
-  --color-gold-hover: #ff8a5c;
-  --color-gold-deep: #e8501b;
-  --color-gold-alpha: rgba(255, 107, 53, 0.16);
+  /* Brand — cool teal reads as calm, trustworthy, conversion-friendly */
+  --color-brand: #0ea5a4;
+  --color-brand-hover: #0d9488;
+  --color-brand-active: #0f766e;
+  --color-primary: #0ea5a4;
+  --color-primary-hover: #0d9488;
+  --color-primary-active: #0f766e;
+  --color-primary-light: #e0f7f6;
+  --color-primary-alpha: rgba(14, 165, 164, 0.12);
+  --color-gold: #0ea5a4;
+  --color-gold-hover: #2dd4bf;
+  --color-gold-deep: #0f766e;
+  --color-gold-alpha: rgba(14, 165, 164, 0.16);
 
   --color-secondary: #6b7280;
   --color-secondary-hover: #4b5563;
@@ -82,9 +82,9 @@
   --bg-card: #ffffff;
   --bg-hover: #f4f4f3;
 
-  --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #ff8a5c 100%);
+  --gradient-primary: linear-gradient(135deg, #0ea5a4 0%, #2dd4bf 100%);
   --gradient-secondary: linear-gradient(135deg, #1f7a5c 0%, #2f9e76 100%);
-  --gradient-accent: linear-gradient(135deg, #e8501b 0%, #ff8a5c 100%);
+  --gradient-accent: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
 
   --border-color: #e6e6e2;
   --border-color-strong: #d4d4cf;
@@ -152,16 +152,16 @@
    2. DESIGN TOKENS — DARK (signature elegant look)
    -------------------------------------------------------------------------- */
 :root.dark-theme {
-  --color-brand: #ff6b35;
-  --color-primary: #ff6b35;
-  --color-primary-hover: #ff8a5c;
-  --color-primary-active: #e8501b;
-  --color-primary-light: rgba(255, 107, 53, 0.14);
-  --color-gold: #ff6b35;
-  --color-gold-hover: #ff8a5c;
-  --color-gold-deep: #ff8a5c;
-  --color-gold-alpha: rgba(255, 107, 53, 0.18);
-  --color-primary-alpha: rgba(255, 107, 53, 0.18);
+  --color-brand: #2dd4bf;
+  --color-primary: #2dd4bf;
+  --color-primary-hover: #5eead4;
+  --color-primary-active: #14b8a6;
+  --color-primary-light: rgba(45, 212, 191, 0.14);
+  --color-gold: #2dd4bf;
+  --color-gold-hover: #5eead4;
+  --color-gold-deep: #5eead4;
+  --color-gold-alpha: rgba(45, 212, 191, 0.18);
+  --color-primary-alpha: rgba(45, 212, 191, 0.18);
 
   --color-secondary: #8b93a5;
   --color-secondary-hover: #a5adbf;
@@ -209,9 +209,9 @@
   --bg-secondary: #0f141f;
   --bg-tertiary: #1e2840;
 
-  --gradient-primary: linear-gradient(135deg, #ff6b35 0%, #ff8a5c 100%);
+  --gradient-primary: linear-gradient(135deg, #14b8a6 0%, #2dd4bf 100%);
   --gradient-secondary: linear-gradient(135deg, #2f9e76 0%, #57bb93 100%);
-  --gradient-accent: linear-gradient(135deg, #e8501b 0%, #ff8a5c 100%);
+  --gradient-accent: linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%);
 
   --border-color: #232d3f;
   --border-color-strong: #344155;
@@ -248,8 +248,8 @@
   --product-error: var(--color-danger);
   --product-success: var(--color-success);
   --product-warning: var(--color-warning);
-  --product-primary-rgb: 201, 162, 75;
-  --product-secondary-rgb: 162, 124, 40;
+  --product-primary-rgb: 14, 165, 164;
+  --product-secondary-rgb: 45, 212, 191;
 
   --cart-primary: var(--color-primary);
   --cart-primary-dark: var(--color-primary-hover);
@@ -347,8 +347,8 @@ $success-color: var(--success-color);
 $warning-color: var(--warning-color);
 $info-color: var(--info-color);
 
-$product-primary: var(--product-primary, #ff6b35);
-$product-secondary: var(--product-secondary, #e8501b);
+$product-primary: var(--product-primary, #0ea5a4);
+$product-secondary: var(--product-secondary, #0d9488);
 $product-accent: var(--product-accent, #e0e7ff);
 $product-text: var(--product-text, #1e293b);
 $product-light-bg: var(--product-light-bg, #f8fafc);
@@ -359,26 +359,26 @@ $product-success: var(--product-success, #3fa781);
 $product-warning: var(--product-warning, #d9a03f);
 
 $product-shadow-xs:
-  0 1px 2px rgba(232, 80, 27, 0.05),
+  0 1px 2px rgba(14, 165, 164, 0.05),
   0 1px 1px rgba(0, 0, 0, 0.04);
 $product-shadow-sm:
-  0 1px 3px rgba(232, 80, 27, 0.07),
+  0 1px 3px rgba(14, 165, 164, 0.07),
   0 1px 2px rgba(0, 0, 0, 0.06);
 $product-shadow-md:
-  0 4px 10px rgba(232, 80, 27, 0.1),
+  0 4px 10px rgba(14, 165, 164, 0.1),
   0 2px 4px rgba(0, 0, 0, 0.08);
 $product-shadow-lg:
-  0 10px 24px rgba(232, 80, 27, 0.12),
+  0 10px 24px rgba(14, 165, 164, 0.12),
   0 4px 8px rgba(0, 0, 0, 0.1);
 $product-shadow-xl:
-  0 20px 40px rgba(232, 80, 27, 0.15),
+  0 20px 40px rgba(14, 165, 164, 0.15),
   0 10px 20px rgba(0, 0, 0, 0.08);
 $product-shadow-hover:
-  0 25px 50px rgba(232, 80, 27, 0.18),
+  0 25px 50px rgba(14, 165, 164, 0.18),
   0 12px 24px rgba(0, 0, 0, 0.1);
 $product-shadow-colored:
-  0 10px 25px rgba(255, 107, 53, 0.22),
-  0 4px 10px rgba(255, 107, 53, 0.15);
+  0 10px 25px rgba(14, 165, 164, 0.22),
+  0 4px 10px rgba(14, 165, 164, 0.15);
 
 $product-radius-sm: 8px;
 $product-radius-md: 12px;

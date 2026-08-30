@@ -327,7 +327,7 @@
           background: var(--bg-hover);
 
           .dark-theme & {
-            background: rgba(217, 185, 104, 0.05);
+            background: rgba(45, 212, 191, 0.05);
           }
         }
 
@@ -386,10 +386,10 @@
     &.pending {
       background-color: var(--color-warning-light);
       color: var(--color-warning);
-      border-color: rgba(255, 107, 53, 0.25);
+      border-color: rgba(255, 176, 32, 0.28);
 
       .dark-theme & {
-        box-shadow: 0 0 12px rgba(255, 107, 53, 0.25);
+        box-shadow: 0 0 12px rgba(255, 176, 32, 0.2);
       }
     }
     &.rejected {
@@ -399,6 +399,20 @@
 
       .dark-theme & {
         box-shadow: 0 0 12px rgba(224, 106, 93, 0.25);
+      }
+    }
+
+    &.media-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background-color: var(--color-primary-light);
+      color: var(--color-primary);
+      border-color: var(--color-primary-alpha);
+      white-space: nowrap;
+
+      .dark-theme & {
+        box-shadow: 0 0 10px var(--color-primary-alpha);
       }
     }
   }
@@ -447,7 +461,7 @@
   }
 
   .onboard-box {
-    border-color: rgba(217, 185, 104, 0.25);
+    border-color: rgba(45, 212, 191, 0.25);
     box-shadow:
       0 0 24px var(--color-primary-alpha),
       var(--shadow-md);

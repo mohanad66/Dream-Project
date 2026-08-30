@@ -6,9 +6,9 @@
 
 /* ---------- Light Theme ---------- */
 .light-theme {
-  --cart-primary: #e8501b;
-  --cart-primary-dark: #f1510f;
-  --cart-secondary: #ff6b35;
+  --cart-primary: var(--color-gold-deep, #0f766e);
+  --cart-primary-dark: var(--color-brand-hover, #0d9488);
+  --cart-secondary: var(--color-gold, #0ea5a4);
   --cart-accent: #f7f0dd;
   --cart-text: #26241f;
   --cart-text-light: #5c5a50;
@@ -20,7 +20,7 @@
   --cart-error: #b3403f;
   --cart-success: #1f7a5c;
   --cart-success-dark: #18654b;
-  --cart-warning: #e8501b;
+  --cart-warning: var(--color-gold-deep, #0f766e);
   --cart-primary-rgb: 162, 124, 40;
   --cart-secondary-rgb: 201, 162, 75;
   --cart-theme-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -37,10 +37,10 @@
 
 /* ---------- Dark Theme ---------- */
 .dark-theme {
-  --cart-primary: #ff6b35;
-  --cart-primary-dark: #ff8a5c;
-  --cart-secondary: #ff8a5c;
-  --cart-accent: #e8501b;
+  --cart-primary: var(--color-gold, #0ea5a4);
+  --cart-primary-dark: var(--color-gold-hover, #2dd4bf);
+  --cart-secondary: var(--color-gold-hover, #2dd4bf);
+  --cart-accent: var(--color-gold-deep, #0f766e);
   --cart-text: #f5f6f8;
   --cart-text-light: #e2e5ec;
   --cart-light-bg: #1a2233;
@@ -53,7 +53,7 @@
   --cart-success-dark: #57bb93;
   --cart-warning: #d9a03f;
   --cart-primary-rgb: 201, 162, 75;
-  --cart-secondary-rgb: 217, 185, 104;
+  --cart-secondary-rgb: 45, 212, 191;
   --cart-theme-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --cart-background: #0b0f17;
   --cart-background-alt: #111726;

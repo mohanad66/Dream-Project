@@ -50,8 +50,8 @@
 }
 
 // --- Color Palette ---
-$product-primary: var(--product-primary, #e8501b);
-$product-secondary: var(--product-secondary, #e8501b);
+$product-primary: var(--product-primary, var(--color-gold-deep, #0f766e));
+$product-secondary: var(--product-secondary, var(--color-gold-deep, #0f766e));
 $product-accent: var(--product-accent, #f3ead2);
 $product-text: var(--product-text, #1e293b);
 $product-light-bg: var(--product-light-bg, #f8fafc);
@@ -73,26 +73,26 @@ $font-4xl: 2.25rem;
 
 // --- Shadows ---
 $product-shadow-xs:
-  0 1px 2px rgba(232, 80, 27, 0.05),
+  0 1px 2px rgba(14, 165, 164, 0.05),
   0 1px 1px rgba(0, 0, 0, 0.04);
 $product-shadow-sm:
-  0 1px 3px rgba(232, 80, 27, 0.07),
+  0 1px 3px rgba(14, 165, 164, 0.07),
   0 1px 2px rgba(0, 0, 0, 0.06);
 $product-shadow-md:
-  0 4px 10px rgba(232, 80, 27, 0.1),
+  0 4px 10px rgba(14, 165, 164, 0.1),
   0 2px 4px rgba(0, 0, 0, 0.08);
 $product-shadow-lg:
-  0 10px 24px rgba(232, 80, 27, 0.12),
+  0 10px 24px rgba(14, 165, 164, 0.12),
   0 4px 8px rgba(0, 0, 0, 0.1);
 $product-shadow-xl:
-  0 20px 40px rgba(232, 80, 27, 0.15),
+  0 20px 40px rgba(14, 165, 164, 0.15),
   0 10px 20px rgba(0, 0, 0, 0.08);
 $product-shadow-hover:
-  0 25px 50px rgba(232, 80, 27, 0.18),
+  0 25px 50px rgba(14, 165, 164, 0.18),
   0 12px 24px rgba(0, 0, 0, 0.1);
 $product-shadow-colored:
-  0 10px 25px rgba(255, 107, 53, 0.22),
-  0 4px 10px rgba(255, 107, 53, 0.15);
+  0 10px 25px rgba(14, 165, 164, 0.22),
+  0 4px 10px rgba(14, 165, 164, 0.15);
 
 // --- Radius ---
 $product-radius-sm: 8px;
@@ -216,7 +216,7 @@ $product-breakpoint-xl: 1200px;
       ),
       radial-gradient(
         720px 380px at 88% 6%,
-        rgba(255, 107, 53, 0.06) 0%,
+        rgba(14, 165, 164, 0.06) 0%,
         transparent 62%
       );
   }

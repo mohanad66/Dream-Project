@@ -10,6 +10,7 @@ import {
   FaTrash,
   FaBox,
   FaDollarSign,
+  FaVideo,
 } from "react-icons/fa";
 import { Megaphone, Settings, Truck, Store } from "lucide-react";
 import "./seller.scss";
@@ -19,6 +20,7 @@ import Input from "../../Components/UI/Input";
 import Select from "../../Components/UI/Select";
 import FilePicker from "../../Components/UI/FilePicker";
 import ConfirmDialog from "../../Components/ConfirmDialog";
+import { resolveMediaUrl } from "../../utils/media";
 
 const EMPTY_FORM = {
   name: "",
@@ -511,19 +513,19 @@ export default function SellerDashboard({ initialTab = "overview" }) {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
                 <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Products</p>
-                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #ff6b35)" }}>{products.length}</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #0ea5a4)" }}>{products.length}</p>
                 </div>
                 <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Commission Rate</p>
-                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #ff6b35)" }}>{parseFloat(profile?.effective_commission_rate ?? 10).toFixed(1)}%</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #0ea5a4)" }}>{parseFloat(profile?.effective_commission_rate ?? 10).toFixed(1)}%</p>
                 </div>
                 <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Active Offers</p>
-                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #ff6b35)" }}>{offers.filter(o => o.is_active).length}</p>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: "var(--color-gold, #0ea5a4)" }}>{offers.filter(o => o.is_active).length}</p>
                 </div>
                 <div className="glass-panel-inner" style={{ padding: "1.5rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Delivery</p>
-                  <p style={{ fontSize: "2rem", fontWeight: 700, color: profile?.delivery_type === "seller" ? "#3fa781" : "#ff6b35" }}>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: profile?.delivery_type === "seller" ? "#3fa781" : "var(--color-gold, #0ea5a4)" }}>
                     {profile?.delivery_type === "seller" ? "Self" : "Platform"}
                   </p>
                 </div>
@@ -563,8 +565,9 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   <table className="table" style={{ width: "100%" }}>
                     <thead>
                       <tr>
-                        <th>Name</th>
+                        <th>Product</th>
                         <th>Price</th>
+                        <th>Video</th>
                         <th>Status</th>
                         <th>Actions</th>
                       </tr>
@@ -572,8 +575,54 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                     <tbody>
                       {products.map((p) => (
                         <tr key={p.id}>
-                          <td>{p.name}</td>
-                          <td>${p.price}</td>
+                          <td>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.75rem",
+                                minWidth: 180,
+                              }}
+                            >
+                              {p.image && (
+                                <img
+                                  src={resolveMediaUrl(p.image)}
+                                  alt={p.name}
+                                  style={{
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 10,
+                                    objectFit: "cover",
+                                    border: "1px solid var(--border-color)",
+                                    background: "var(--bg-subtle)",
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              )}
+                              <span style={{ fontWeight: 600 }}>{p.name}</span>
+                            </div>
+                          </td>
+                          <td>{parseFloat(p.price).toLocaleString("en-US")} L.E</td>
+                          <td>
+                            {p.video ? (
+                              <span className="badge media-badge">
+                                <FaVideo style={{ fontSize: "0.8rem" }} />{" "}
+                                {p.video?.name ? "Ready to upload" : "Attached"}
+                              </span>
+                            ) : (
+                              <span
+                                className="badge"
+                                style={{
+                                  background:
+                                    "var(--bg-muted, rgba(22,30,47,0.6))",
+                                  color: "var(--text-muted)",
+                                  borderColor: "var(--border-color)",
+                                }}
+                              >
+                                <FaVideo style={{ fontSize: "0.8rem" }} /> None
+                              </span>
+                            )}
+                          </td>
                           <td>
                             <span className={`badge ${p.approval_status}`}>
                               {p.approval_status}
@@ -620,14 +669,14 @@ export default function SellerDashboard({ initialTab = "overview" }) {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
                 <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Commission Rate</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--color-gold, #ff6b35)" }}>
+                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--color-gold, #0ea5a4)" }}>
                     {parseFloat(profile?.effective_commission_rate ?? 10).toFixed(1)}%
                   </p>
                   <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>per sale</p>
                 </div>
                 <div className="glass-panel-inner" style={{ padding: "1.25rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>Delivery Mode</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: profile?.delivery_type === "seller" ? "#3fa781" : "#ff6b35" }}>
+                  <p style={{ fontSize: "1.75rem", fontWeight: 700, color: profile?.delivery_type === "seller" ? "#3fa781" : "var(--color-gold, #0ea5a4)" }}>
                     {profile?.delivery_type === "seller" ? "Self" : "Platform"}
                   </p>
                   <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
@@ -876,14 +925,14 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   style={{
                     padding: "2rem",
                     borderRadius: "12px",
-                    border: `2px solid ${profile?.delivery_type === "platform" ? "#ff6b35" : "var(--border-color)"}`,
+                    border: `2px solid ${profile?.delivery_type === "platform" ? "var(--color-gold, #0ea5a4)" : "var(--border-color)"}`,
                     background: "var(--bg-secondary, rgba(255,255,255,0.04))",
                     cursor: "pointer",
                     transition: "all 0.25s ease",
                     textAlign: "center",
                   }}
                 >
-                  <Truck size={40} style={{ color: profile?.delivery_type === "platform" ? "#ff6b35" : "var(--text-secondary)", marginBottom: "1rem" }} />
+                  <Truck size={40} style={{ color: profile?.delivery_type === "platform" ? "var(--color-gold, #0ea5a4)" : "var(--text-secondary)", marginBottom: "1rem" }} />
                   <h3>Platform Delivery</h3>
                   <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginTop: "0.5rem" }}>
                     Platform handles delivery and takes a commission per sale.
@@ -898,14 +947,14 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   style={{
                     padding: "2rem",
                     borderRadius: "12px",
-                    border: `2px solid ${profile?.delivery_type === "seller" ? "#ff6b35" : "var(--border-color)"}`,
+                    border: `2px solid ${profile?.delivery_type === "seller" ? "var(--color-gold, #0ea5a4)" : "var(--border-color)"}`,
                     background: "var(--bg-secondary, rgba(255,255,255,0.04))",
                     cursor: "pointer",
                     transition: "all 0.25s ease",
                     textAlign: "center",
                   }}
                 >
-                  <Store size={40} style={{ color: profile?.delivery_type === "seller" ? "#ff6b35" : "var(--text-secondary)", marginBottom: "1rem" }} />
+                  <Store size={40} style={{ color: profile?.delivery_type === "seller" ? "var(--color-gold, #0ea5a4)" : "var(--text-secondary)", marginBottom: "1rem" }} />
                   <h3>Self Delivery</h3>
                   <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginTop: "0.5rem" }}>
                     You deliver your orders and pay a reduced commission upfront.
@@ -952,7 +1001,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                 }
               />
               <Input
-                label="Price (USD)"
+                label="Price (L.E)"
                 type="number"
                 min="0"
                 step="0.01"
@@ -1040,7 +1089,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                 }
               />
               <Input
-                label="Price (USD)"
+                label="Price (L.E)"
                 type="number"
                 min="0"
                 step="0.01"

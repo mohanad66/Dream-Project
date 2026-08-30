@@ -60,7 +60,7 @@ const LoadingFallback = () => (
           width: 52,
           height: 52,
           border: "3px solid var(--border-color, #232d3f)",
-          borderTop: "3px solid #ff6b35",
+          borderTop: "3px solid var(--color-gold, #0ea5a4)",
           borderRadius: "50%",
           animation: "spin 0.8s linear infinite",
           margin: "auto",

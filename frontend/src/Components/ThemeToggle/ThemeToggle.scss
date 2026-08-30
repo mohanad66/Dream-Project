@@ -39,17 +39,17 @@
         var(--color-primary-light) 100%
       );
       color: var(--color-warning-hover);
-      border-color: rgba(217, 185, 104, 0.4);
+      border-color: rgba(45, 212, 191, 0.4);
       box-shadow: 0 4px 14px var(--color-primary-alpha);
     }
 
     &.dark {
       background: var(--gradient-primary);
       color: var(--bg-body);
-      border-color: rgba(217, 185, 104, 0.35);
+      border-color: rgba(45, 212, 191, 0.35);
       box-shadow:
         0 4px 20px var(--color-primary-alpha),
-        0 0 16px rgba(255, 107, 53, 0.2);
+        0 0 16px rgba(14, 165, 164, 0.2);
     }
   }
 }
@@ -176,7 +176,7 @@
       height: 2rem;
       color: #f59e0b;
       animation: sunGlow 3s ease-in-out infinite;
-      filter: drop-shadow(0 4px 8px rgba(255, 107, 53, 0.4));
+      filter: drop-shadow(0 4px 8px rgba(14, 165, 164, 0.4));
     }
 
     .theme-dots span {
@@ -211,7 +211,7 @@
       height: 2rem;
       color: var(--color-gold);
       animation: moonFloat 3s ease-in-out infinite;
-      filter: drop-shadow(0 4px 8px rgba(217, 185, 104, 0.4));
+      filter: drop-shadow(0 4px 8px rgba(45, 212, 191, 0.4));
     }
 
     .theme-stars span {

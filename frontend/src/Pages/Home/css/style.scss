@@ -46,11 +46,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #ff6b35, #ff8a5c);
+    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
     color: #ffffff;
     font-size: 0.75rem;
     padding-left: 2px;
-    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.32);
+    box-shadow: 0 4px 12px rgba(14, 165, 164, 0.32);
   }
 
   .home-logo-name {
@@ -61,7 +61,7 @@
     color: var(--text-primary, #151514);
 
     .brand-accent {
-      color: #ff6b35;
+      color: var(--color-gold, #0ea5a4);
     }
   }
 }
@@ -77,8 +77,8 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus-within {
-    border-color: #ff6b35;
-    box-shadow: 0 0 0 3px var(--color-gold-alpha, rgba(255, 107, 53, 0.16));
+    border-color: var(--color-gold, #0ea5a4);
+    box-shadow: 0 0 0 3px var(--color-gold-alpha, rgba(14, 165, 164, 0.16));
   }
 
   .home-search-icon {
@@ -104,7 +104,7 @@
 
   button {
     border: 0;
-    background: linear-gradient(135deg, #ff6b35, #ff8a5c);
+    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
     color: #ffffff;
     font-weight: 600;
     font-size: 0.78rem;
@@ -137,8 +137,8 @@
   transition: border-color 0.15s ease, color 0.15s ease;
 
   &:hover {
-    border-color: #ff6b35;
-    color: #ff6b35;
+    border-color: var(--color-gold, #0ea5a4);
+    color: var(--color-gold, #0ea5a4);
   }
 
   .home-cart-count {
@@ -149,14 +149,14 @@
     height: 18px;
     padding: 0 4px;
     border-radius: 9999px;
-    background: #ff6b35;
+    background: var(--color-gold, #0ea5a4);
     color: #ffffff;
     font-size: 0.68rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 2px 6px rgba(14, 165, 164, 0.4);
   }
 }
 
@@ -179,7 +179,7 @@
     color: var(--text-secondary, #5b5b56);
 
     svg {
-      color: #ff6b35;
+      color: var(--color-gold, #0ea5a4);
       font-size: 0.85rem;
     }
   }
@@ -204,7 +204,7 @@
       font-weight: 700;
       letter-spacing: 0.13em;
       text-transform: uppercase;
-      color: #ff6b35;
+      color: var(--color-gold, #0ea5a4);
     }
 
     .title {
@@ -222,7 +222,7 @@
       gap: 0.35rem;
       font-size: 0.8rem;
       font-weight: 600;
-      color: #ff6b35;
+      color: var(--color-gold, #0ea5a4);
       text-decoration: none;
       white-space: nowrap;
       transition: gap 0.15s ease;
@@ -306,7 +306,7 @@
       border-radius: 9999px;
 
       svg {
-        color: #ff8a5c;
+        color: var(--color-gold-hover, #2dd4bf);
       }
     }
   }
@@ -331,7 +331,7 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #ff6b35, #ff8a5c);
+      background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
       color: #ffffff;
       font-size: 0.62rem;
       font-weight: 700;
@@ -399,7 +399,7 @@
     align-items: center;
     justify-content: center;
     background: var(--color-primary-light, #fff0e8);
-    color: #e8501b;
+    color: var(--color-gold-deep, #0f766e);
     font-size: 1.05rem;
   }
 
@@ -458,7 +458,7 @@
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid var(--color-primary-light, #fff0e8);
-    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.35);
+    box-shadow: 0 0 0 2px rgba(14, 165, 164, 0.35);
     background: var(--bg-muted, #efefec);
 
     img {
@@ -474,7 +474,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #ff6b35, #ff8a5c);
+      background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
       color: #ffffff;
       font-size: 1.2rem;
       font-weight: 700;
@@ -495,7 +495,7 @@
     text-overflow: ellipsis;
 
     .verified-badge {
-      color: #e8501b;
+      color: var(--color-gold-deep, #0f766e);
       flex-shrink: 0;
     }
   }
@@ -568,9 +568,9 @@
     gap: 1rem;
     padding: 1.5rem;
     border-radius: 20px;
-    background: linear-gradient(135deg, #e8501b, #ff8a5c);
+    background: linear-gradient(135deg, var(--color-gold-deep, #0f766e), var(--color-gold-hover, #2dd4bf));
     color: #ffffff;
-    box-shadow: 0 16px 36px rgba(232, 80, 27, 0.26);
+    box-shadow: 0 16px 36px rgba(14, 165, 164, 0.26);
 
     .home-cta-icon {
       width: 48px;
@@ -609,7 +609,7 @@
       align-items: center;
       gap: 0.4rem;
       background: #ffffff;
-      color: #e8501b;
+      color: var(--color-gold-deep, #0f766e);
       font-weight: 700;
       font-size: 0.85rem;
       border-radius: 9999px;

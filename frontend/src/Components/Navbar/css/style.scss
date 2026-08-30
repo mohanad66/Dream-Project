@@ -65,20 +65,20 @@
 
   &:hover {
     color: var(--text-primary);
-    background: rgba(255, 107, 53, 0.08);
+    background: rgba(14, 165, 164, 0.08);
   }
 
   &.active {
-    color: #ff6b35;
+    color: var(--color-gold, #0ea5a4);
 
     .nav-icon {
-      color: #ff6b35;
-      background: rgba(255, 107, 53, 0.14);
+      color: var(--color-gold, #0ea5a4);
+      background: rgba(14, 165, 164, 0.14);
     }
 
     .nav-label {
       font-weight: 600;
-      color: #ff6b35;
+      color: var(--color-gold, #0ea5a4);
     }
   }
 }
@@ -133,7 +133,7 @@
   width: 32px;
   height: 3px;
   border-radius: 0 0 3px 3px;
-  background: linear-gradient(90deg, #ff6b35, #ff8a5c);
+  background: linear-gradient(90deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
 }
@@ -185,8 +185,8 @@
 
   &.nav-register {
     color: #ffffff;
-    background: linear-gradient(135deg, #ff6b35, #ff8a5c);
-    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.35);
+    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
+    box-shadow: 0 4px 16px rgba(14, 165, 164, 0.35);
 
     &:hover {
       filter: brightness(1.06);
