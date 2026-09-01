@@ -8,6 +8,7 @@ import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaThumbsDown, FaShare
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
+import { useAuth } from "../../services/auth";
 import { resolveMediaUrl } from "../../utils/media";
 import { FaFire } from 'react-icons/fa';
 
@@ -28,6 +29,8 @@ export default function Card({ card, categories = [], tags = [] }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const navigate = useNavigate();
+  const { data: authData } = useAuth();
+  const currentUserId = authData?.user?.id ?? null;
 
   // Check if product is in wishlist (logged-in users only)
   useEffect(() => {
@@ -567,7 +570,7 @@ export default function Card({ card, categories = [], tags = [] }) {
                               {new Date(comment.created_at).toLocaleDateString()}
                             </span>
                           </div>
-                          {isLoggedIn() && (
+                          {currentUserId && comment.user_id === currentUserId && (
                             <button
                               className="comment-delete"
                               onClick={() => deleteComment(comment.id)}

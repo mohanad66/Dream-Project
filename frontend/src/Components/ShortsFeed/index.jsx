@@ -23,6 +23,7 @@ import {
 } from "react-icons/fa";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
+import { useAuth } from "../../services/auth";
 import { resolveMediaUrl } from "../../utils/media";
 import "./css/style.scss";
 
@@ -60,6 +61,8 @@ export default function ShortsFeed({
   const lastTapRef = useRef(0);
   const tapTimerRef = useRef(null);
   const burstTimerRef = useRef(null);
+  const { data: authData } = useAuth();
+  const currentUserId = authData?.user?.id ?? null;
 
   useEffect(() => {
     return () => {
@@ -743,7 +746,7 @@ export default function ShortsFeed({
                             <p>{comment.content}</p>
                             <span>{new Date(comment.created_at).toLocaleDateString()}</span>
                           </div>
-                          {target && isLoggedIn() && (
+                          {target && currentUserId && comment.user_id === currentUserId && (
                             <button className="shorts-comment-delete" onClick={() => deleteComment(target.id, comment.id)} aria-label="Delete">
                               <FaTrash />
                             </button>

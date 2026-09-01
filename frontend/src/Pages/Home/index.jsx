@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import React from "react";
 import api from "../../services/api";
+import { fetchCarouselImages } from "../../services/auth";
+import Carousel from "../../Components/Carousel";
 import { resolveMediaUrl } from "../../utils/media";
 import { cleanProducts, cleanSellers } from "../../utils/cleanData";
 import {
@@ -72,7 +74,18 @@ export default function Home({
   const navigate = useNavigate();
   const [homeProducts, setHomeProducts] = useState(Array.isArray(products) ? products : []);
   const [sellers, setSellers] = useState([]);
+  const [carouselImages, setCarouselImages] = useState([]);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetchCarouselImages()
+      .then((data) => {
+        if (active && Array.isArray(data)) setCarouselImages(data);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -221,6 +234,9 @@ export default function Home({
             </div>
           )}
         </section>
+
+        {/* ============ SHOWCASE CAROUSEL ============ */}
+        {carouselImages.length > 0 && <Carousel images={carouselImages} />}
 
         {/* ============ SHORTS RAIL ============ */}
         {shorts.length > 0 && (
