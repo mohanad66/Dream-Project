@@ -23,7 +23,7 @@
       width: 40px;
       height: 40px;
       border: 3px solid rgba(255, 255, 255, 0.08);
-      border-top-color: var(--color-gold, #0ea5a4);
+      border-top-color: var(--color-gold, #d09a3e);
       border-radius: 50%;
       animation: sp-spin 0.8s linear infinite;
     }
@@ -46,7 +46,7 @@
     padding: 2rem;
 
     svg {
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
       opacity: 0.6;
     }
 
@@ -144,7 +144,7 @@
       font-family: "Sora", sans-serif;
       font-size: 2rem;
       font-weight: 700;
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
       letter-spacing: 1px;
 
       @media (max-width: 600px) {
@@ -213,7 +213,7 @@
     white-space: nowrap;
 
     svg {
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
     }
   }
 
@@ -226,9 +226,9 @@
     border-radius: 24px;
     font-weight: 600;
     font-size: 0.9rem;
-    border: 1px solid var(--color-gold, #0ea5a4);
+    border: 1px solid var(--color-gold, #d09a3e);
     background: transparent;
-    color: var(--color-gold, #0ea5a4);
+    color: var(--color-gold, #d09a3e);
     cursor: pointer;
     transition: all 0.2s ease;
 
@@ -238,7 +238,7 @@
     }
 
     &.is-following {
-      background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
+      background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-hover, #d8a94e));
       color: #13150c;
       border-color: transparent;
       box-shadow: 0 6px 18px rgba(14, 165, 164, 0.35);
@@ -290,16 +290,16 @@
     white-space: nowrap;
 
     &:hover {
-      color: var(--color-gold-hover, #2dd4bf);
+      color: var(--color-gold-hover, #d8a94e);
       background: rgba(14, 165, 164, 0.04);
     }
 
     &--active {
-      color: var(--color-gold, #0ea5a4);
-      border-bottom-color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
+      border-bottom-color: var(--color-gold, #d09a3e);
 
       &:hover {
-        color: var(--color-gold-hover, #2dd4bf);
+        color: var(--color-gold-hover, #d8a94e);
       }
     }
 
@@ -352,7 +352,7 @@
                   0 0 20px rgba(14, 165, 164, 0.08);
 
       .sp-product-card__name {
-        color: var(--color-gold-hover, #2dd4bf);
+        color: var(--color-gold-hover, #d8a94e);
       }
     }
 
@@ -402,7 +402,7 @@
       margin: 0;
       font-size: 0.95rem;
       font-weight: 700;
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
     }
   }
 
@@ -491,7 +491,7 @@
       color: #6b7280;
 
       svg {
-        color: var(--color-gold, #0ea5a4);
+        color: var(--color-gold, #d09a3e);
         opacity: 0.7;
       }
     }
@@ -521,7 +521,7 @@
       left: 2rem;
       width: 48px;
       height: 3px;
-      background: linear-gradient(90deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
+      background: linear-gradient(90deg, var(--color-gold, #d09a3e), var(--color-gold-hover, #d8a94e));
       border-radius: 0 0 4px 4px;
 
       @media (max-width: 600px) {
@@ -542,7 +542,7 @@
       font-family: "Sora", sans-serif;
       font-size: 1.1rem;
       font-weight: 600;
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
       margin: 1.5rem 0 0.5rem;
     }
 
@@ -558,7 +558,7 @@
         font-family: "Sora", sans-serif;
         font-size: 1.15rem;
         font-weight: 600;
-        color: var(--color-gold-hover, #2dd4bf);
+        color: var(--color-gold-hover, #d8a94e);
         margin: 0 0 1.25rem;
         padding-left: 0.25rem;
       }
@@ -609,7 +609,7 @@
       flex-shrink: 0;
 
       svg {
-        color: var(--color-gold, #0ea5a4);
+        color: var(--color-gold, #d09a3e);
       }
     }
 
@@ -641,7 +641,7 @@
     background: rgba(255, 255, 255, 0.02);
 
     svg {
-      color: var(--color-gold, #0ea5a4);
+      color: var(--color-gold, #d09a3e);
       opacity: 0.4;
       margin-bottom: 0.75rem;
     }

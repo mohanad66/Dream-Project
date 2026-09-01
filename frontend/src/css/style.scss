@@ -1,59 +1,59 @@
 /* ==========================================================================
-   INSTABRANDZ — DESIGN SYSTEM 2.0
-   Direction: Clean, high-contrast, conversion-focused.
-   Cool teal accent for CTAs/badges/active states — calm, trustworthy, and
-   encouraging for shoppers. All component variable names are preserved so the
-   whole app re-skins.
+   INSTABRANDZ — DESIGN SYSTEM 2.0 (GOLD)
+   Direction: Relaxed premium — warm "paper" cream backgrounds, soft honey-gold
+   CTAs, calm taupe neutrals, generous rounded corners and gentle shadows.
+   Friendly marketplace energy without looking corporate. Component variable
+   names are preserved so the whole app re-skins.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    1. DESIGN TOKENS — LIGHT
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand — calm, premium "editorial social-commerce" deep-teal accent.
-     Refined (non-neon) CTA colour on warm "paper" neutrals. */
-  --color-brand: #0b6e6a;
-  --color-brand-hover: #0a5c59;
-  --color-brand-active: #084f4c;
-  --color-primary: #0b6e6a;
-  --color-primary-hover: #0a5c59;
-  --color-primary-active: #084f4c;
-  --color-primary-light: #e3f4f2;
-  --color-primary-alpha: rgba(11, 110, 106, 0.1);
-  --color-gold: #0f766e;
-  --color-gold-hover: #14b8a6;
-  --color-gold-deep: #0a5c59;
-  --color-gold-alpha: rgba(15, 118, 110, 0.14);
+  /* Brand — relaxing premium gold on creamy "paper". Warm honey CTAs,
+     soft amber tints, calm taupe neutrals: friendly, not corporate. */
+  --color-brand: #c4892f;
+  --color-brand-hover: #b07623;
+  --color-brand-active: #9a681d;
+  --color-primary: #c4892f;
+  --color-primary-hover: #b07623;
+  --color-primary-active: #9a681d;
+  --color-primary-light: #f8ebd4;
+  --color-primary-alpha: rgba(196, 137, 47, 0.12);
+  --color-gold: #d09a3e;
+  --color-gold-hover: #d8a94e;
+  --color-gold-deep: #a97620;
+  --color-gold-alpha: rgba(208, 154, 62, 0.16);
 
-  --color-secondary: #6b685c;
-  --color-secondary-hover: #525043;
-  --color-secondary-light: #f3f2ec;
-  --color-secondary-alpha: rgba(107, 104, 92, 0.08);
+  --color-secondary: #7e6b45;
+  --color-secondary-hover: #655539;
+  --color-secondary-light: #f3ede2;
+  --color-secondary-alpha: rgba(126, 107, 69, 0.08);
 
-  --color-success: #1f7a5c;
-  --color-success-hover: #18654b;
-  --color-success-light: #e6f4ee;
+  --color-success: #2e7d5b;
+  --color-success-hover: #256a4c;
+  --color-success-light: #e9f4ed;
 
-  --color-danger: #b54541;
-  --color-danger-hover: #9c3a36;
-  --color-danger-light: #fbeae9;
+  --color-danger: #b4553f;
+  --color-danger-hover: #9c4735;
+  --color-danger-light: #fbece7;
 
   --color-warning: #a65f0b;
   --color-warning-hover: #8c5009;
   --color-warning-light: #fdf1df;
 
-  /* Neutrals — warm "paper" for a premium editorial feel */
+  /* Neutrals — creamy warm "paper" for a relaxed, friendly feel */
   --color-white: #ffffff;
-  --color-gray-50: #fbfbf9;
-  --color-gray-100: #f5f5f1;
-  --color-gray-200: #eae9e3;
-  --color-gray-300: #d9d7cf;
-  --color-gray-400: #a6a499;
-  --color-gray-500: #807e72;
-  --color-gray-600: #5f5d52;
-  --color-gray-700: #3c3a30;
-  --color-gray-800: #242319;
-  --color-gray-900: #171610;
+  --color-gray-50: #fdfbf6;
+  --color-gray-100: #f7f2e9;
+  --color-gray-200: #efe8d9;
+  --color-gray-300: #e0d6c2;
+  --color-gray-400: #b4a78e;
+  --color-gray-500: #8f8169;
+  --color-gray-600: #6b5f47;
+  --color-gray-700: #4a4030;
+  --color-gray-800: #2d281c;
+  --color-gray-900: #201c12;
 
   --text-primary: var(--color-gray-900);
   --text-secondary: var(--color-gray-600);
@@ -71,30 +71,30 @@
   --warning-color: var(--color-warning);
   --info-color: #1d4ed8;
 
-  --bg-body: #f5f5f1;
+  --bg-body: #f7f2e9;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-subtle: #fbfbf9;
-  --bg-muted: #ebeae4;
-  --bg-overlay: rgba(23, 22, 16, 0.55);
-  --bg-primary: #f5f5f1;
-  --bg-secondary: #fbfbf9;
-  --bg-tertiary: #e9e8e1;
+  --bg-subtle: #fdfbf6;
+  --bg-muted: #f1eada;
+  --bg-overlay: rgba(32, 28, 18, 0.55);
+  --bg-primary: #f7f2e9;
+  --bg-secondary: #fdfbf6;
+  --bg-tertiary: #f0e8d8;
   --bg-card: #ffffff;
-  --bg-hover: #f0efe9;
+  --bg-hover: #f6f0e2;
 
-  --gradient-primary: linear-gradient(120deg, #0b6e6a 0%, #14b8a6 100%);
-  --gradient-secondary: linear-gradient(120deg, #1f7a5c 0%, #2f9e76 100%);
-  --gradient-accent: linear-gradient(120deg, #0a5c59 0%, #14b8a6 100%);
+  --gradient-primary: linear-gradient(120deg, #c4892f 0%, #e0b25e 100%);
+  --gradient-secondary: linear-gradient(120deg, #2e7d5b 0%, #4c9a6e 100%);
+  --gradient-accent: linear-gradient(120deg, #a97620 0%, #e0a647 100%);
 
-  --border-color: #e6e5de;
-  --border-color-strong: #d4d2c8;
-  --border-hover: #a8a699;
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 20px;
-  --border-radius-2xl: 28px;
+  --border-color: #ede4d0;
+  --border-color-strong: #dccfb4;
+  --border-hover: #bcab86;
+  --border-radius-sm: 10px;
+  --border-radius-md: 14px;
+  --border-radius-lg: 18px;
+  --border-radius-xl: 24px;
+  --border-radius-2xl: 32px;
   --border-radius-full: 9999px;
 
   --shadow-xs: 0 1px 2px rgba(23, 22, 16, 0.05);
@@ -104,8 +104,8 @@
   --shadow-xl: 0 24px 48px rgba(23, 22, 16, 0.14);
   --shadow-focus: 0 0 0 3px var(--color-primary-alpha);
 
-  --product-primary-rgb: 11, 110, 106;
-  --product-secondary-rgb: 20, 184, 166;
+  --product-primary-rgb: 196, 137, 47;
+  --product-secondary-rgb: 224, 178, 94;
 
   --header-height: 68px;
 
@@ -158,73 +158,73 @@
    2. DESIGN TOKENS — DARK (signature elegant look)
    -------------------------------------------------------------------------- */
 :root.dark-theme {
-  --color-brand: #3ec7bd;
-  --color-primary: #3ec7bd;
-  --color-primary-hover: #5dd5cc;
-  --color-primary-active: #2fb3a9;
-  --color-primary-light: rgba(62, 199, 189, 0.14);
-  --color-gold: #3ec7bd;
-  --color-gold-hover: #5dd5cc;
-  --color-gold-deep: #7ce3da;
-  --color-gold-alpha: rgba(62, 199, 189, 0.16);
-  --color-primary-alpha: rgba(62, 199, 189, 0.16);
+  --color-brand: #e0a647;
+  --color-primary: #e0a647;
+  --color-primary-hover: #eab75f;
+  --color-primary-active: #cf962f;
+  --color-primary-light: rgba(224, 166, 71, 0.14);
+  --color-gold: #e8b25a;
+  --color-gold-hover: #f0c06e;
+  --color-gold-deep: #f0c06e;
+  --color-gold-alpha: rgba(232, 178, 90, 0.18);
+  --color-primary-alpha: rgba(224, 166, 71, 0.18);
 
-  --color-secondary: #8b96ad;
-  --color-secondary-hover: #a4adc2;
-  --color-secondary-light: #1a2132;
-  --color-secondary-alpha: rgba(139, 150, 173, 0.1);
+  --color-secondary: #9c8b6a;
+  --color-secondary-hover: #b4a181;
+  --color-secondary-light: #2a251c;
+  --color-secondary-alpha: rgba(156, 139, 106, 0.12);
 
-  --color-success: #3fa781;
-  --color-success-hover: #54b993;
-  --color-success-light: rgba(63, 167, 129, 0.12);
+  --color-success: #4c9a6e;
+  --color-success-hover: #5ca87c;
+  --color-success-light: rgba(76, 154, 110, 0.14);
 
-  --color-danger: #dd6b63;
-  --color-danger-hover: #e8847d;
-  --color-danger-light: rgba(221, 107, 99, 0.12);
+  --color-danger: #d9765f;
+  --color-danger-hover: #e28973;
+  --color-danger-light: rgba(217, 118, 95, 0.12);
 
-  --color-warning: #f3a93a;
-  --color-warning-hover: #f7bb62;
-  --color-warning-light: rgba(243, 169, 58, 0.14);
+  --color-warning: #e9a94b;
+  --color-warning-hover: #efba67;
+  --color-warning-light: rgba(233, 169, 75, 0.14);
 
-  --color-gray-50: #0d1017;
-  --color-gray-100: #12161f;
-  --color-gray-200: #181d29;
-  --color-gray-300: #232b3b;
-  --color-gray-400: #333d53;
-  --color-gray-500: #5b6a85;
-  --color-gray-600: #8b96ad;
-  --color-gray-700: #b8c1d2;
-  --color-gray-800: #e3e7ee;
-  --color-gray-900: #f4f6f9;
+  --color-gray-50: #1a1712;
+  --color-gray-100: #211d16;
+  --color-gray-200: #292319;
+  --color-gray-300: #362f22;
+  --color-gray-400: #4d4431;
+  --color-gray-500: #7a6e54;
+  --color-gray-600: #9c8b6a;
+  --color-gray-700: #c4b48f;
+  --color-gray-800: #e6dcc5;
+  --color-gray-900: #f6f0e1;
 
-  --text-primary: #f0f1f5;
-  --text-secondary: #b8c1d2;
-  --text-muted: #8b96ad;
-  --text-color: #e3e7ee;
+  --text-primary: #f0ebe0;
+  --text-secondary: #c4b48f;
+  --text-muted: #9c8b6a;
+  --text-color: #e6dcc5;
 
   --primary-color: var(--color-primary);
 
-  --bg-body: #0d1017;
-  --bg-surface: #141926;
-  --bg-elevated: #1a2132;
-  --bg-subtle: #141926;
-  --bg-muted: #1b2233;
-  --bg-card: #1a2132;
-  --bg-hover: #222b40;
-  --bg-primary: #0d1017;
-  --bg-secondary: #10141e;
-  --bg-tertiary: #202a3f;
+  --bg-body: #1a1712;
+  --bg-surface: #221e17;
+  --bg-elevated: #2a251c;
+  --bg-subtle: #1f1b14;
+  --bg-muted: #262118;
+  --bg-card: #272218;
+  --bg-hover: #332c20;
+  --bg-primary: #1a1712;
+  --bg-secondary: #1e1a13;
+  --bg-tertiary: #2e281c;
 
-  --gradient-primary: linear-gradient(120deg, #2fb3a9 0%, #3ec7bd 100%);
-  --gradient-secondary: linear-gradient(120deg, #2f9e76 0%, #54b993 100%);
-  --gradient-accent: linear-gradient(120deg, #1e8a82 0%, #3ec7bd 100%);
+  --gradient-primary: linear-gradient(120deg, #cf962f 0%, #e0a647 100%);
+  --gradient-secondary: linear-gradient(120deg, #3e8a62 0%, #5ca87c 100%);
+  --gradient-accent: linear-gradient(120deg, #b97f22 0%, #e8b25a 100%);
 
-  --border-color: #232b3b;
-  --border-color-strong: #333d53;
-  --border-hover: #44506b;
+  --border-color: #3a3222;
+  --border-color-strong: #4d4431;
+  --border-hover: #635534;
 
-  --product-primary-rgb: 62, 199, 189;
-  --product-secondary-rgb: 124, 227, 218;
+  --product-primary-rgb: 224, 166, 71;
+  --product-secondary-rgb: 240, 192, 110;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -291,7 +291,7 @@
 /* --------------------------------------------------------------------------
    4. SCSS VARIABLES & MIXINS (kept for page-level compatibility)
    -------------------------------------------------------------------------- */
-$body-bg-color: #f5f5f1;
+$body-bg-color: #f7f2e9;
 $footer-gradient-height: 120px;
 $mobile-breakpoint: 480px;
 $tablet-breakpoint: 768px;
@@ -315,10 +315,10 @@ $spacing-xl: 2rem;
 $spacing-2xl: 3rem;
 $spacing-3xl: 4rem;
 
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 20px;
+$radius-sm: 10px;
+$radius-md: 14px;
+$radius-lg: 18px;
+$radius-xl: 24px;
 $radius-full: 9999px;
 
 $font-xs: 0.75rem;
@@ -354,43 +354,43 @@ $success-color: var(--success-color);
 $warning-color: var(--warning-color);
 $info-color: var(--info-color);
 
-$product-primary: var(--product-primary, #0b6e6a);
-$product-secondary: var(--product-secondary, #14b8a6);
-$product-accent: var(--product-accent, #e3f4f2);
-$product-text: var(--product-text, #171610);
-$product-light-bg: var(--product-light-bg, #f5f5f1);
-$product-dark-bg: var(--product-dark-bg, #0d1017);
+$product-primary: var(--product-primary, #c4892f);
+$product-secondary: var(--product-secondary, #d09a3e);
+$product-accent: var(--product-accent, #f8ebd4);
+$product-text: var(--product-text, #201c12);
+$product-light-bg: var(--product-light-bg, #f7f2e9);
+$product-dark-bg: var(--product-dark-bg, #1a1712);
 $product-bg: var(--product-bg);
-$product-error: var(--product-error, #dd6b63);
-$product-success: var(--product-success, #3fa781);
-$product-warning: var(--product-warning, #d9a03f);
+$product-error: var(--product-error, #b4553f);
+$product-success: var(--product-success, #2e7d5b);
+$product-warning: var(--product-warning, #c4892f);
 
 $product-shadow-xs:
-  0 1px 2px rgba(11, 110, 106, 0.05),
+  0 1px 2px rgba(196, 137, 47, 0.05),
   0 1px 1px rgba(0, 0, 0, 0.04);
 $product-shadow-sm:
-  0 1px 3px rgba(11, 110, 106, 0.07),
+  0 1px 3px rgba(196, 137, 47, 0.07),
   0 1px 2px rgba(0, 0, 0, 0.06);
 $product-shadow-md:
-  0 4px 10px rgba(11, 110, 106, 0.1),
+  0 4px 10px rgba(196, 137, 47, 0.1),
   0 2px 4px rgba(0, 0, 0, 0.08);
 $product-shadow-lg:
-  0 10px 24px rgba(11, 110, 106, 0.12),
+  0 10px 24px rgba(196, 137, 47, 0.12),
   0 4px 8px rgba(0, 0, 0, 0.1);
 $product-shadow-xl:
-  0 20px 40px rgba(11, 110, 106, 0.15),
+  0 20px 40px rgba(196, 137, 47, 0.15),
   0 10px 20px rgba(0, 0, 0, 0.08);
 $product-shadow-hover:
-  0 25px 50px rgba(11, 110, 106, 0.18),
+  0 25px 50px rgba(196, 137, 47, 0.18),
   0 12px 24px rgba(0, 0, 0, 0.1);
 $product-shadow-colored:
-  0 10px 25px rgba(11, 110, 106, 0.22),
-  0 4px 10px rgba(11, 110, 106, 0.15);
+  0 10px 25px rgba(196, 137, 47, 0.22),
+  0 4px 10px rgba(196, 137, 47, 0.15);
 
-$product-radius-sm: 8px;
-$product-radius-md: 12px;
-$product-radius-lg: 16px;
-$product-radius-xl: 20px;
+$product-radius-sm: 10px;
+$product-radius-md: 14px;
+$product-radius-lg: 18px;
+$product-radius-xl: 24px;
 $product-radius-full: 9999px;
 
 $product-spacing-xs: 0.25rem;

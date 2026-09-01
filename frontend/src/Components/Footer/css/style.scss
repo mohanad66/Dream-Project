@@ -62,7 +62,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-hover, #2dd4bf));
+      background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-hover, #d8a94e));
       color: #ffffff;
       font-size: 0.9rem;
       padding-left: 2px;
@@ -77,7 +77,7 @@
       letter-spacing: -0.02em;
 
       .brand-accent {
-        color: var(--color-gold, #0ea5a4);
+        color: var(--color-gold, #d09a3e);
       }
     }
   }
@@ -112,7 +112,7 @@
         transform 0.2s ease;
 
       &:hover {
-        background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-deep, #0f766e));
+        background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-deep, #a97620));
         color: #13150c;
         border-color: transparent;
         transform: translateY(-2px);
@@ -153,7 +153,7 @@
         min-height: 44px;
 
         &:hover {
-          color: var(--color-gold-hover, #2dd4bf);
+          color: var(--color-gold-hover, #d8a94e);
         }
       }
     }
@@ -207,7 +207,7 @@
       padding: 0.4rem 0.9rem;
 
       svg {
-        color: var(--color-gold, #0ea5a4);
+        color: var(--color-gold, #d09a3e);
       }
     }
   }

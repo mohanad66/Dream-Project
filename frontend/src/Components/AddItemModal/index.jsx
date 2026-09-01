@@ -85,7 +85,18 @@ export const AddItemModal = ({ config, onClose, onSuccess }) => {
         const res = await api.get(url);
         const data = res.data;
         const combined = [...all, ...(data?.results || data || [])];
-        return data?.next ? fetchAllTags(data.next, combined) : combined;
+        let next = data?.next;
+        if (next) {
+          // Backend pagination links carry the internal Koyeb host; rewrite
+          // them to the public API base so the browser can resolve them.
+          try {
+            const parsed = new URL(next);
+            next = `${api.defaults.baseURL}${parsed.pathname}${parsed.search}`;
+          } catch {
+            next = `${api.defaults.baseURL}${next.startsWith("/") ? "" : "/"}${next}`;
+          }
+        }
+        return next ? fetchAllTags(next, combined) : combined;
       } catch {
         return all;
       }

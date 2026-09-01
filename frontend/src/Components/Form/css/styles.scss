@@ -16,8 +16,8 @@
   --text: #17181a;
   --muted-text: #8f8c82;
   --border: #e7e5dc;
-  --primary: var(--color-gold-deep, #0f766e);
-  --primary-hover: var(--color-brand-hover, #0d9488);
+  --primary: var(--color-gold-deep, #a97620);
+  --primary-hover: var(--color-brand-hover, #b07623);
   --error: #b3403f;
   --input-bg: #ffffff;
   --shadow: 0 18px 50px rgba(23, 24, 26, 0.16);
@@ -30,8 +30,8 @@
   --text: #f0efe8;
   --muted-text: #8b93a5;
   --border: #232d3f;
-  --primary: var(--color-gold, #0ea5a4);
-  --primary-hover: var(--color-gold-hover, #2dd4bf);
+  --primary: var(--color-gold, #d09a3e);
+  --primary-hover: var(--color-gold-hover, #d8a94e);
   --error: #e06a5d;
   --input-bg: #10141e;
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
@@ -127,7 +127,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-deep, #0f766e));
+    background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-deep, #a97620));
     color: #13150c;
     font-size: 1.5rem;
     box-shadow: 0 8px 24px rgba(14, 165, 164, 0.35);
@@ -205,7 +205,7 @@
   padding: 0.95rem;
   border-radius: 14px;
   border: none;
-  background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-deep, #0f766e));
+  background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-deep, #a97620));
   color: #13150c;
   font-size: 1rem;
   font-weight: 600;

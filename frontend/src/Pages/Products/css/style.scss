@@ -23,8 +23,8 @@
   --product-error: var(--color-danger);
   --product-success: var(--color-success);
   --product-warning: var(--color-warning);
-  --product-primary-rgb: 11, 110, 106;
-  --product-secondary-rgb: 20, 184, 166;
+  --product-primary-rgb: 196, 137, 47;
+  --product-secondary-rgb: 224, 178, 94;
 }
 
 .dark-theme {
@@ -45,17 +45,17 @@
   --product-error: var(--color-danger);
   --product-success: var(--color-success);
   --product-warning: var(--color-warning);
-  --product-primary-rgb: 62, 199, 189;
-  --product-secondary-rgb: 124, 227, 218;
+  --product-primary-rgb: 224, 166, 71;
+  --product-secondary-rgb: 240, 192, 110;
 }
 
 // --- Color Palette ---
-$product-primary: var(--product-primary, var(--color-gold-deep, #0f766e));
-$product-secondary: var(--product-secondary, var(--color-gold-deep, #0f766e));
-$product-accent: var(--product-accent, #e3f4f2);
-$product-text: var(--product-text, #1e293b);
-$product-light-bg: var(--product-light-bg, #f8fafc);
-$product-dark-bg: var(--product-dark-bg, #0f172a);
+$product-primary: var(--product-primary, var(--color-gold-deep, #c4892f));
+$product-secondary: var(--product-secondary, var(--color-gold-deep, #d09a3e));
+$product-accent: var(--product-accent, #f8ebd4);
+$product-text: var(--product-text, #201c12);
+$product-light-bg: var(--product-light-bg, #f7f2e9);
+$product-dark-bg: var(--product-dark-bg, #1a1712);
 $product-bg: var(--product-bg);
 $product-error: var(--product-error, #ef4444);
 $product-success: var(--product-success, #10b981);

@@ -4,54 +4,54 @@
 
 // Theme variables for order details page only
 .light-theme .order-details-container {
-  --order-bg-primary: #f6f4ee;
-  --order-bg-secondary: #ffffff;
-  --order-bg-card: #ffffff;
-  --order-text-primary: #171610;
-  --order-text-secondary: #6b685e;
-  --order-text-muted: #8f8c82;
-  --order-border-color: #e7e5dc;
-  --order-border-light: #f3f1ea;
+  --order-bg-primary: 0f6f4ee;
+  --order-bg-secondary: 0ffffff;
+  --order-bg-card: 0ffffff;
+  --order-text-primary: 0171610;
+  --order-text-secondary: 06b685e;
+  --order-text-muted: 08f8c82;
+  --order-border-color: 0e7e5dc;
+  --order-border-light: 0f3f1ea;
   --order-shadow-color: rgba(23, 24, 26, 0.1);
-  --order-status-pending-bg: #faf3e0;
-  --order-status-pending-text: var(--color-gold-deep, #0f766e);
-  --order-status-confirmed-bg: #e6f4ee;
-  --order-status-confirmed-text: #1f7a5c;
-  --order-status-delivered-bg: #e6f4ee;
-  --order-status-delivered-text: #1f7a5c;
-  --order-status-cancelled-bg: #fbecec;
-  --order-status-cancelled-text: #b3403f;
-  --order-step-bg: #e7e5dc;
-  --order-step-completed: #1f7a5c;
-  --order-step-current: var(--color-gold-deep, #0f766e);
-  --order-btn-primary: var(--color-gold-deep, #0f766e);
-  --order-btn-primary-hover: var(--color-brand-hover, #0d9488);
+  --order-status-pending-bg: 0faf3e0;
+  --order-status-pending-text: var(--color-gold-deep, 00f766e);
+  --order-status-confirmed-bg: 0e6f4ee;
+  --order-status-confirmed-text: 01f7a5c;
+  --order-status-delivered-bg: 0e6f4ee;
+  --order-status-delivered-text: 01f7a5c;
+  --order-status-cancelled-bg: 0fbecec;
+  --order-status-cancelled-text: 0b3403f;
+  --order-step-bg: 0e7e5dc;
+  --order-step-completed: 01f7a5c;
+  --order-step-current: var(--color-gold-deep, 00f766e);
+  --order-btn-primary: var(--color-gold-deep, 00f766e);
+  --order-btn-primary-hover: var(--color-brand-hover, 00d9488);
   --order-glow: radial-gradient(80% 60% at 85% -5%, rgba(14, 165, 164, 0.09), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(31, 122, 92, 0.07), transparent 70%);
 }
 
 .dark-theme .order-details-container {
-  --order-bg-primary: #0b0f17;
-  --order-bg-secondary: #10141e;
-  --order-bg-card: #131a29;
-  --order-text-primary: #f0efe8;
-  --order-text-secondary: #b7becb;
-  --order-text-muted: #8b93a5;
-  --order-border-color: #232d3f;
-  --order-border-light: #232d3f;
+  --order-bg-primary: 00b0f17;
+  --order-bg-secondary: 010141e;
+  --order-bg-card: 0131a29;
+  --order-text-primary: 0f0efe8;
+  --order-text-secondary: 0b7becb;
+  --order-text-muted: 08b93a5;
+  --order-border-color: 0232d3f;
+  --order-border-light: 0232d3f;
   --order-shadow-color: rgba(0, 0, 0, 0.35);
   --order-status-pending-bg: rgba(14, 165, 164, 0.12);
-  --order-status-pending-text: #e5b25a;
+  --order-status-pending-text: 0e5b25a;
   --order-status-confirmed-bg: rgba(63, 167, 129, 0.12);
-  --order-status-confirmed-text: #57bb93;
+  --order-status-confirmed-text: 057bb93;
   --order-status-delivered-bg: rgba(63, 167, 129, 0.12);
-  --order-status-delivered-text: #57bb93;
+  --order-status-delivered-text: 057bb93;
   --order-status-cancelled-bg: rgba(224, 106, 93, 0.12);
-  --order-status-cancelled-text: #ec8277;
-  --order-step-bg: #232d3f;
-  --order-step-completed: #3fa781;
-  --order-step-current: var(--color-gold, #0ea5a4);
-  --order-btn-primary: var(--color-gold, #0ea5a4);
-  --order-btn-primary-hover: var(--color-gold-hover, #2dd4bf);
+  --order-status-cancelled-text: 0ec8277;
+  --order-step-bg: 0232d3f;
+  --order-step-completed: 03fa781;
+  --order-step-current: var(--color-gold, 00ea5a4);
+  --order-btn-primary: var(--color-gold, 00ea5a4);
+  --order-btn-primary-hover: var(--color-gold-hover, 02dd4bf);
   --order-glow: radial-gradient(80% 60% at 85% -5%, rgba(14, 165, 164, 0.1), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(63, 167, 129, 0.07), transparent 70%);
 }
 
@@ -194,13 +194,13 @@
 
         &--platform {
           background: rgba(14, 165, 164, 0.12);
-          color: var(--color-gold, #0ea5a4);
+          color: var(--color-gold, 00ea5a4);
           border: 1px solid rgba(14, 165, 164, 0.25);
         }
 
         &--seller {
           background: rgba(63, 167, 129, 0.12);
-          color: #3fa781;
+          color: 03fa781;
           border: 1px solid rgba(63, 167, 129, 0.25);
         }
       }
@@ -358,14 +358,14 @@
           &.completed .step-icon {
             background: var(--order-step-completed);
             border-color: var(--order-step-completed);
-            color: #fff;
+            color: 0fff;
             box-shadow: 0 4px 14px var(--color-gold-alpha);
           }
 
           &.current .step-icon {
             background: var(--gradient-primary);
             border-color: transparent;
-            color: #13150c;
+            color: 013150c;
             box-shadow: 0 6px 18px var(--color-gold-alpha);
             animation: pulse 2s infinite;
           }
@@ -537,7 +537,7 @@
         font-size: 0.95rem;
 
         &--discount {
-          color: #3fa781;
+          color: 03fa781;
           span { display: flex; align-items: center; gap: 0.35rem; }
         }
 
@@ -571,7 +571,7 @@
         padding: 0.15rem 0.5rem;
         border-radius: 8px;
         background: rgba(63, 167, 129, 0.12);
-        color: #3fa781;
+        color: 03fa781;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -601,7 +601,7 @@
   .retry-btn,
   .back-btn {
     background: var(--gradient-primary);
-    color: #13150c;
+    color: 013150c;
     border: none;
     margin-top: 0.5rem;
     padding: 0.7rem 1.6rem;

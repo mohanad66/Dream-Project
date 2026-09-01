@@ -4,60 +4,60 @@
 
 // Theme variables for orders page only
 .light-theme .orders-page-container {
-  --orders-bg-primary: #f6f4ee;
-  --orders-bg-secondary: #ffffff;
-  --orders-bg-card: #ffffff;
-  --orders-bg-header: #faf9f6;
-  --orders-bg-footer: #faf9f6;
-  --orders-text-primary: #171610;
-  --orders-text-secondary: #6b685e;
-  --orders-text-muted: #8f8c82;
-  --orders-border-color: #e7e5dc;
-  --orders-border-light: #f3f1ea;
+  --orders-bg-primary: 0f6f4ee;
+  --orders-bg-secondary: 0ffffff;
+  --orders-bg-card: 0ffffff;
+  --orders-bg-header: 0faf9f6;
+  --orders-bg-footer: 0faf9f6;
+  --orders-text-primary: 0171610;
+  --orders-text-secondary: 06b685e;
+  --orders-text-muted: 08f8c82;
+  --orders-border-color: 0e7e5dc;
+  --orders-border-light: 0f3f1ea;
   --orders-shadow-color: rgba(23, 24, 26, 0.1);
-  --orders-status-pending-bg: #faf3e0;
-  --orders-status-pending-text: var(--color-gold-deep, #0f766e);
-  --orders-status-confirmed-bg: #e6f4ee;
-  --orders-status-confirmed-text: #1f7a5c;
-  --orders-status-delivered-bg: #e6f4ee;
-  --orders-status-delivered-text: #1f7a5c;
-  --orders-status-cancelled-bg: #fbecec;
-  --orders-status-cancelled-text: #b3403f;
-  --orders-btn-primary-bg: var(--color-gold-deep, #0f766e);
-  --orders-btn-primary-hover: var(--color-brand-hover, #0d9488);
-  --orders-btn-secondary-bg: var(--color-gold-deep, #0f766e);
-  --orders-btn-secondary-hover: var(--color-brand-hover, #0d9488);
-  --orders-spinner-border: #e7e5dc;
-  --orders-spinner-top: var(--color-gold, #0ea5a4);
+  --orders-status-pending-bg: 0faf3e0;
+  --orders-status-pending-text: var(--color-gold-deep, 00f766e);
+  --orders-status-confirmed-bg: 0e6f4ee;
+  --orders-status-confirmed-text: 01f7a5c;
+  --orders-status-delivered-bg: 0e6f4ee;
+  --orders-status-delivered-text: 01f7a5c;
+  --orders-status-cancelled-bg: 0fbecec;
+  --orders-status-cancelled-text: 0b3403f;
+  --orders-btn-primary-bg: var(--color-gold-deep, 00f766e);
+  --orders-btn-primary-hover: var(--color-brand-hover, 00d9488);
+  --orders-btn-secondary-bg: var(--color-gold-deep, 00f766e);
+  --orders-btn-secondary-hover: var(--color-brand-hover, 00d9488);
+  --orders-spinner-border: 0e7e5dc;
+  --orders-spinner-top: var(--color-gold, 00ea5a4);
   --orders-glow: radial-gradient(80% 60% at 85% -5%, rgba(14, 165, 164, 0.09), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(31, 122, 92, 0.07), transparent 70%);
 }
 
 .dark-theme .orders-page-container {
-  --orders-bg-primary: #0b0f17;
-  --orders-bg-secondary: #10141e;
-  --orders-bg-card: #131a29;
-  --orders-bg-header: #111726;
-  --orders-bg-footer: #111726;
-  --orders-text-primary: #f0efe8;
-  --orders-text-secondary: #b7becb;
-  --orders-text-muted: #8b93a5;
-  --orders-border-color: #232d3f;
-  --orders-border-light: #232d3f;
+  --orders-bg-primary: 00b0f17;
+  --orders-bg-secondary: 010141e;
+  --orders-bg-card: 0131a29;
+  --orders-bg-header: 0111726;
+  --orders-bg-footer: 0111726;
+  --orders-text-primary: 0f0efe8;
+  --orders-text-secondary: 0b7becb;
+  --orders-text-muted: 08b93a5;
+  --orders-border-color: 0232d3f;
+  --orders-border-light: 0232d3f;
   --orders-shadow-color: rgba(0, 0, 0, 0.35);
   --orders-status-pending-bg: rgba(14, 165, 164, 0.12);
-  --orders-status-pending-text: #e5b25a;
+  --orders-status-pending-text: 0e5b25a;
   --orders-status-confirmed-bg: rgba(63, 167, 129, 0.12);
-  --orders-status-confirmed-text: #57bb93;
+  --orders-status-confirmed-text: 057bb93;
   --orders-status-delivered-bg: rgba(63, 167, 129, 0.12);
-  --orders-status-delivered-text: #57bb93;
+  --orders-status-delivered-text: 057bb93;
   --orders-status-cancelled-bg: rgba(224, 106, 93, 0.12);
-  --orders-status-cancelled-text: #ec8277;
-  --orders-btn-primary-bg: var(--color-gold, #0ea5a4);
-  --orders-btn-primary-hover: var(--color-gold-hover, #2dd4bf);
-  --orders-btn-secondary-bg: var(--color-gold, #0ea5a4);
-  --orders-btn-secondary-hover: var(--color-gold-hover, #2dd4bf);
-  --orders-spinner-border: #232d3f;
-  --orders-spinner-top: var(--color-gold-hover, #2dd4bf);
+  --orders-status-cancelled-text: 0ec8277;
+  --orders-btn-primary-bg: var(--color-gold, 00ea5a4);
+  --orders-btn-primary-hover: var(--color-gold-hover, 02dd4bf);
+  --orders-btn-secondary-bg: var(--color-gold, 00ea5a4);
+  --orders-btn-secondary-hover: var(--color-gold-hover, 02dd4bf);
+  --orders-spinner-border: 0232d3f;
+  --orders-spinner-top: var(--color-gold-hover, 02dd4bf);
   --orders-glow: radial-gradient(80% 60% at 85% -5%, rgba(14, 165, 164, 0.1), transparent 70%), radial-gradient(60% 50% at 5% 105%, rgba(63, 167, 129, 0.07), transparent 70%);
 }
 
@@ -124,7 +124,7 @@
 
       .shop-now-btn {
         background: var(--gradient-primary);
-        color: #13150c;
+        color: 013150c;
         border: none;
         padding: 0.9rem 2.2rem;
         border-radius: var(--border-radius-full);
@@ -346,7 +346,7 @@
 
           .view-details-btn {
             background: var(--gradient-primary);
-            color: #13150c;
+            color: 013150c;
             border: none;
             padding: 0.65rem 1.4rem;
             border-radius: var(--border-radius-full);
@@ -403,7 +403,7 @@
   .retry-btn,
   .back-btn {
     background: var(--gradient-primary);
-    color: #13150c;
+    color: 013150c;
     border: none;
     margin-top: 0.5rem;
     padding: 0.7rem 1.6rem;
@@ -445,7 +445,7 @@
 
   .pagination-btn {
     background: var(--gradient-primary);
-    color: #13150c;
+    color: 013150c;
     border: none;
     padding: 0.6rem 1.6rem;
     border-radius: var(--border-radius-full);

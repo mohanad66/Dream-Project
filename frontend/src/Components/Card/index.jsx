@@ -25,9 +25,9 @@ export default function Card({ card, categories = [], tags = [] }) {
   const [commentText, setCommentText] = useState("");
   const navigate = useNavigate();
 
-  // Check if product is in wishlist
+  // Check if product is in wishlist (logged-in users only)
   useEffect(() => {
-    if (!card?.id) return;
+    if (!card?.id || !isLoggedIn()) return;
     const checkWishlist = async () => {
       try {
         const response = await api.get(`/api/wishlist/check/?product_id=${card.id}`);
@@ -41,6 +41,12 @@ export default function Card({ card, categories = [], tags = [] }) {
 
   const toggleWishlist = async (e) => {
     e.stopPropagation();
+    if (!isLoggedIn()) {
+      navigate(
+        `/login?next=${encodeURIComponent(window.location.pathname || "/products")}`,
+      );
+      return;
+    }
     try {
       if (inWishlist) {
         await api.delete("/api/wishlist/remove/", { data: { product_id: card.id } });
@@ -56,6 +62,12 @@ export default function Card({ card, categories = [], tags = [] }) {
 
   const toggleLike = async (e) => {
     e.stopPropagation();
+    if (!isLoggedIn()) {
+      navigate(
+        `/login?next=${encodeURIComponent(window.location.pathname || "/products")}`,
+      );
+      return;
+    }
     try {
       const response = await api.post(`/api/products/${card.id}/like/`);
       setLiked(response.data.liked);

@@ -52,7 +52,7 @@
     text-decoration: none;
     transition: color 0.2s;
     &:hover {
-      color: var(--color-gold-hover, var(--color-gold-hover, #2dd4bf));
+      color: var(--color-gold-hover, var(--color-gold-hover, #d8a94e));
     }
   }
 
@@ -679,7 +679,7 @@
       }
 
       &.active::after {
-        background: var(--color-gold-hover, #2dd4bf);
+        background: var(--color-gold-hover, #d8a94e);
         transform: scale(1.3);
       }
     }

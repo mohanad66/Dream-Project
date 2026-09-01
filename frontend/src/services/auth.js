@@ -307,17 +307,28 @@ async function fetchPaginatedData(url, cacheKey) {
     if (cached) return cached;
   }
 
+  const API_BASE = api.defaults.baseURL;
+
+  const resolveNext = (u) => {
+    if (!u) return u;
+    try {
+      const parsed = new URL(u);
+      return `${API_BASE}${parsed.pathname}${parsed.search}`;
+    } catch {
+      return `${API_BASE}${u.startsWith("/") ? "" : "/"}${u}`;
+    }
+  };
+
   let results = [];
-  let nextUrl = url;
+  let nextUrl = resolveNext(url);
 
   try {
     while (nextUrl) {
-      nextUrl = nextUrl.replace(/^http:\/\//, "https://");
       const response = await fetch(nextUrl);
       if (!response.ok) break;
       const data = await response.json();
       results = [...results, ...(data.results || [])];
-      nextUrl = data.next;
+      nextUrl = resolveNext(data.next);
     }
     if (ENABLE_CACHE) {
       await persistentCache.set(cacheKey, results);

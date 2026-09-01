@@ -81,7 +81,7 @@ export default function ProductDetail({ categories = [], tags = [] }) {
   }, [product?.id, product?.category]);
 
   useEffect(() => {
-    if (!product?.id) return;
+    if (!product?.id || !isLoggedIn()) return;
     api.get(`/api/wishlist/check/?product_id=${product.id}`).then((res) => {
       setInWishlist(res.data.in_wishlist);
     }).catch(() => {});
@@ -112,6 +112,10 @@ export default function ProductDetail({ categories = [], tags = [] }) {
   };
 
   const toggleLike = async () => {
+    if (!isLoggedIn()) {
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
     try {
       const res = await api.post(`/api/products/${product.id}/like/`);
       setLiked(res.data.liked);
@@ -122,6 +126,10 @@ export default function ProductDetail({ categories = [], tags = [] }) {
   };
 
   const toggleWishlist = async () => {
+    if (!isLoggedIn()) {
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
     try {
       if (inWishlist) {
         await api.delete("/api/wishlist/remove/", { data: { product_id: product.id } });

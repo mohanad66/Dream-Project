@@ -1286,8 +1286,13 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
  
     def get_queryset(self):
+        # Guard: anonymous/non-seller users must not crash on a missing
+        # one-to-one seller profile (was returning 500 before the 403/401).
+        seller = getattr(self.request.user, "seller_profile", None)
+        if seller is None:
+            return Product.objects.none()
         return (
-            Product.objects.filter(seller=self.request.user.seller_profile)
+            Product.objects.filter(seller=seller)
             .select_related("category")
             .prefetch_related("tags", "gallery_images")
             .order_by("-created_at")
