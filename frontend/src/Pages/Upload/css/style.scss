@@ -415,6 +415,81 @@
   }
 }
 
+.upl-gallery {
+  margin-top: 1.1rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed var(--border-color-strong);
+  border-radius: 10px;
+  background: var(--bg-subtle);
+
+  > p {
+    margin: 0 0 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    span {
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+  }
+
+  .upl-gallery-list {
+    list-style: none;
+    margin: 0.7rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 8px;
+      background: var(--bg-body);
+      border: 1px solid var(--border-color);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+
+      > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .upl-gallery-remove {
+    border: none;
+    background: transparent;
+    color: var(--color-danger, #e06a5d);
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    padding: 0.25rem;
+
+    &:hover {
+      color: var(--color-danger-hover, #ff8a80);
+    }
+  }
+
+  .upl-gallery-hint {
+    margin: 0.6rem 0 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+}
+
 /* ---- Buttons ---- */
 .upl-btn {
   display: inline-flex;

@@ -92,6 +92,7 @@ export default function Upload() {
   const [posterUrl, setPosterUrl] = useState("");
   const [autoPoster, setAutoPoster] = useState(null);
   const [autoPosterUrl, setAutoPosterUrl] = useState("");
+  const [galleryVideos, setGalleryVideos] = useState([]);
 
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
@@ -329,6 +330,7 @@ const clearVideo = () => {
       formData.append("category", form.category);
       formData.append("video", video);
       formData.append("image", poster);
+      galleryVideos.forEach((f) => formData.append("uploaded_videos", f));
       form.selectedTags.forEach((id) => formData.append("tags", id));
 
       const res = await api.post("/api/sellers/products/", formData, {
@@ -451,6 +453,7 @@ const clearVideo = () => {
                   if (posterUrl) URL.revokeObjectURL(posterUrl);
                   setPosterUrl("");
                   setForm({ name: "", description: "", price: "", category: "", selectedTags: [] });
+                  setGalleryVideos([]);
                   setSuccess(null);
                 }}>
                   <FaCloudUploadAlt /> Upload another
@@ -599,6 +602,44 @@ const clearVideo = () => {
                         </div>
                       ) : (
                         <p className="upl-tags-empty">No tags available.</p>
+                      )}
+                    </div>
+
+                    <div className="upl-gallery">
+                      <p><FaVideo /> Gallery videos <span>(optional)</span></p>
+                      <label className="upl-btn upl-btn--soft">
+                        {galleryVideos.length ? "Add more videos" : "Choose videos"}
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm,video/*"
+                          multiple
+                          hidden
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []).filter(Boolean);
+                            setGalleryVideos((prev) => [...prev, ...files]);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                      {galleryVideos.length > 0 && (
+                        <ul className="upl-gallery-list">
+                          {galleryVideos.map((f, i) => (
+                            <li key={`${f.name}-${i}`}>
+                              <span><FaVideo /> {f.name}</span>
+                              <button
+                                type="button"
+                                className="upl-gallery-remove"
+                                aria-label={`Remove ${f.name}`}
+                                onClick={() => setGalleryVideos((prev) => prev.filter((_, idx) => idx !== i))}
+                              >
+                                <FaTrashAlt />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {galleryVideos.length > 0 && (
+                        <p className="upl-gallery-hint">These play on your product page alongside the main short.</p>
                       )}
                     </div>
 

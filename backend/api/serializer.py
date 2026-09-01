@@ -152,6 +152,12 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ["id", "image"]
 
 
+class ProductVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVideo
+        fields = ["id", "video"]
+
+
 class ProductSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all(), required=False
@@ -159,6 +165,12 @@ class ProductSerializer(serializers.ModelSerializer):
     gallery_images = ProductImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
+    gallery_videos = ProductVideoSerializer(many=True, read_only=True)
+    uploaded_videos = serializers.ListField(
+        child=serializers.FileField(allow_empty_file=False, use_url=False),
         write_only=True,
         required=False
     )
@@ -186,6 +198,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "video",
             "gallery_images",
             "uploaded_images",
+            "gallery_videos",
+            "uploaded_videos",
             "category",
             "tags",
             "is_active",
@@ -247,6 +261,7 @@ class ProductSerializer(serializers.ModelSerializer):
         # Extract extra data
         tags = validated_data.pop("tags", [])
         uploaded_images = validated_data.pop("uploaded_images", [])
+        uploaded_videos = validated_data.pop("uploaded_videos", [])
 
         # Create the product
         product = Product.objects.create(**validated_data)
@@ -259,11 +274,16 @@ class ProductSerializer(serializers.ModelSerializer):
         for image in uploaded_images:
             ProductImage.objects.create(product=product, image=image)
 
+        # Handle uploaded gallery videos
+        for fvideo in uploaded_videos:
+            ProductVideo.objects.create(product=product, video=fvideo)
+
         return product
 
     def update(self, instance, validated_data):
         tags = validated_data.pop("tags", None)
         uploaded_images = validated_data.pop("uploaded_images", [])
+        uploaded_videos = validated_data.pop("uploaded_videos", [])
 
         # Update other fields
         for attr, value in validated_data.items():
@@ -277,6 +297,10 @@ class ProductSerializer(serializers.ModelSerializer):
         # Add new uploaded gallery images
         for image in uploaded_images:
             ProductImage.objects.create(product=instance, image=image)
+
+        # Add new uploaded gallery videos
+        for fvideo in uploaded_videos:
+            ProductVideo.objects.create(product=instance, video=fvideo)
 
         return instance
 
@@ -477,6 +501,36 @@ class SellerOfferSerializer(serializers.ModelSerializer):
         if offer_type in ("product", "promotion") and not attrs.get("product") and not (self.instance and self.instance.product):
             pass  # Allow product to be optional for promotions
         return attrs
+
+
+class AdVideoSerializer(serializers.ModelSerializer):
+    seller_name = serializers.CharField(source="seller.business_name", read_only=True)
+    seller_avatar = serializers.ImageField(source="seller.avatar", read_only=True, default="")
+    seller_verified = serializers.SerializerMethodField()
+    is_own_seller = serializers.SerializerMethodField()
+    kind = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AdVideo
+        fields = [
+            "id", "seller", "seller_name", "seller_avatar", "seller_verified",
+            "title", "description", "video", "poster", "is_active",
+            "kind", "is_own_seller", "created_at",
+        ]
+        read_only_fields = ["seller", "created_at"]
+
+    def get_kind(self, obj):
+        return "ad"
+
+    def get_seller_verified(self, obj):
+        seller = obj.seller
+        return bool(seller and seller.verification_status == "approved")
+
+    def get_is_own_seller(self, obj):
+        current_seller_id = self.context.get("current_seller_id")
+        if current_seller_id is not None:
+            return obj.seller_id == current_seller_id
+        return False
 
 
 class SellerPublicProfileSerializer(serializers.ModelSerializer):

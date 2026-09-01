@@ -16,11 +16,15 @@ const shuffle = (arr) => {
   return a;
 };
 
-// Video shorts lead the feed; after a random run of videos (2–4) we splice in
-// 1–2 seller products/offers, TikTok-style. Videos keep their curated order
-// (trending → recent → followed); the products/offers rotate randomly.
-const buildShortsSequence = (products, offers) => {
-  const videos = products.filter((p) => p && p.video);
+// Sellers' standalone advertisement videos lead the feed (they're a brand
+// pitch for the page), then product videos; after a random run of videos we
+// splice in 1–2 seller products/offers, TikTok-style. Videos keep their
+// curated order (ads → trending → recent → followed); products/offers rotate.
+const buildShortsSequence = (products, offers, ads) => {
+  const videos = [
+    ...(Array.isArray(ads) ? ads : []),
+    ...products.filter((p) => p && p.video),
+  ];
   const rest = shuffle([
     ...products.filter((p) => p && !p.video),
     ...(Array.isArray(offers) ? offers : []),
@@ -60,11 +64,13 @@ export default function Shorts({
 
       let followedProducts = [];
       let followedOffers = [];
+      let followedAds = [];
       if (hasToken) {
         try {
           const followedRes = await api.get("/api/feed/followed/");
           followedProducts = followedRes.data.products || [];
           followedOffers = followedRes.data.offers || [];
+          followedAds = followedRes.data.ads || [];
         } catch (err) {}
       }
 
@@ -89,7 +95,14 @@ export default function Shorts({
         .filter((o) => o && o.id)
         .filter((o, i, arr) => arr.findIndex((x) => x.id === o.id) === i);
 
-      setItems(cleanFeedItems(buildShortsSequence(uniqueProducts, offers)));
+      const ads = [
+        ...(followedAds.length ? followedAds : []),
+        ...(homeRes.data.ads || []),
+      ]
+        .filter((a) => a && a.video)
+        .filter((a, i, arr) => arr.findIndex((x) => x.id === a.id) === i);
+
+      setItems(cleanFeedItems(buildShortsSequence(uniqueProducts, offers, ads)));
     } catch (err) {
       console.error("Failed to load shorts feed:", err);
       setError(err?.response?.data?.detail || "We couldn't load Shorts right now.");

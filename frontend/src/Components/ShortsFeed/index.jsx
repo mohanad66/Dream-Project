@@ -29,6 +29,12 @@ import "./css/style.scss";
 const isOffer = (item) =>
   !!(item && (item.offer_type !== undefined || item.discount_percent !== undefined || (item.title && item.product === null)));
 
+const isAd = (item) => !!(item && item.kind === "ad");
+
+// Ads share the item "id" space with products, so give them a namespaced media
+// key to keep video refs / pause / progress maps from colliding.
+const mediaKey = (item) => (isAd(item) ? `ad-${String(item.id)}` : String(item.id));
+
 export default function ShortsFeed({
   items = [],
   categories = [],
@@ -117,10 +123,11 @@ export default function ShortsFeed({
 
   // Play the active video, pause the rest
   useEffect(() => {
-    Object.entries(videoRefs.current).forEach(([id, video]) => {
+    items.forEach((item, idx) => {
+      const key = item ? mediaKey(item) : null;
+      const video = videoRefs.current[key];
       if (!video) return;
-      const slideIndex = items.findIndex((it) => it._type !== "offer" && String(it.id) === String(id));
-      const shouldPlay = slideIndex === activeIndex && !videoPaused[id];
+      const shouldPlay = idx === activeIndex && !videoPaused[key] && !videoBroken[key];
       if (shouldPlay) {
         const p = video.play();
         if (p && p.catch) p.catch(() => {});
@@ -128,43 +135,46 @@ export default function ShortsFeed({
         video.pause();
       }
     });
-  }, [activeIndex, items, videoPaused]);
+  }, [activeIndex, items, videoPaused, videoBroken]);
 
-  const toggleVideo = (product, index) => {
-    const video = videoRefs.current[product.id];
+  const toggleVideo = (item, index) => {
+    const key = mediaKey(item);
+    const video = videoRefs.current[key];
     if (!video) return;
     if (index === activeIndex) {
       if (video.paused) {
         video.play().catch(() => {});
-        setVideoPaused((prev) => ({ ...prev, [product.id]: false }));
+        setVideoPaused((prev) => ({ ...prev, [key]: false }));
       } else {
         video.pause();
-        setVideoPaused((prev) => ({ ...prev, [product.id]: true }));
+        setVideoPaused((prev) => ({ ...prev, [key]: true }));
       }
     }
   };
 
-  const toggleMute = (product) => {
-    const video = videoRefs.current[product.id];
+  const toggleMute = (item) => {
+    const key = mediaKey(item);
+    const video = videoRefs.current[key];
     const next = !muted;
     setMuted(next);
     if (video) {
       video.muted = next;
       if (!next && video.paused) {
         video.play().catch(() => {});
-        setVideoPaused((prev) => ({ ...prev, [product.id]: false }));
+        setVideoPaused((prev) => ({ ...prev, [key]: false }));
       }
     }
   };
 
-  const handleTimeUpdate = (product, e) => {
+  const handleTimeUpdate = (item, e) => {
+    const key = mediaKey(item);
     const video = e.currentTarget;
     if (!video.duration) return;
     const pct = (video.currentTime / video.duration) * 100;
     setProgress((prev) => {
       const next = Math.floor(pct * 10);
-      if (Math.floor((prev[product.id] || 0) * 10) === next) return prev;
-      return { ...prev, [product.id]: pct };
+      if (Math.floor((prev[key] || 0) * 10) === next) return prev;
+      return { ...prev, [key]: pct };
     });
   };
 
@@ -238,11 +248,12 @@ export default function ShortsFeed({
   };
 
   // TikTok-style double-tap: show a heart burst and like, without pausing.
-  const triggerLike = (product) => {
-    setBurst(product.id);
+  const triggerLike = (item) => {
+    setBurst(item.id);
     clearTimeout(burstTimerRef.current);
     burstTimerRef.current = setTimeout(() => setBurst(null), 800);
-    if (isLoggedIn()) toggleLike(product);
+    // Only products have a like endpoint; ads/offers get the burst for fun.
+    if (isLoggedIn() && item?.id && !isAd(item) && !isOffer(item)) toggleLike(item);
   };
 
   // Distinguish single-tap (pause/play) from double-tap (like).
@@ -591,10 +602,110 @@ export default function ShortsFeed({
     );
   };
 
+  const renderAdSlide = (ad, index) => {
+    const posterImg = ad.poster ? resolveMediaUrl(ad.poster) : null;
+    const key = mediaKey(ad);
+
+    return (
+      <div className={`shorts-slide shorts-slide--ad ${index === activeIndex ? "active" : ""}`} key={`ad-${ad.id}`}>
+        <div className="shorts-media" onClick={() => handleMediaTap(ad, index)}>
+          {!videoBroken[key] ? (
+            <video
+              ref={(el) => { videoRefs.current[key] = el; }}
+              src={resolveMediaUrl(ad.video)}
+              poster={posterImg || undefined}
+              preload="metadata"
+              muted={muted}
+              loop
+              playsInline
+              autoPlay={index === 0}
+              onTimeUpdate={(e) => handleTimeUpdate(ad, e)}
+              onError={() => setVideoBroken((prev) => ({ ...prev, [key]: true }))}
+            />
+          ) : posterImg ? (
+            <img src={posterImg} alt={ad.title || "Advertisement"} loading={index > 1 ? "lazy" : "eager"} decoding="async" />
+          ) : (
+            <div className="shorts-placeholder">
+              <FaPercent size={48} />
+            </div>
+          )}
+          <>
+            <span className="shorts-video-badge"><FaPlay /> Watch</span>
+            {videoPaused[key] && (
+              <span className="shorts-video-paused"><FaPlay /></span>
+            )}
+            {videoBroken[key] && (
+              <span className="shorts-video-unavailable">Video unavailable</span>
+            )}
+            <button
+              type="button"
+              className="shorts-mute-btn"
+              aria-label={muted ? "Unmute video" : "Mute video"}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleMute(ad);
+              }}
+            >
+              {muted ? <FaVolumeMute /> : <FaVolumeUp />}
+            </button>
+            {!videoBroken[key] && progress[key] > 0 && (
+              <div className="shorts-video-progress">
+                <span style={{ width: `${Math.min(progress[key], 100)}%` }} />
+              </div>
+            )}
+          </>
+        </div>
+        <div className="shorts-gradient top" />
+        <div className="shorts-gradient bottom" />
+
+        {burst === ad.id && (
+          <div className="shorts-like-burst">
+            <FaHeart />
+          </div>
+        )}
+
+        {/* Seller branding */}
+        <div className="shorts-top-bar">
+          {renderBrandRow(
+            ad.seller,
+            ad.seller_name,
+            ad.seller_avatar,
+            ad.seller_verified,
+            ad.is_own_seller,
+            getFollowState(ad.seller),
+          )}
+        </div>
+
+        {/* Right action rail */}
+        <div className="shorts-rail">
+          <button className="shorts-rail-btn" onClick={() => handleShare(ad, "p")} aria-label="Share ad">
+            <FaShareAlt />
+          </button>
+        </div>
+
+        {/* Bottom info */}
+        <div className="shorts-footer">
+          <span className="shorts-ad-chip"><FaVolumeUp /> Advertisement</span>
+          {ad.title && <h2 className="shorts-title">{ad.title}</h2>}
+          {ad.description && <p className="shorts-desc">{ad.description}</p>}
+          <div className="shorts-buy-row">
+            <Link
+              to={ad.seller ? `/seller/${ad.seller}` : "/sellers"}
+              className="shorts-shop-btn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FaUserCircle /> Visit Store
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={`shorts-feed ${onEnd ? "has-caption" : ""}`} ref={containerRef} style={{ height }}>
       {items.map((item, index) =>
-        isOffer(item) ? renderOfferSlide(item, index) : renderProductSlide(item, index)
+        isAd(item) ? renderAdSlide(item, index) : isOffer(item) ? renderOfferSlide(item, index) : renderProductSlide(item, index)
       )}
 
       {onEnd && items.length > 0 && (

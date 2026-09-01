@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 from decimal import Decimal
 from datetime import timedelta
 import stripe
@@ -84,7 +84,7 @@ class IsProductOwner(BasePermission):
 
 
 class SellerRegisterView(generics.CreateAPIView):
-    """POST /api/sellers/register/ — public. Creates User + SellerProfile (pending)."""
+    """POST /api/sellers/register/ â€” public. Creates User + SellerProfile (pending)."""
  
     serializer_class = SellerRegistrationSerializer
     permission_classes = [AllowAny]
@@ -105,7 +105,7 @@ class SellerRegisterView(generics.CreateAPIView):
         )
 
 class SellerUpgradeView(generics.CreateAPIView):
-    """POST /api/sellers/upgrade/ — Upgrades an existing authenticated user to a seller."""
+    """POST /api/sellers/upgrade/ â€” Upgrades an existing authenticated user to a seller."""
     serializer_class = SellerUpgradeSerializer
     permission_classes = [IsAuthenticated]
 
@@ -124,7 +124,7 @@ class SellerUpgradeView(generics.CreateAPIView):
  
  
 class SellerMeView(generics.RetrieveUpdateAPIView):
-    """GET/PATCH /api/sellers/me/ — a seller's own profile, any status."""
+    """GET/PATCH /api/sellers/me/ â€” a seller's own profile, any status."""
  
     serializer_class = SellerProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -166,49 +166,49 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 # ++++++++++ ADDED ADMIN VIEWSETS ++++++++++
 class ProductAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
-    queryset = Product.objects.all().select_related("seller__user").prefetch_related("tags", "gallery_images")
+    queryset = Product.objects.all().select_related("seller__user").prefetch_related("tags", "gallery_images", "gallery_videos")
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
-    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    pagination_class = StandardResultsSetPagination  # âœ… Add this line
 
 
 class CategoryAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = Category.objects.all()
-    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    pagination_class = StandardResultsSetPagination  # âœ… Add this line
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
 
 
 class ServiceAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = Service.objects.all()
-    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    pagination_class = StandardResultsSetPagination  # âœ… Add this line
     serializer_class = ServiceSerializer
     permission_classes = [IsAdminUser]
 
 
 class ContactAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = Contact.objects.all()
-    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    pagination_class = StandardResultsSetPagination  # âœ… Add this line
     serializer_class = ContactSerializer
     permission_classes = [IsAdminUser]
 
 
 class TagsAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = Tag.objects.all()
-    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    pagination_class = StandardResultsSetPagination  # âœ… Add this line
     serializer_class = TagsSerializer
     permission_classes = [IsAdminUser]
 
 
 class CarouselAdminViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     queryset = CarouselImg.objects.all()
-    pagination_class = StandardResultsSetPagination  # ✅ Add this line
+    pagination_class = StandardResultsSetPagination  # âœ… Add this line
     serializer_class = CarouselImgSerializer
     permission_classes = [IsSuperUser]
 
 
 class ProductGalleryImageDeleteView(APIView):
-    """DELETE /api/admins/products/<pk>/gallery/<img_id>/ — remove a single gallery image."""
+    """DELETE /api/admins/products/<pk>/gallery/<img_id>/ â€” remove a single gallery image."""
 
     permission_classes = [IsAdminUser]
 
@@ -413,7 +413,7 @@ def create_public_list_view(
                 today = timezone.now().date()
                 queryset = (
                     queryset.select_related("seller__user")
-                    .prefetch_related("tags", "gallery_images")
+                    .prefetch_related("tags", "gallery_images", "gallery_videos")
                     .annotate(
                         sold_today=Count(
                             "order_items",
@@ -473,7 +473,7 @@ class PasswordChangeView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        pagination_class = StandardResultsSetPagination  # ✅ Add this line
+        pagination_class = StandardResultsSetPagination  # âœ… Add this line
         serializer = self.get_serializer(
             data=request.data, context={"request": request}
         )
@@ -514,7 +514,7 @@ class PaymentListView(ListAPIView):
 class CreatePaymentIntentView(APIView):
     """
     Create payment intent AFTER creating the order.
-    Flow: Create Order → Create Payment Intent → Return to frontend
+    Flow: Create Order â†’ Create Payment Intent â†’ Return to frontend
     """
 
     permission_classes = [IsAuthenticated]
@@ -669,13 +669,13 @@ class ProductSearchView(APIView):
                     distinct=True,
                 )
             )
-            .prefetch_related("tags", "gallery_images")
+            .prefetch_related("tags", "gallery_images", "gallery_videos")
             .select_related("category")
         )
         # Drop dev placeholder listings (e.g. "wwwww", "wwwweawa")
         queryset = exclude_junk_products(queryset)
 
-        # Text search — name & description
+        # Text search â€” name & description
         search = request.query_params.get("search", "").strip()
         if search:
             queryset = queryset.filter(
@@ -735,7 +735,7 @@ class ProductDetailView(generics.RetrieveAPIView):
     queryset = (
         Product.objects.filter(is_active=True, approval_status="approved")
         .select_related("seller__user")
-        .prefetch_related("tags", "gallery_images")
+        .prefetch_related("tags", "gallery_images", "gallery_videos")
     )
     lookup_field = "pk"
 
@@ -1044,14 +1044,14 @@ class StripeWebhookView(APIView):
                     except Exception as e:
                         print(f"Failed to issue transfer to {stripe_account}: {str(e)}")
 
-            print(f"✓ Payment succeeded for Order #{order_id}")
+            print(f"âœ“ Payment succeeded for Order #{order_id}")
 
         except Payment.DoesNotExist:
-            print(f"✗ Payment not found: {payment_intent_id}")
+            print(f"âœ— Payment not found: {payment_intent_id}")
         except Order.DoesNotExist:
-            print(f"✗ Order not found: {order_id}")
+            print(f"âœ— Order not found: {order_id}")
         except Exception as e:
-            print(f"✗ Error handling payment success: {str(e)}")
+            print(f"âœ— Error handling payment success: {str(e)}")
 
     def handle_payment_failed(self, payment_intent):
         """
@@ -1071,12 +1071,12 @@ class StripeWebhookView(APIView):
                 order.status = "cancelled"
                 order.save()
 
-            print(f"✗ Payment failed for Order #{order.id}")
+            print(f"âœ— Payment failed for Order #{order.id}")
 
         except Payment.DoesNotExist:
-            print(f"✗ Payment not found: {payment_intent_id}")
+            print(f"âœ— Payment not found: {payment_intent_id}")
         except Exception as e:
-            print(f"✗ Error handling payment failure: {str(e)}")
+            print(f"âœ— Error handling payment failure: {str(e)}")
 
     def handle_payment_cancelled(self, payment_intent):
         """
@@ -1096,12 +1096,12 @@ class StripeWebhookView(APIView):
                 order.status = "cancelled"
                 order.save()
 
-            print(f"⊘ Payment cancelled for Order #{order.id}")
+            print(f"âٹک Payment cancelled for Order #{order.id}")
 
         except Payment.DoesNotExist:
-            print(f"✗ Payment not found: {payment_intent_id}")
+            print(f"âœ— Payment not found: {payment_intent_id}")
         except Exception as e:
-            print(f"✗ Error handling payment cancellation: {str(e)}")
+            print(f"âœ— Error handling payment cancellation: {str(e)}")
 
 
 # +++++++++++ ANALYTICS VIEWS ++++++++++
@@ -1145,7 +1145,7 @@ class TopProductsAnalyticsView(APIView):
             Product.objects.filter(order_items__order__created_at__gte=since_date)
             .annotate(
                 total_sold=Count("order_items"),
-                # ✅ Compute revenue from DB columns, not the Python property
+                # âœ… Compute revenue from DB columns, not the Python property
                 total_revenue=Sum("order_items__subtotal"),
             )
             .order_by("-total_revenue")
@@ -1209,7 +1209,7 @@ class PurchasesAnalyticsView(APIView):
         return Response({"days": days, "total": total, "purchases": serializer.data})
 
 
-# ─── Unfold Admin Dashboard Callback ───────────────────────────────────────────
+# â”€â”€â”€ Unfold Admin Dashboard Callback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from django.db.models import Sum, Count
 
 
@@ -1263,7 +1263,7 @@ def dashboard_callback(request, context):
             "recent_orders": [
                 {
                     "id": o.id,
-                    "owner": o.owner.username if o.owner else "—",
+                    "owner": o.owner.username if o.owner else "â€”",
                     "status": o.status,
                     "created_at": o.created_at.strftime("%Y-%m-%d %H:%M"),
                 }
@@ -1294,7 +1294,7 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
         return (
             Product.objects.filter(seller=seller)
             .select_related("category")
-            .prefetch_related("tags", "gallery_images")
+            .prefetch_related("tags", "gallery_images", "gallery_videos")
             .order_by("-created_at")
         )
  
@@ -1309,14 +1309,14 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
             from rest_framework.exceptions import ValidationError
             raise ValidationError(
                 {
-                    "detail": "We couldn't process one of your files — the video may be too large, "
+                    "detail": "We couldn't process one of your files â€” the video may be too large, "
                     "or the thumbnail isn't a valid JPG/PNG. Use a compressed MP4 and a JPG/PNG thumbnail "
                     "and try again."
                 }
             ) from exc
 
     def perform_create(self, serializer):
-        # seller is forced server-side — a seller can never set it via the
+        # seller is forced server-side â€” a seller can never set it via the
         # request body, since ProductSerializer already marks it read_only.
         # New seller-submitted products always start pending review.
         serializer.save(seller=self.request.user.seller_profile, approval_status=Product.ApprovalStatus.PENDING)
@@ -1325,9 +1325,43 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
  
     def perform_update(self, serializer):
         # Editing a live product sends it back for re-review. Adjust this
-        # if you'd rather let minor edits (e.g. price) stay live — in that
+        # if you'd rather let minor edits (e.g. price) stay live â€” in that
         # case only reset to PENDING when specific fields change.
         serializer.save(approval_status=Product.ApprovalStatus.PENDING, rejection_reason="")
+        if getattr(settings, "ENABLE_CACHING", True):
+            cache.clear()
+
+
+class SellerAdVideoViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
+    """CRUD for a seller's standalone page/brand advertisement videos."""
+
+    serializer_class = AdVideoSerializer
+    permission_classes = [IsApprovedSeller]
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        seller = getattr(self.request.user, "seller_profile", None)
+        if seller is None:
+            return AdVideo.objects.none()
+        return AdVideo.objects.filter(seller=seller).select_related("seller__user").order_by("-created_at")
+
+    def create(self, request, *args, **kwargs):
+        # Same defensive wrapper as SellerProductViewSet: storage backends
+        # (Cloudinary) raise non-DRF exceptions on bad/corrupt media files.
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception as exc:
+            logger.error(f"Seller ad video create failed: {exc}", exc_info=True)
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                {
+                    "detail": "We couldn't process your advertisement â€” the video may be too large or "
+                    "not a valid MP4/WebM. Compress it and try again."
+                }
+            ) from exc
+
+    def perform_create(self, serializer):
+        serializer.save(seller=self.request.user.seller_profile)
         if getattr(settings, "ENABLE_CACHING", True):
             cache.clear()
  
@@ -1374,7 +1408,7 @@ class ProductApprovalView(generics.UpdateAPIView):
  
  
 class PendingProductsAdminView(ListAPIView):
-    """GET /api/admins/products/pending/ — queue for the review dashboard."""
+    """GET /api/admins/products/pending/ â€” queue for the review dashboard."""
  
     serializer_class = ProductSerializer
     permission_classes = [IsAdminUser]
@@ -1390,8 +1424,8 @@ class PendingProductsAdminView(ListAPIView):
 
 class AdminSellerViewSet(viewsets.ModelViewSet):
     """
-    GET /api/admins/sellers/ — list all sellers.
-    PATCH /api/admins/sellers/<pk>/ — approve / reject / toggle active.
+    GET /api/admins/sellers/ â€” list all sellers.
+    PATCH /api/admins/sellers/<pk>/ â€” approve / reject / toggle active.
     """
 
     queryset = SellerProfile.objects.select_related("user").prefetch_related("products").order_by("-created_at")
@@ -1577,7 +1611,7 @@ class SellerPublicProfileView(generics.RetrieveAPIView):
 
         products = Product.objects.filter(
             seller=seller, is_active=True, approval_status="approved"
-        ).select_related("category").prefetch_related("tags", "gallery_images")
+        ).select_related("category").prefetch_related("tags", "gallery_images", "gallery_videos")
 
         from django.core.paginator import Paginator
         product_page = request.query_params.get("products_page", 1)
@@ -2183,7 +2217,7 @@ class FollowedSellersFeedView(APIView):
             seller_id__in=followed,
             is_active=True,
             approval_status="approved",
-        ).select_related("seller", "category").prefetch_related("tags", "gallery_images").order_by(
+        ).select_related("seller", "category").prefetch_related("tags", "gallery_images", "gallery_videos").order_by(
             "-created_at"
         )[:30]
 
@@ -2196,6 +2230,8 @@ class FollowedSellersFeedView(APIView):
             Q(expires_at__isnull=True) | Q(expires_at__gte=timezone.now())
         )[:30]
 
+        ads = AdVideo.objects.filter(seller_id__in=followed, is_active=True).select_related("seller__user")[:20]
+
         seller_id = getattr(getattr(request.user, "seller_profile", None), "id", None)
         serializer_context = {"request": request, "current_seller_id": seller_id}
 
@@ -2204,6 +2240,7 @@ class FollowedSellersFeedView(APIView):
                 products, many=True, context=serializer_context
             ).data,
             "offers": SellerOfferSerializer(offers, many=True).data,
+            "ads": AdVideoSerializer(ads, many=True).data,
         })
 
 
@@ -2222,11 +2259,11 @@ class HomeFeedView(APIView):
 
         recent = base.select_related(
             "seller", "category"
-        ).prefetch_related("tags", "gallery_images").order_by("-created_at")[:30]
+        ).prefetch_related("tags", "gallery_images", "gallery_videos").order_by("-created_at")[:30]
 
         trending = base.select_related(
             "seller", "category"
-        ).prefetch_related("tags", "gallery_images").annotate(
+        ).prefetch_related("tags", "gallery_images", "gallery_videos").annotate(
             total_likes=Count("likes")
         ).order_by("-total_likes", "-created_at")[:30]
 
@@ -2236,6 +2273,8 @@ class HomeFeedView(APIView):
         ).filter(
             Q(expires_at__isnull=True) | Q(expires_at__gte=now)
         ).select_related("seller", "product")[:30]
+
+        ads = AdVideo.objects.filter(is_active=True).select_related("seller__user")[:20]
 
         user = request.user
         seller_id = None
@@ -2247,4 +2286,5 @@ class HomeFeedView(APIView):
             "recent": ProductSerializer(recent, many=True, context=serializer_context).data,
             "trending": ProductSerializer(trending, many=True, context=serializer_context).data,
             "offers": SellerOfferSerializer(offers, many=True).data,
+            "ads": AdVideoSerializer(ads, many=True).data,
         })

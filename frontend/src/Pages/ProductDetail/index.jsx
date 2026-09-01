@@ -95,6 +95,11 @@ export default function ProductDetail({ categories = [], tags = [] }) {
     ].filter(Boolean);
   }, [product]);
 
+  const galleryVideos = useMemo(
+    () => (product?.gallery_videos || []).filter((g) => g && g.video),
+    [product],
+  );
+
   const sellerShown =
     !!product?.seller_name &&
     !!product?.seller &&
@@ -277,6 +282,24 @@ export default function ProductDetail({ categories = [], tags = [] }) {
               {images.map((src, i) => (
                 <img key={i} src={src} alt="" className="pd-thumbs__img" />
               ))}
+            </div>
+          )}
+          {galleryVideos.length > 0 && (
+            <div className="pd-gallery-videos">
+              <h3><FaVideo /> More videos</h3>
+              <div className="pd-gallery-videos__row">
+                {galleryVideos.map((g) => (
+                  <video
+                    key={g.id}
+                    src={resolveMediaUrl(g.video)}
+                    controls
+                    muted
+                    playsInline
+                    preload="metadata"
+                    style={{ maxWidth: 260 }}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -12,7 +12,7 @@ import {
   FaDollarSign,
   FaVideo,
 } from "react-icons/fa";
-import { Megaphone, Settings, Truck, Store } from "lucide-react";
+import { Megaphone, Settings, Truck, Store, Clapperboard } from "lucide-react";
 import "./seller.scss";
 import { useToast } from "../../Components/Toast/useToast";
 import { Link } from "react-router-dom";
@@ -30,6 +30,14 @@ const EMPTY_FORM = {
   category: "",
   image: null,
   video: null,
+  galleryVideos: [],
+};
+
+const EMPTY_AD_FORM = {
+  title: "",
+  description: "",
+  video: null,
+  poster: null,
 };
 
 export default function SellerDashboard({ initialTab = "overview" }) {
@@ -56,6 +64,11 @@ export default function SellerDashboard({ initialTab = "overview" }) {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerForm, setOfferForm] = useState({ title: "", description: "", offer_type: "promotion", discount_percent: "", image: null });
   const [savingOffer, setSavingOffer] = useState(false);
+
+  const [ads, setAds] = useState([]);
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adForm, setAdForm] = useState(EMPTY_AD_FORM);
+  const [savingAd, setSavingAd] = useState(false);
 
   const [paymobAccountId, setPaymobAccountId] = useState("");
   const [paymobWalletNumber, setPaymobWalletNumber] = useState("");
@@ -133,11 +146,14 @@ export default function SellerDashboard({ initialTab = "overview" }) {
     if (activeTab === "overview") {
       fetchProducts();
       fetchOffers();
+      fetchAds();
     } else if (activeTab === "products") {
       fetchProducts();
       fetchCategories();
     } else if (activeTab === "offers") {
       fetchOffers();
+    } else if (activeTab === "ads") {
+      fetchAds();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isSeller]);
@@ -224,6 +240,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       if (newProduct.video) {
         formData.append("video", newProduct.video);
       }
+      (newProduct.galleryVideos || []).forEach((f) => formData.append("uploaded_videos", f));
 
       await api.post("/api/sellers/products/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -252,6 +269,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       category: product.category != null ? String(product.category) : "",
       image: null,
       video: null,
+      galleryVideos: [],
     });
     setShowEditModal(true);
   };
@@ -276,6 +294,7 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       if (editForm.video) {
         formData.append("video", editForm.video);
       }
+      (editForm.galleryVideos || []).forEach((f) => formData.append("uploaded_videos", f));
 
       await api.patch(`/api/sellers/products/${editingProduct.id}/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -351,6 +370,52 @@ export default function SellerDashboard({ initialTab = "overview" }) {
       fetchOffers();
       toast.success(`Offer ${offer.is_active ? "deactivated" : "activated"}.`);
     } catch (err) { toast.error("Failed to toggle offer status."); }
+  };
+
+  const fetchAds = async () => {
+    try {
+      const response = await api.get("/api/sellers/ads/?page_size=100");
+      setAds(response.data.results || response.data);
+    } catch (err) { console.error(err); toast.error("Could not load your advertisements."); }
+  };
+
+  const handleCreateAd = async () => {
+    if (!adForm.video) { toast.error("Please choose an advertisement video."); return; }
+    setSavingAd(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", adForm.title.trim());
+      formData.append("description", adForm.description.trim());
+      formData.append("video", adForm.video);
+      if (adForm.poster) formData.append("poster", adForm.poster);
+      await api.post("/api/sellers/ads/", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      setShowAdModal(false);
+      setAdForm(EMPTY_AD_FORM);
+      fetchAds();
+      toast.success("Advertisement added!", {
+        title: "Live on Shorts",
+        message: "Your video now appears as a brand ad in the Shorts feed.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.detail || err?.response?.data?.video?.[0] || "Failed to add advertisement.");
+    } finally { setSavingAd(false); }
+  };
+
+  const handleDeleteAd = async (id) => {
+    try {
+      await api.delete(`/api/sellers/ads/${id}/`);
+      fetchAds();
+      toast.success("Advertisement deleted.");
+    } catch (err) { toast.error("Failed to delete advertisement."); }
+  };
+
+  const handleToggleAdActive = async (ad) => {
+    try {
+      await api.patch(`/api/sellers/ads/${ad.id}/`, { is_active: !ad.is_active });
+      fetchAds();
+      toast.success(`Advertisement ${ad.is_active ? "hidden" : "activated"}.`);
+    } catch (err) { toast.error("Failed to toggle advertisement status."); }
   };
 
   const toggleDeliveryType = async (newType) => {
@@ -462,6 +527,12 @@ export default function SellerDashboard({ initialTab = "overview" }) {
               onClick={() => setActiveTab("offers")}
             >
               <Megaphone className="tab-icon" /> Offers
+            </li>
+            <li
+              className={activeTab === "ads" ? "active" : ""}
+              onClick={() => setActiveTab("ads")}
+            >
+              <Clapperboard className="tab-icon" /> Ads
             </li>
             <li
               className={activeTab === "store" ? "active" : ""}
@@ -628,6 +699,11 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                               >
                                 <FaVideo style={{ fontSize: "0.8rem" }} /> None
                               </span>
+                            )}
+                            {(p.gallery_videos && p.gallery_videos.length > 0) && (
+                              <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "0.25rem" }}>
+                                +{p.gallery_videos.length} gallery {p.gallery_videos.length === 1 ? "video" : "videos"}
+                              </div>
                             )}
                           </td>
                           <td>
@@ -847,6 +923,102 @@ export default function SellerDashboard({ initialTab = "overview" }) {
             </div>
           )}
 
+          {activeTab === "ads" && (
+            <div className="tab-pane fade-in">
+              <div
+                className="flex-between"
+                style={{ flexWrap: "wrap", gap: "1rem" }}
+              >
+                <div>
+                  <h1>Advertisements</h1>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", maxWidth: 520 }}>
+                    Brand/promo videos for your page. These are not tied to a
+                    product — they appear at the start of the Shorts feed as ads.
+                  </p>
+                </div>
+                <Button variant="gold" size="md" onClick={() => setShowAdModal(true)}>
+                  <FaPlus /> Upload Ad
+                </Button>
+              </div>
+
+              {ads.length === 0 ? (
+                <div className="empty-state-dash">
+                  <Clapperboard size={48} />
+                  <h3>No advertisements yet</h3>
+                  <p>Upload a short promo video to advertise your page in the Shorts feed.</p>
+                  <Button variant="gold" size="md" onClick={() => setShowAdModal(true)}>
+                    <FaPlus /> Upload Ad
+                  </Button>
+                </div>
+              ) : (
+                <div style={{ overflowX: "auto", marginTop: "1.5rem" }}>
+                  <table className="table" style={{ width: "100%" }}>
+                    <thead>
+                      <tr>
+                        <th>Advertisement</th>
+                        <th>Status</th>
+                        <th>Active</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ads.map((ad) => (
+                        <tr key={ad.id}>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 220 }}>
+                              {ad.poster ? (
+                                <img
+                                  src={resolveMediaUrl(ad.poster)}
+                                  alt={ad.title || "Ad"}
+                                  style={{ width: 60, height: 44, borderRadius: 8, objectFit: "cover", border: "1px solid var(--border-color)" }}
+                                />
+                              ) : (
+                                <div style={{ width: 60, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-muted, rgba(22,30,47,0.6))", color: "var(--color-gold)", border: "1px solid var(--border-color)" }}>
+                                  <FaVideo />
+                                </div>
+                              )}
+                              <div>
+                                <div style={{ fontWeight: 600 }}>{ad.title || "Untitled ad"}</div>
+                                <a href={resolveMediaUrl(ad.video)} target="_blank" rel="noreferrer" style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+                                  Preview video
+                                </a>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`badge ${ad.is_active ? "approved" : "pending"}`}>
+                              {ad.is_active ? "Live" : "Hidden"}
+                            </span>
+                          </td>
+                          <td>
+                            <Button
+                              variant={ad.is_active ? "danger" : "success"}
+                              size="sm"
+                              onClick={() => handleToggleAdActive(ad)}
+                            >
+                              {ad.is_active ? "Hide" : "Activate"}
+                            </Button>
+                          </td>
+                          <td>{ad.created_at ? new Date(ad.created_at).toLocaleDateString() : "—"}</td>
+                          <td>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDeleteAd(ad.id)}
+                            >
+                              <FaTrash /> Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "store" && (
             <div className="tab-pane fade-in">
               <h1>Store Profile</h1>
@@ -1046,6 +1218,32 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   setNewProduct({ ...newProduct, video: file })
                 }
               />
+              <div className="gallery-files">
+                <label className="form-label"><strong>Gallery Videos (optional)</strong></label>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []).filter(Boolean);
+                    setNewProduct({ ...newProduct, galleryVideos: files });
+                    e.target.value = "";
+                  }}
+                />
+                {(newProduct.galleryVideos || []).length > 0 && (
+                  <ul className="gallery-files__list">
+                    {(newProduct.galleryVideos || []).map((f, i) => (
+                      <li key={`${f.name}-${i}`}>
+                        <FaVideo /> {f.name}
+                        <button type="button" onClick={() => setNewProduct({ ...newProduct, galleryVideos: (newProduct.galleryVideos || []).filter((_, idx) => idx !== i) })}>
+                          <FaTrash />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="form-hint">Extra videos shown on your product page alongside the main short.</p>
+              </div>
             </div>
             <div className="modal-actions">
               <Button
@@ -1136,6 +1334,32 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                   setEditForm({ ...editForm, video: file })
                 }
               />
+              <div className="gallery-files">
+                <label className="form-label"><strong>Gallery Videos (optional)</strong></label>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []).filter(Boolean);
+                    setEditForm({ ...editForm, galleryVideos: files });
+                    e.target.value = "";
+                  }}
+                />
+                {(editForm.galleryVideos || []).length > 0 && (
+                  <ul className="gallery-files__list">
+                    {(editForm.galleryVideos || []).map((f, i) => (
+                      <li key={`${f.name}-${i}`}>
+                        <FaVideo /> {f.name}
+                        <button type="button" onClick={() => setEditForm({ ...editForm, galleryVideos: (editForm.galleryVideos || []).filter((_, idx) => idx !== i) })}>
+                          <FaTrash />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="form-hint">Add more videos to your product gallery. Existing gallery videos are kept.</p>
+              </div>
             </div>
             <div className="modal-actions">
               <Button
@@ -1234,6 +1458,73 @@ export default function SellerDashboard({ initialTab = "overview" }) {
                 onClick={handleCreateOffer}
               >
                 Create Offer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAdModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel-inner">
+            <h2>Upload Advertisement</h2>
+            <p className="modal-subtitle">
+              A short promo video that advertises your page in the Shorts feed.
+            </p>
+            <div className="modal-form">
+              <Input
+                label="Ad Title"
+                placeholder="e.g. New collection at Azza Store"
+                value={adForm.title}
+                onChange={(e) =>
+                  setAdForm({ ...adForm, title: e.target.value })
+                }
+              />
+              <Input
+                label="Description"
+                placeholder="Short pitch for viewers…"
+                textarea
+                rows="3"
+                value={adForm.description}
+                onChange={(e) =>
+                  setAdForm({ ...adForm, description: e.target.value })
+                }
+              />
+              <FilePicker
+                label="Advertisement Video"
+                hint="MP4 or WebM. Keep it under ~100 MB."
+                accept="video/mp4,video/webm,video/*"
+                isVideo
+                value={adForm.video}
+                onChange={(file) =>
+                  setAdForm({ ...adForm, video: file })
+                }
+              />
+              <FilePicker
+                label="Cover Poster (optional)"
+                hint="Shown while the video loads. JPG or PNG."
+                value={adForm.poster}
+                onChange={(file) =>
+                  setAdForm({ ...adForm, poster: file })
+                }
+              />
+            </div>
+            <div className="modal-actions">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => setShowAdModal(false)}
+                disabled={savingAd}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="gold"
+                size="md"
+                loading={savingAd}
+                onClick={handleCreateAd}
+              >
+                Publish Ad
               </Button>
             </div>
           </div>

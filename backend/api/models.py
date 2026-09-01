@@ -171,6 +171,38 @@ class SellerOffer(models.Model):
         return f"{self.title} ({self.get_offer_type_display()}) - {self.seller}"
 
 
+class AdVideo(models.Model):
+    """
+    A standalone brand/page advertisement video uploaded by a seller. These
+    are NOT tied to a product — they surface in the Shorts feed as
+    "advertisement" slides for the seller's page.
+    """
+
+    seller = models.ForeignKey(
+        "SellerProfile",
+        on_delete=models.CASCADE,
+        related_name="ad_videos",
+    )
+    title = models.CharField(max_length=150, blank=True)
+    description = models.TextField(max_length=400, blank=True)
+    video = models.FileField(
+        storage=VIDEO_STORAGE,
+        upload_to="ads/videos/",
+        help_text="Promotional/brand advertisement video shown in the Shorts feed (MP4/WebM).",
+    )
+    poster = models.ImageField(upload_to="ads/posters/", blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Advertisement Video"
+        verbose_name_plural = "Advertisement Videos"
+
+    def __str__(self):
+        return f"{self.title or 'Ad video'} - {self.seller}"
+
+
 class OrderCoupon(models.Model):
     order = models.ForeignKey(
         "Order",
@@ -747,6 +779,29 @@ class ProductImage(models.Model, ImageHandlingMixin):
         super().save(*args, **kwargs)
         if self.image:
             self.optimize_image()
+
+
+class ProductVideo(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="gallery_videos",
+        help_text="Product gallery video (shown alongside gallery images).",
+    )
+    video = models.FileField(
+        storage=VIDEO_STORAGE,
+        upload_to="products/gallery/videos/",
+        help_text="Optional gallery video for this product (MP4/WebM).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Product Video"
+        verbose_name_plural = "Product Videos"
+
+    def __str__(self):
+        return f"Video for {self.product.name}"
 
 
 class Service(models.Model):

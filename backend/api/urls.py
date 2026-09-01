@@ -209,6 +209,25 @@ urlpatterns = [
         ),
         name="seller-product-detail",
     ),
+
+    # --- Sellers: own advertisement videos ---
+    path(
+        "sellers/ads/",
+        SellerAdVideoViewSet.as_view({"get": "list", "post": "create"}),
+        name="seller-ad-list",
+    ),
+    path(
+        "sellers/ads/<int:pk>/",
+        SellerAdVideoViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="seller-ad-detail",
+    ),
  
     # --- Sellers: Stripe Connect ---
     path("sellers/stripe/onboard/", SellerStripeOnboardView.as_view(), name="seller-stripe-onboard"),

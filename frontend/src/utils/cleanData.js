@@ -39,6 +39,7 @@ export function cleanProducts(list) {
 export function cleanFeedItems(list) {
   return (Array.isArray(list) ? list : []).filter((item) => {
     if (!item || typeof item !== "object") return false;
+    if (item.kind === "ad") return !isJunkText(item.title);
     const isOffer =
       item.offer_type !== undefined ||
       item.discount_percent !== undefined ||

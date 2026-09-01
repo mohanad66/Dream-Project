@@ -185,3 +185,16 @@ class ProductCommentAdmin(ModelAdmin):
 class SellerFollowerAdmin(ModelAdmin):
     list_display = ["user", "seller", "created_at"]
     search_fields = ["user__username", "seller__business_name"]
+
+
+@admin.register(AdVideo)
+class AdVideoAdmin(ModelAdmin):
+    list_display = ["title", "seller", "is_active", "created_at"]
+    list_filter = ["is_active"]
+    search_fields = ["seller__business_name", "title"]
+
+
+@admin.register(ProductVideo)
+class ProductVideoAdmin(ModelAdmin):
+    list_display = ["product", "created_at"]
+    search_fields = ["product__name", "product__seller__business_name"]
