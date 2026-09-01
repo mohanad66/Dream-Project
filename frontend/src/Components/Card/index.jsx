@@ -9,6 +9,7 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
 import { resolveMediaUrl } from "../../utils/media";
+import { FaFire } from 'react-icons/fa';
 
 export default function Card({ card, categories = [], tags = [] }) {
   const [showPopup, setShowPopup] = useState(false);
