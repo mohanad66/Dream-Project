@@ -114,7 +114,7 @@
   font-weight: 600;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--color-gold, #0ea5a4);
+  color: var(--color-gold, #d09a3e);
   margin-bottom: 1.4rem;
 
   .eyebrow-line {
@@ -187,7 +187,7 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-deep, #0f766e));
+    background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-deep, #a97620));
     color: #13150c;
     border: none;
     box-shadow: 0 10px 30px rgba(14, 165, 164, 0.35);
@@ -206,8 +206,8 @@
     backdrop-filter: blur(6px);
 
     &:hover {
-      border-color: var(--color-gold, #0ea5a4);
-      color: var(--color-gold-hover, #2dd4bf);
+      border-color: var(--color-gold, #d09a3e);
+      color: var(--color-gold-hover, #d8a94e);
       transform: translateY(-2px);
       background: rgba(14, 165, 164, 0.08);
     }
@@ -615,7 +615,7 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--color-gold, #0ea5a4), var(--color-gold-deep, #0f766e));
+    background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-deep, #a97620));
     color: #13150c;
     box-shadow: 0 10px 30px rgba(14, 165, 164, 0.35);
 
@@ -631,8 +631,8 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
 
     &:hover {
-      border-color: var(--color-gold, #0ea5a4);
-      color: var(--color-gold-hover, #2dd4bf);
+      border-color: var(--color-gold, #d09a3e);
+      color: var(--color-gold-hover, #d8a94e);
       transform: translateY(-2px);
       background: rgba(14, 165, 164, 0.08);
     }
