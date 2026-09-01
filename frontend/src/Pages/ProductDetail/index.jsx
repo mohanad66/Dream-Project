@@ -19,7 +19,7 @@ import {
 } from "react-icons/fa";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
-import { resolveMediaUrl } from "../../utils/media";
+import { resolveMediaUrl, resolveVideoUrl } from "../../utils/media";
 import Card from "../../Components/Card";
 import "./css/style.scss";
 
@@ -293,7 +293,7 @@ export default function ProductDetail({ categories = [], tags = [] }) {
         <div className="pd-media">
           {product.video ? (
             <div className="pd-media__video">
-              <video src={resolveMediaUrl(product.video)} muted playsInline controls preload="metadata" />
+              <video src={resolveVideoUrl(product.video)} poster={images[0]} muted playsInline controls preload="metadata" />
               <span className="pd-video-tag"><FaVideo /> Video</span>
             </div>
           ) : images.length ? (
@@ -315,7 +315,7 @@ export default function ProductDetail({ categories = [], tags = [] }) {
                 {galleryVideos.map((g) => (
                   <video
                     key={g.id}
-                    src={resolveMediaUrl(g.video)}
+                    src={resolveVideoUrl(g.video)}
                     controls
                     muted
                     playsInline

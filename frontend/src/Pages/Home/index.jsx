@@ -7,7 +7,7 @@ import React from "react";
 import api from "../../services/api";
 import { fetchCarouselImages } from "../../services/auth";
 import Carousel from "../../Components/Carousel";
-import { resolveMediaUrl } from "../../utils/media";
+import { resolveMediaUrl, resolveVideoUrl } from "../../utils/media";
 import { cleanProducts, cleanSellers } from "../../utils/cleanData";
 import {
   FaSearch,
@@ -216,7 +216,7 @@ export default function Home({
                 >
                   <div className="hero-thumb__media">
                     {p.video ? (
-                      <video src={resolveMediaUrl(p.video)} muted playsInline preload="metadata" />
+                      <video src={resolveVideoUrl(p.video)} muted playsInline preload="metadata" />
                     ) : p.image ? (
                       <img src={resolveMediaUrl(p.image)} alt={p.name} loading="lazy" />
                     ) : null}
@@ -257,7 +257,7 @@ export default function Home({
                   <div className="shorts-rail-media">
                     {p.video ? (
                       <video
-                        src={resolveMediaUrl(p.video)}
+                        src={resolveVideoUrl(p.video)}
                         muted
                         playsInline
                         preload="metadata"

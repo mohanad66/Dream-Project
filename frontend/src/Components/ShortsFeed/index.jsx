@@ -24,7 +24,7 @@ import {
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
 import { useAuth } from "../../services/auth";
-import { resolveMediaUrl } from "../../utils/media";
+import { resolveMediaUrl, resolveVideoUrl } from "../../utils/media";
 import "./css/style.scss";
 
 const isOffer = (item) =>
@@ -463,7 +463,7 @@ export default function ShortsFeed({
           {useVideo && !videoBroken[product.id] ? (
             <video
               ref={(el) => { videoRefs.current[product.id] = el; }}
-              src={resolveMediaUrl(product.video)}
+              src={resolveVideoUrl(product.video)}
               poster={imgs[0]}
               preload="metadata"
               muted={muted}
@@ -615,7 +615,7 @@ export default function ShortsFeed({
           {!videoBroken[key] ? (
             <video
               ref={(el) => { videoRefs.current[key] = el; }}
-              src={resolveMediaUrl(ad.video)}
+              src={resolveVideoUrl(ad.video)}
               poster={posterImg || undefined}
               preload="metadata"
               muted={muted}

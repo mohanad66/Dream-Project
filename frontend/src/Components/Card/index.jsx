@@ -403,6 +403,9 @@ export default function Card({ card, categories = [], tags = [] }) {
         </div>
 
         <div className="card-actions-streamlined">
+          <Link to={`/product/${card.id}`} className="card-details-btn" onClick={(e) => e.stopPropagation()}>
+            Details
+          </Link>
           <button
             className="quick-add-btn"
             onClick={handleAddToCart}

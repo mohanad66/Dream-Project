@@ -21,3 +21,24 @@ export function resolveMediaUrl(url) {
   }
   return API_ORIGIN + (t.startsWith("/") ? t : `/${t}`);
 }
+
+/**
+ * Resolve a video URL for playback.
+ *
+ * Videos are uploaded to Cloudinary as raw originals, which are typically NOT
+ * fast-start: the `moov` metadata atom sits at the end of the file. Browsers
+ * with `preload="metadata"` then refuse to show any frame (black box) because
+ * they won't download the whole file. Asking Cloudinary for any derived
+ * transform (here `q_auto`) makes it re-encode on demand into a fast-start,
+ * streamable MP4, so the first frame renders immediately.
+ */
+export function resolveVideoUrl(url) {
+  const u = resolveMediaUrl(url);
+  if (!u || !u.includes("res.cloudinary.com") || !u.includes("/video/upload/")) {
+    return u;
+  }
+  const marker = "/video/upload/";
+  const i = u.indexOf(marker) + marker.length;
+  if (u.startsWith("q_auto/", i)) return u;
+  return u.slice(0, i) + "q_auto/" + u.slice(i);
+}
