@@ -12,6 +12,10 @@ import {
   FaHeart,
   FaShoppingCart,
   FaChartLine,
+  FaPlus,
+  FaMinus,
+  FaTrash,
+  FaArrowRight,
 } from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { ACCESS_TOKEN } from "../../services/constants";
@@ -33,6 +37,8 @@ export default function Navbar({ onLogout }) {
   const isAdmin = isSuperuser || !!data?.user?.is_staff;
 
   const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -73,9 +79,12 @@ export default function Navbar({ onLogout }) {
     const readCart = () => {
       try {
         const items = JSON.parse(localStorage.getItem("cart") || "[]");
-        setCartCount(Array.isArray(items) ? items.length : 0);
+        const list = Array.isArray(items) ? items : [];
+        setCartCount(list.length);
+        setCartItems(list);
       } catch {
         setCartCount(0);
+        setCartItems([]);
       }
     };
     readCart();
@@ -101,13 +110,44 @@ export default function Navbar({ onLogout }) {
     setNotifOpen((open) => !open);
   };
 
-  // Close the panel when clicking anywhere else
+  const toggleCart = (e) => {
+    e.stopPropagation();
+    setCartOpen((open) => !open);
+  };
+
+  const persistCart = (items) => {
+    localStorage.setItem("cart", JSON.stringify(items));
+    window.dispatchEvent(new Event("cart-updated"));
+  };
+
+  const cartQuantityChange = (productId, change) => {
+    const updated = cartItems.map((item) => {
+      if (item.id === productId) {
+        const q = (item.quantity || 1) + change;
+        if (q >= 1 && q <= 99) return { ...item, quantity: q };
+      }
+      return item;
+    });
+    setCartItems(updated);
+    persistCart(updated);
+  };
+
+  const cartRemoveItem = (productId) => {
+    const updated = cartItems.filter((item) => item.id !== productId);
+    setCartItems(updated);
+    persistCart(updated);
+  };
+
+  // Close the panels when clicking anywhere else
   useEffect(() => {
-    if (!notifOpen) return;
-    const close = () => setNotifOpen(false);
+    if (!notifOpen && !cartOpen) return;
+    const close = () => {
+      setNotifOpen(false);
+      setCartOpen(false);
+    };
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
-  }, [notifOpen]);
+  }, [notifOpen, cartOpen]);
 
   useEffect(() => {
     if (!notifOpen || !isLoggedIn) return;
@@ -224,10 +264,90 @@ export default function Navbar({ onLogout }) {
               <Link to="/wishlist" className="site-icon-btn" aria-label="Wishlist" title="Wishlist">
                 <FaHeart />
               </Link>
-              <Link to="/checkout" className="site-icon-btn" aria-label="Cart" title="Cart">
-                <FaShoppingCart />
-                {cartCount > 0 && <span className="site-badge site-badge--cart">{cartCount}</span>}
-              </Link>
+              <div className="site-cart">
+                <button
+                  className="site-icon-btn"
+                  onClick={toggleCart}
+                  aria-label="Cart"
+                  title="Cart"
+                >
+                  <FaShoppingCart />
+                  {cartCount > 0 && <span className="site-badge site-badge--cart">{cartCount}</span>}
+                </button>
+                {cartOpen && (
+                  <div className="site-cart-panel">
+                    <div className="site-cart-panel__head">
+                      <strong>Shopping Cart</strong>
+                      {cartCount > 0 && <span>{cartCount} item{cartCount !== 1 ? "s" : ""}</span>}
+                    </div>
+                    <div className="site-cart-panel__list">
+                      {cartItems.length === 0 ? (
+                        <p className="site-notif-empty">Your cart is empty.</p>
+                      ) : (
+                        cartItems.map((item) => (
+                          <div key={item.id} className="site-cart-item">
+                            <img src={item.image} alt={item.name} className="site-cart-item__img" />
+                            <div className="site-cart-item__info">
+                              <strong className="site-cart-item__name">{item.name}</strong>
+                              <span className="site-cart-item__price">
+                                {(parseFloat(item.price) || 0).toFixed(2)} L.E
+                              </span>
+                              <div className="site-cart-item__qty">
+                                <button
+                                  onClick={() => cartQuantityChange(item.id, -1)}
+                                  disabled={(item.quantity || 1) <= 1}
+                                  aria-label="Decrease quantity"
+                                >
+                                  <FaMinus />
+                                </button>
+                                <span>{item.quantity || 1}</span>
+                                <button
+                                  onClick={() => cartQuantityChange(item.id, 1)}
+                                  disabled={(item.quantity || 1) >= 99}
+                                  aria-label="Increase quantity"
+                                >
+                                  <FaPlus />
+                                </button>
+                                <em>
+                                  {((parseFloat(item.price) || 0) * (item.quantity || 1)).toFixed(2)} L.E
+                                </em>
+                              </div>
+                            </div>
+                            <button
+                              className="site-cart-item__remove"
+                              onClick={() => cartRemoveItem(item.id)}
+                              title="Remove item"
+                              aria-label={`Remove ${item.name}`}
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {cartItems.length > 0 && (
+                      <div className="site-cart-panel__foot">
+                        <span className="site-cart-panel__total">
+                          Subtotal{" "}
+                          <strong>
+                            {cartItems
+                              .reduce(
+                                (t, it) =>
+                                  t + (parseFloat(it.price) || 0) * (it.quantity || 1),
+                                0,
+                              )
+                              .toFixed(2)}{" "}
+                            L.E
+                          </strong>
+                        </span>
+                        <Link to="/checkout" className="site-cart-checkout" onClick={() => setCartOpen(false)}>
+                          Checkout <FaArrowRight />
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {isAdmin && (
                 <Link to="/admin/analytics" className="site-icon-btn" aria-label="Analytics Dashboard" title="Analytics Dashboard">
                   <FaChartLine />

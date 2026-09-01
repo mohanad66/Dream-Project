@@ -6,7 +6,7 @@ import "./css/style.scss";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
-import { FaLock, FaClipboardCheck, FaTruckFast, FaShieldHalved } from "react-icons/fa6";
+import { FaLock, FaClipboardCheck, FaTruckFast, FaShieldHalved, FaPlus, FaMinus, FaTrash } from "react-icons/fa6";
 
 const PAYMENT_METHODS = [
   { id: "card", label: "Credit/Debit Card", icon: <CreditCard size={22} />, description: "Pay securely with Visa/Mastercard" },
@@ -68,6 +68,32 @@ export default function CheckoutPage() {
   const handleCouponApply = (couponData) => setAppliedCoupon(couponData);
   const handleCouponRemove = () => setAppliedCoupon(null);
 
+  const persistCart = (items) => {
+    localStorage.setItem("cart", JSON.stringify(items));
+    window.dispatchEvent(new Event("cart-updated"));
+  };
+
+  const handleQuantityChange = (productId, change) => {
+    const updated = cartItems.map((item) => {
+      if (item.id === productId) {
+        const newQuantity = (item.quantity || 1) + change;
+        if (newQuantity >= 1 && newQuantity <= 99) {
+          return { ...item, quantity: newQuantity };
+        }
+      }
+      return item;
+    });
+    setCartItems(updated);
+    persistCart(updated);
+  };
+
+  const handleRemoveItem = (productId) => {
+    const updated = cartItems.filter((item) => item.id !== productId);
+    setCartItems(updated);
+    persistCart(updated);
+    if (updated.length === 0) navigate("/cart");
+  };
+
   const handleCityChange = async (city) => {
     setDeliveryCity(city);
     if (!city) {
@@ -112,13 +138,42 @@ export default function CheckoutPage() {
                 <div key={item.id} className="order-item">
                   <img src={item.image} alt={item.name} className="order-item-image" />
                   <div className="order-item-details">
-                    <h3>{item.name}</h3>
+                    <div className="order-item-name-line">
+                      <h3>{item.name}</h3>
+                      <button
+                        className="order-item-remove"
+                        onClick={() => handleRemoveItem(item.id)}
+                        title="Remove item"
+                        aria-label={`Remove ${item.name}`}
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                     <p className="order-item-price">
-                      {parseFloat(item.price).toFixed(2)} L.E × {item.quantity}
+                      {parseFloat(item.price).toFixed(2)} L.E
                     </p>
-                    <p className="order-item-subtotal">
-                      {((parseFloat(item.price) || 0) * (item.quantity || 1)).toFixed(2)} L.E
-                    </p>
+                    <div className="order-item-qty">
+                      <button
+                        className="order-qty-btn"
+                        onClick={() => handleQuantityChange(item.id, -1)}
+                        disabled={(item.quantity || 1) <= 1}
+                        aria-label="Decrease quantity"
+                      >
+                        <FaMinus />
+                      </button>
+                      <span className="order-qty-value">{item.quantity || 1}</span>
+                      <button
+                        className="order-qty-btn"
+                        onClick={() => handleQuantityChange(item.id, 1)}
+                        disabled={(item.quantity || 1) >= 99}
+                        aria-label="Increase quantity"
+                      >
+                        <FaPlus />
+                      </button>
+                      <span className="order-item-subtotal">
+                        {((parseFloat(item.price) || 0) * (item.quantity || 1)).toFixed(2)} L.E
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
