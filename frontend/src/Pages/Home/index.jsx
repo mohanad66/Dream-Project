@@ -29,6 +29,7 @@ import {
   FaCar,
   FaUserPlus,
   FaVideo,
+  FaShoppingBag,
   FaHandsHelping,
   FaShieldAlt,
 } from "react-icons/fa";
@@ -389,12 +390,12 @@ export default function Home({
         {/* ============ SELLER CTA ============ */}
         <section className="home-cta">
           <div className="home-cta-inner">
-            <span className="home-cta-icon"><FaUserPlus /></span>
+            <span className="home-cta-icon"><FaShoppingBag /></span>
             <div className="home-cta-text">
-              <h2>Got a brand? Start selling today.</h2>
-              <p>Upload your products, add short videos, and let shoppers find you in the feed.</p>
+              <h2>Ready to shop? Discover deals now.</h2>
+              <p>Browse short videos from real Egyptian sellers and check out with Paymob and Fawry.</p>
             </div>
-            <Link to="/seller-register" className="home-cta-btn">Become a Seller</Link>
+            <Link to="/products" className="home-cta-btn">Shop Now</Link>
           </div>
         </section>
       </div>

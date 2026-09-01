@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaHome,
@@ -16,6 +16,7 @@ import {
   FaMinus,
   FaTrash,
   FaArrowRight,
+  FaShoppingBag,
 } from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { ACCESS_TOKEN } from "../../services/constants";
@@ -43,17 +44,19 @@ export default function Navbar({ onLogout }) {
   const [notifCount, setNotifCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(false);
+  const notifWrapRef = useRef(null);
+  const cartWrapRef = useRef(null);
 
   const isActive = (to) =>
     to === "/"
       ? location.pathname === "/"
       : location.pathname.startsWith(to);
 
-  // Seller entry point: only authenticated sellers get the upload action;
-  // everyone else gets a clearly separated "Sell on instaBrandz" entry.
+  // Primary CTA: sellers get the upload action; everyone else is invited to shop.
   const sellerCta = isLoggedIn && isSeller
     ? { to: "/upload", label: "Upload video" }
-    : { to: "/seller-register", label: "Sell on instaBrandz" };
+    : { to: "/products", label: "Shop Now" };
+  const ctaIcon = isLoggedIn && isSeller ? <FaVideo /> : <FaShoppingBag />;
 
   // Desktop top-navigation links
   const desktopLinks = [
@@ -141,7 +144,13 @@ export default function Navbar({ onLogout }) {
   // Close the panels when clicking anywhere else
   useEffect(() => {
     if (!notifOpen && !cartOpen) return;
-    const close = () => {
+    const close = (e) => {
+      if (
+        notifWrapRef.current?.contains(e.target) ||
+        cartWrapRef.current?.contains(e.target)
+      ) {
+        return;
+      }
       setNotifOpen(false);
       setCartOpen(false);
     };
@@ -219,7 +228,7 @@ export default function Navbar({ onLogout }) {
           <div className="site-header__actions">
             <div className="site-header__icons">
               {isLoggedIn && (
-                <div className="site-notif">
+                <div className="site-notif" ref={notifWrapRef}>
                   <button
                     className="site-icon-btn"
                     onClick={toggleNotif}
@@ -264,7 +273,7 @@ export default function Navbar({ onLogout }) {
               <Link to="/wishlist" className="site-icon-btn" aria-label="Wishlist" title="Wishlist">
                 <FaHeart />
               </Link>
-              <div className="site-cart">
+              <div className="site-cart" ref={cartWrapRef}>
                 <button
                   className="site-icon-btn"
                   onClick={toggleCart}
@@ -357,7 +366,7 @@ export default function Navbar({ onLogout }) {
 
             <Link to={sellerCta.to} className="site-upload-cta">
               <span className="site-upload-cta__icon">
-                <FaVideo />
+                {ctaIcon}
               </span>
               {sellerCta.label}
             </Link>
@@ -408,10 +417,10 @@ export default function Navbar({ onLogout }) {
 
             <Link to={sellerCta.to} className="nav-center-cta" aria-label={sellerCta.label}>
               <span className="nav-center-cta__icon">
-                <FaVideo />
+                {ctaIcon}
               </span>
               <span className="nav-label">
-                {isLoggedIn && isSeller ? "Upload" : "Sell"}
+                {isLoggedIn && isSeller ? "Upload" : "Shop"}
               </span>
             </Link>
 

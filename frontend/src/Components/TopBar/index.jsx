@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaShoppingCart, FaHeart, FaBell } from "react-icons/fa";
+import { FaShoppingCart, FaHeart, FaBell, FaUser } from "react-icons/fa";
 import { ACCESS_TOKEN } from "../../services/constants";
 import api from "../../services/api";
 import "./css/style.scss";
@@ -45,14 +45,17 @@ export default function TopBar() {
   }, [isLoggedIn]);
 
   const items = [
-    { to: "/cart", icon: <FaShoppingCart />, badge: cartCount, label: "Cart" },
-    ...(isLoggedIn
-      ? [
-          { to: "/wishlist", icon: <FaHeart />, badge: 0, label: "Wishlist" },
-          { to: "/notifications", icon: <FaBell />, badge: unreadCount, label: "Notifications" },
-        ]
-      : []),
-  ];
+  ...(isLoggedIn
+    ? [{ to: "/notifications", icon: <FaBell />, badge: unreadCount, label: "Notifications" }]
+    : []),
+  { to: "/cart", icon: <FaShoppingCart />, badge: cartCount, label: "Cart" },
+  ...(isLoggedIn
+    ? [
+        { to: "/wishlist", icon: <FaHeart />, badge: 0, label: "Wishlist" },
+        { to: "/profile", icon: <FaUser />, badge: 0, label: "Profile" },
+      ]
+    : []),
+];
 
   return (
     <div className="topbar">

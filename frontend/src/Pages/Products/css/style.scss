@@ -697,6 +697,7 @@ $product-breakpoint-xl: 1200px;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: $product-spacing-xl;
   padding-bottom: $product-spacing-lg;
+  align-items: stretch;
 
   @media (min-width: $product-breakpoint-md) {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
