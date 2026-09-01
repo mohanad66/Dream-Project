@@ -582,11 +582,11 @@ export default function ShortsFeed({
             <div className="shorts-price">
               {isSale ? (
                 <>
-                  <span className="shorts-price-now">{product.effective_price} L.E</span>
-                  <span className="shorts-price-was">{product.price} L.E</span>
+                  <span className="shorts-price-now">{parseFloat(product.effective_price || 0).toFixed(2)} L.E</span>
+                  <span className="shorts-price-was">{parseFloat(product.price || 0).toFixed(2)} L.E</span>
                 </>
               ) : (
-                <span className="shorts-price-now">{product.price} L.E</span>
+                <span className="shorts-price-now">{parseFloat(product.price || 0).toFixed(2)} L.E</span>
               )}
             </div>
             <Link
