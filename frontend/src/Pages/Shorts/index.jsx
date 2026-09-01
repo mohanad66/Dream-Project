@@ -7,6 +7,38 @@ import { cleanFeedItems } from "../../utils/cleanData";
 import ShortsFeed from "../../Components/ShortsFeed";
 import "./css/style.scss";
 
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+// Video shorts lead the feed; after a random run of videos (2–4) we splice in
+// 1–2 seller products/offers, TikTok-style. Videos keep their curated order
+// (trending → recent → followed); the products/offers rotate randomly.
+const buildShortsSequence = (products, offers) => {
+  const videos = products.filter((p) => p && p.video);
+  const rest = shuffle([
+    ...products.filter((p) => p && !p.video),
+    ...(Array.isArray(offers) ? offers : []),
+  ]);
+  if (!videos.length || !rest.length) return [...videos, ...rest];
+
+  const merged = [];
+  let v = 0;
+  let r = 0;
+  while (v < videos.length || r < rest.length) {
+    const run = 2 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < run && v < videos.length; i++) merged.push(videos[v++]);
+    const mix = Math.random() < 0.5 ? 1 : 2;
+    for (let j = 0; j < mix && r < rest.length; j++) merged.push(rest[r++]);
+  }
+  return merged;
+};
+
 export default function Shorts({
   categories = [],
   tags = [],
@@ -57,7 +89,7 @@ export default function Shorts({
         .filter((o) => o && o.id)
         .filter((o, i, arr) => arr.findIndex((x) => x.id === o.id) === i);
 
-      setItems(cleanFeedItems([...uniqueProducts, ...offers]));
+      setItems(cleanFeedItems(buildShortsSequence(uniqueProducts, offers)));
     } catch (err) {
       console.error("Failed to load shorts feed:", err);
       setError(err?.response?.data?.detail || "We couldn't load Shorts right now.");

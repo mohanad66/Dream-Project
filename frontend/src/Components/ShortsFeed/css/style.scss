@@ -695,34 +695,6 @@
   }
 }
 
-/* ---------- Progress bars at top ---------- */
-.shorts-progress {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
-  right: 0.85rem;
-  display: flex;
-  gap: 4px;
-  z-index: 6;
-
-  .short-progress-bar {
-    flex: 1;
-    height: 3px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.22);
-    transition: background 0.3s ease, transform 0.3s ease;
-    overflow: hidden;
-
-    &.current {
-      background: linear-gradient(90deg, var(--color-gold, #818cf8), var(--color-gold-hover, #a5b4fc));
-    }
-
-    &.done {
-      background: rgba(255, 255, 255, 0.5);
-    }
-  }
-}
-
 /* ---------- End card / CTA ---------- */
 .shorts-end {
   position: relative;
@@ -763,36 +735,6 @@
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
-    }
-  }
-}
-
-/* ---------- Right nav dots ---------- */
-.shorts-nav-dots {
-  position: absolute;
-  right: 0.32rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 6;
-
-  span {
-    width: 4px;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.4);
-    cursor: pointer;
-    transition: all 0.25s ease;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.75);
-    }
-
-    &.active {
-      height: 20px;
-      background: var(--color-gold-hover, #a5b4fc);
     }
   }
 }

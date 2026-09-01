@@ -430,12 +430,6 @@ export default function ShortsFeed({
             <FaShareAlt />
           </button>
         </div>
-
-        <div className="shorts-progress">
-          {items.map((_, i) => (
-            <span key={i} className={`short-progress-bar ${i === index ? "current" : ""} ${i < index ? "done" : ""}`} />
-          ))}
-        </div>
       </div>
     );
   };
@@ -593,13 +587,6 @@ export default function ShortsFeed({
             </button>
           </div>
         </div>
-
-        {/* Progress indicator */}
-        <div className="shorts-progress">
-          {items.map((_, i) => (
-            <span key={i} className={`short-progress-bar ${i === index ? "current" : ""} ${i < index ? "done" : ""}`} />
-          ))}
-        </div>
       </div>
     );
   };
@@ -683,17 +670,7 @@ export default function ShortsFeed({
       )}
 
       {/* Slide navigation dots */}
-      <div className="shorts-nav-dots">
-        {items.map((_, i) => (
-          <span
-            key={i}
-            className={i === activeIndex ? "active" : ""}
-            onClick={() => {
-              containerRef.current?.scrollTo({ top: i * containerRef.current.clientHeight, behavior: "smooth" });
-            }}
-          />
-        ))}
-      </div>
+      {/* nav dots removed to keep the rails clean */}
     </div>
   );
 }
