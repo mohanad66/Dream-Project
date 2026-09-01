@@ -235,7 +235,6 @@ export default function Products() {
       <div className="products-container">
         <div className="products-heading">
           <h1>Explore</h1>
-          <p>Watch, discover and shop products from verified sellers.</p>
         </div>
 
         <div className="filters">

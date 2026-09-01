@@ -10,7 +10,6 @@ import { cleanProducts, cleanSellers } from "../../utils/cleanData";
 import {
   FaSearch,
   FaPlay,
-  FaFire,
   FaCheckCircle,
   FaStar,
   FaArrowRight,
@@ -32,6 +31,7 @@ import {
   FaShieldAlt,
 } from "react-icons/fa";
 import { FaTruckFast, FaRotateLeft } from "react-icons/fa6";
+import { FaFire } from 'react-icons/fa';
 
 const CATEGORY_ICONS = [
   [/electron|mobile|phone|computer|laptop|tech|gadget/i, <FaMobileAlt />],
