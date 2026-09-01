@@ -379,11 +379,11 @@ export default function Card({ card, categories = [], tags = [] }) {
         )}
         {card.effective_price && parseFloat(card.effective_price) < parseFloat(card.price) ? (
           <span className="price" style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-            <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>{card.effective_price} L.E</span>
-            <span style={{ textDecoration: "line-through", color: "var(--text-muted)", fontSize: "0.85em" }}>{card.price} L.E</span>
+            <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>{card.effective_price.toFixed(2)} L.E</span>
+            <span style={{ textDecoration: "line-through", color: "var(--text-muted)", fontSize: "0.85em" }}>{card.price.toFixed(2)} L.E</span>
           </span>
         ) : (
-          <span className="price">{card.price} L.E</span>
+          <span className="price">{card.price.toFixed(2)} L.E</span>
         )}
         <p className="card-content">{getDescriptionPreview()}</p>
 
@@ -475,11 +475,11 @@ export default function Card({ card, categories = [], tags = [] }) {
                     <p className="card-price">
                       {card.effective_price && parseFloat(card.effective_price) < parseFloat(card.price) ? (
                         <span style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                          <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>Price: {card.effective_price} L.E</span>
-                          <span style={{ textDecoration: "line-through", color: "var(--text-muted)", fontSize: "0.85em" }}>{card.price} L.E</span>
+                          <span style={{ color: "var(--color-success, #3fa781)", fontWeight: 700 }}>Price: {card.effective_price.toFixed(2)} L.E</span>
+                          <span style={{ textDecoration: "line-through", color: "var(--text-muted)", fontSize: "0.85em" }}>{card.price.toFixed(2)} L.E</span>
                         </span>
                       ) : (
-                        `Price: ${card.price} L.E`
+                        `Price: ${card.price.toFixed(2)} L.E`
                       )}
                     </p>
                   )}
