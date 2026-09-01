@@ -11,6 +11,7 @@ export default function Sellers() {
   const [loading, setLoading] = useState(true);
   const [searched, setSearched] = useState(false);
   const [followStates, setFollowStates] = useState({});
+  const [following, setFollowing] = useState([]);
 
   const loadSellers = async (q = "") => {
     setLoading(true);
@@ -28,6 +29,17 @@ export default function Sellers() {
 
   useEffect(() => {
     loadSellers();
+  }, []);
+
+  useEffect(() => {
+    const access = localStorage.getItem(ACCESS_TOKEN);
+    if (!access || access.trim() === "") return;
+    api
+      .get("/api/sellers/following/")
+      .then((res) => {
+        if (Array.isArray(res.data)) setFollowing(res.data);
+      })
+      .catch(() => {});
   }, []);
 
   const submitSearch = (e) => {
@@ -77,6 +89,27 @@ export default function Sellers() {
           <button type="submit">Search</button>
         </form>
       </div>
+
+      {following.length > 0 && (
+        <section className="sellers-following">
+          <div className="sellers-following__bar">
+            <p className="section-eyebrow">Your Circle</p>
+            <h2 className="sellers-following__title">Stores you follow</h2>
+          </div>
+          <div className="sellers-following__row">
+            {following.map((seller) => (
+              <Link to={`/seller/${seller.id}`} key={seller.id} className="sellers-following__chip">
+                {seller.avatar ? (
+                  <img src={seller.avatar} alt="" />
+                ) : (
+                  <FaUserCircle />
+                )}
+                <span>{seller.business_name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {loading && <div className="sellers-loading">Searching…</div>}
 

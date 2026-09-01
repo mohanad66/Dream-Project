@@ -2146,6 +2146,37 @@ class ProductLikeToggleView(APIView):
 
 
 # ===============================================
+# PRODUCT DISLIKES  (thumbs-down, buyers only)
+# ===============================================
+
+class ProductDislikeToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, product_id):
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not OrderItem.objects.filter(
+            order__owner=request.user,
+            product=product,
+            order__status__in=BOUGHT_ORDER_STATUSES,
+        ).exists():
+            return Response(
+                {"error": "Buy this product before you can dislike it."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        dislike, created = ProductDislike.objects.get_or_create(user=request.user, product=product)
+        if not created:
+            dislike.delete()
+            return Response({"disliked": False, "dislike_count": product.dislike_count})
+
+        return Response({"disliked": True, "dislike_count": product.dislike_count})
+
+
+# ===============================================
 # PRODUCT COMMENTS
 # ===============================================
 
@@ -2160,6 +2191,25 @@ class ProductCommentListView(generics.ListAPIView):
 class ProductCommentCreateView(generics.CreateAPIView):
     serializer_class = ProductCommentCreateSerializer
     permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        product_id = request.data.get("product")
+        try:
+            product = Product.objects.get(pk=product_id)
+        except (Product.DoesNotExist, TypeError, ValueError):
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not OrderItem.objects.filter(
+            order__owner=request.user,
+            product=product,
+            order__status__in=BOUGHT_ORDER_STATUSES,
+        ).exists():
+            return Response(
+                {"error": "Buy this product to join the conversation."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -2202,6 +2252,19 @@ class SellerFollowToggleView(APIView):
             return Response({"followed": False, "followers_count": seller.followers.count()})
 
         return Response({"followed": True, "followers_count": seller.followers.count()})
+
+
+# ===============================================
+# FOLLOWED SELLERS LIST  (sellers the current user follows)
+# ===============================================
+
+class FollowedSellersListView(generics.ListAPIView):
+    serializer_class = SellerSearchSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        seller_ids = SellerFollower.objects.filter(user=self.request.user).values_list("seller_id", flat=True)
+        return SellerProfile.objects.filter(id__in=seller_ids)
 
 
 # ===============================================

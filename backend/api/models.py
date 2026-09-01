@@ -751,6 +751,10 @@ class Product(models.Model, ImageHandlingMixin):
         return self.likes.count()
 
     @property
+    def dislike_count(self):
+        return self.dislikes.count()
+
+    @property
     def comment_count(self):
         return self.comments.count()
 
@@ -1301,6 +1305,9 @@ class Notification(models.Model):
 # PRODUCT LIKES  (love / heart a product)
 # ===============================================
 
+# Order statuses that count as "the user bought this product".
+BOUGHT_ORDER_STATUSES = ("confirmed", "processing", "shipped", "delivered")
+
 class ProductLike(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -1320,6 +1327,31 @@ class ProductLike(models.Model):
 
     def __str__(self):
         return f"{self.user} ♥ {self.product}"
+
+
+# ===============================================
+# PRODUCT DISLIKES  (thumbs-down, buyers only)
+# ===============================================
+
+class ProductDislike(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="product_dislikes",
+    )
+    product = models.ForeignKey(
+        "Product",
+        on_delete=models.CASCADE,
+        related_name="dislikes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "product")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} 👎 {self.product}"
 
 
 # ===============================================

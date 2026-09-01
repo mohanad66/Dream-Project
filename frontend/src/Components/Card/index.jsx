@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./css/style.scss";
 import useFancybox from "../FancyBox";
-import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle, FaVideo, FaImage } from "react-icons/fa";
+import { FaShoppingCart, FaBolt, FaPlus, FaMinus, FaHeart, FaThumbsDown, FaShareAlt, FaComment, FaStar, FaRegStar, FaTrash, FaUserCircle, FaVideo, FaImage } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { ACCESS_TOKEN } from "../../services/constants";
@@ -20,7 +20,10 @@ export default function Card({ card, categories = [], tags = [] }) {
   const [inWishlist, setInWishlist] = useState(false);
   const [liked, setLiked] = useState(!!card?.is_liked);
   const [likeCount, setLikeCount] = useState(card?.like_count || 0);
+  const [disliked, setDisliked] = useState(!!card?.is_disliked);
+  const [dislikeCount, setDislikeCount] = useState(card?.dislike_count || 0);
   const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const navigate = useNavigate();
@@ -77,10 +80,27 @@ export default function Card({ card, categories = [], tags = [] }) {
     }
   };
 
+  const toggleDislike = async (e) => {
+    e.stopPropagation();
+    if (!isLoggedIn()) {
+      navigate(
+        `/login?next=${encodeURIComponent(window.location.pathname || "/products")}`,
+      );
+      return;
+    }
+    try {
+      const response = await api.post(`/api/products/${card.id}/dislike/`);
+      setDisliked(response.data.disliked);
+      setDislikeCount(response.data.dislike_count);
+    } catch (err) {
+      console.error("Dislike toggle failed:", err);
+    }
+  };
+
   const handleShare = async (e) => {
     e.stopPropagation();
     try {
-      const shareUrl = typeof window !== "undefined" ? window.location.origin + `/products/${card.id}` : "";
+      const shareUrl = typeof window !== "undefined" ? window.location.origin + `/product/${card.id}` : "";
       const shareData = { title: card.name, text: card.description || card.name, url: shareUrl };
       if (navigator.share) {
         navigator.share(shareData);
@@ -95,12 +115,19 @@ export default function Card({ card, categories = [], tags = [] }) {
 
   const loadComments = async (open) => {
     setCommentsOpen(open);
-    if (!open || comments.length) return;
+    if (!open) return;
+    if (comments.length) {
+      setCommentsLoading(false);
+      return;
+    }
+    setCommentsLoading(true);
     try {
       const response = await api.get(`/api/products/${card.id}/comments/`);
       setComments(response.data);
     } catch (err) {
       console.error("Failed to load comments:", err);
+    } finally {
+      setCommentsLoading(false);
     }
   };
 
@@ -268,6 +295,16 @@ export default function Card({ card, categories = [], tags = [] }) {
             >
               <FaHeart /> <span className="util-count">{likeCount}</span>
             </button>
+            {card.is_bought && (
+              <button
+                className={`dislike-btn ${disliked ? "active" : ""}`}
+                onClick={toggleDislike}
+                aria-label={disliked ? "Undo dislike" : "Dislike"}
+                title={disliked ? "Undo dislike" : "Dislike"}
+              >
+                <FaThumbsDown /> <span className="util-count">{dislikeCount}</span>
+              </button>
+            )}
             <button className="share-btn" onClick={handleShare} aria-label="Share">
               <FaShareAlt />
             </button>
@@ -485,6 +522,14 @@ export default function Card({ card, categories = [], tags = [] }) {
                   >
                     <FaHeart /> {likeCount} Likes
                   </button>
+                  {card.is_bought && (
+                    <button
+                      className={`popup-dislike-btn ${disliked ? "active" : ""}`}
+                      onClick={toggleDislike}
+                    >
+                      <FaThumbsDown /> {dislikeCount} Dislikes
+                    </button>
+                  )}
                   <button
                     className="popup-comment-btn"
                     onClick={() => loadComments(!commentsOpen)}
@@ -499,10 +544,13 @@ export default function Card({ card, categories = [], tags = [] }) {
                 {commentsOpen && (
                   <div className="popup-comments">
                     <div className="comments-list">
-                      {comments.length === 0 && (
+                      {commentsLoading ? (
+                        <p className="comments-empty comments-loading">
+                          <span className="spinner" /> Loading comments…
+                        </p>
+                      ) : comments.length === 0 ? (
                         <p className="comments-empty">No comments yet. Be the first!</p>
-                      )}
-                      {comments.map((comment) => (
+                      ) : comments.map((comment) => (
                         <div key={comment.id} className="comment-item">
                           <div className="comment-avatar">
                             {comment.user_avatar ? (
@@ -530,7 +578,7 @@ export default function Card({ card, categories = [], tags = [] }) {
                         </div>
                       ))}
                     </div>
-                    {isLoggedIn() ? (
+                    {isLoggedIn() && card.is_bought ? (
                       <form className="comment-form" onSubmit={submitComment}>
                         <input
                           type="text"
@@ -543,6 +591,10 @@ export default function Card({ card, categories = [], tags = [] }) {
                           <FaComment />
                         </button>
                       </form>
+                    ) : isLoggedIn() ? (
+                      <p className="comments-login-hint">
+                        Buy this product to join the conversation.
+                      </p>
                     ) : (
                       <p className="comments-login-hint">
                         <Link to="/login">Log in</Link> to join the conversation.

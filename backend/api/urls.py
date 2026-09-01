@@ -313,6 +313,9 @@ urlpatterns = [
     # --- Product likes (love / heart) ---
     path("products/<int:product_id>/like/", ProductLikeToggleView.as_view(), name="product-like"),
 
+    # --- Product dislikes (thumbs-down, buyers only) ---
+    path("products/<int:product_id>/dislike/", ProductDislikeToggleView.as_view(), name="product-dislike"),
+
     # --- Product comments ---
     path("products/<int:product_id>/comments/", ProductCommentListView.as_view(), name="product-comments"),
     path("products/comments/create/", ProductCommentCreateView.as_view(), name="product-comment-create"),
@@ -320,6 +323,7 @@ urlpatterns = [
 
     # --- Seller follow ---
     path("sellers/<int:seller_id>/follow/", SellerFollowToggleView.as_view(), name="seller-follow"),
+    path("sellers/following/", FollowedSellersListView.as_view(), name="seller-following"),
 
     # --- Feeds ---
     path("feed/home/", HomeFeedView.as_view(), name="home-feed"),

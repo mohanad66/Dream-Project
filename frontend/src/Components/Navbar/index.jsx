@@ -8,10 +8,15 @@ import {
   FaStoreAlt,
   FaUsers,
   FaVideo,
+  FaBell,
+  FaHeart,
+  FaShoppingCart,
+  FaChartLine,
 } from "react-icons/fa";
 import { IoLogOut, IoLogIn, IoPersonAdd } from "react-icons/io5";
 import { ACCESS_TOKEN } from "../../services/constants";
 import { useAuth } from "../../services/auth";
+import api from "../../services/api";
 import "./css/style.scss";
 
 export default function Navbar({ onLogout }) {
@@ -24,7 +29,14 @@ export default function Navbar({ onLogout }) {
 
   const access = localStorage.getItem(ACCESS_TOKEN);
   const isLoggedIn = access && access.trim() !== "";
-  const { isSeller } = useAuth();
+  const { isSeller, isSuperuser, data } = useAuth();
+  const isAdmin = isSuperuser || !!data?.user?.is_staff;
+
+  const [cartCount, setCartCount] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
 
   const isActive = (to) =>
     to === "/"
@@ -55,6 +67,80 @@ export default function Navbar({ onLogout }) {
     { to: "/products", icon: <FaStore />, label: "Shop" },
     { to: "/sellers", icon: <FaUsers />, label: "Sellers" },
   ];
+
+  // Cart badge (same localStorage store the checkout reads)
+  useEffect(() => {
+    const readCart = () => {
+      try {
+        const items = JSON.parse(localStorage.getItem("cart") || "[]");
+        setCartCount(Array.isArray(items) ? items.length : 0);
+      } catch {
+        setCartCount(0);
+      }
+    };
+    readCart();
+    window.addEventListener("cart-updated", readCart);
+    window.addEventListener("storage", readCart);
+    return () => {
+      window.removeEventListener("cart-updated", readCart);
+      window.removeEventListener("storage", readCart);
+    };
+  }, []);
+
+  // Unread notification badge
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    api
+      .get("/api/notifications/count/")
+      .then((res) => setNotifCount(res.data?.unread || 0))
+      .catch(() => {});
+  }, [isLoggedIn]);
+
+  const toggleNotif = (e) => {
+    e.stopPropagation();
+    setNotifOpen((open) => !open);
+  };
+
+  // Close the panel when clicking anywhere else
+  useEffect(() => {
+    if (!notifOpen) return;
+    const close = () => setNotifOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [notifOpen]);
+
+  useEffect(() => {
+    if (!notifOpen || !isLoggedIn) return;
+    let active = true;
+    setNotifLoading(true);
+    api
+      .get("/api/notifications/")
+      .then((res) => {
+        if (!active) return;
+        const list = res.data?.results || res.data || [];
+        setNotifications(list);
+      })
+      .catch(() => {})
+      .finally(() => active && setNotifLoading(false));
+    return () => { active = false; };
+  }, [notifOpen, isLoggedIn]);
+
+  const markRead = async (id) => {
+    if (id == null || notifications.some((n) => n.id === id && n.is_read)) return;
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    setNotifCount((c) => Math.max(0, c - 1));
+    try {
+      await api.post("/api/notifications/mark-read/", { notification_id: id });
+    } catch (err) {}
+  };
+
+  const markAllRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setNotifCount(0);
+    try {
+      await api.post("/api/notifications/mark-read/", {});
+    } catch (err) {}
+  };
 
   return (
     <>
@@ -91,6 +177,64 @@ export default function Navbar({ onLogout }) {
           </nav>
 
           <div className="site-header__actions">
+            <div className="site-header__icons">
+              {isLoggedIn && (
+                <div className="site-notif">
+                  <button
+                    className="site-icon-btn"
+                    onClick={toggleNotif}
+                    aria-label="Notifications"
+                    title="Notifications"
+                  >
+                    <FaBell />
+                    {notifCount > 0 && <span className="site-badge">{notifCount}</span>}
+                  </button>
+                  {notifOpen && (
+                    <div className="site-notif-panel">
+                      <div className="site-notif-panel__head">
+                        <strong>Notifications</strong>
+                        {notifications.some((n) => !n.is_read) && (
+                          <button onClick={markAllRead}>Mark all read</button>
+                        )}
+                      </div>
+                      <div className="site-notif-panel__list">
+                        {notifLoading ? (
+                          <p className="site-notif-empty">Loading notifications…</p>
+                        ) : notifications.length === 0 ? (
+                          <p className="site-notif-empty">No notifications yet.</p>
+                        ) : (
+                          notifications.slice(0, 10).map((n) => (
+                            <Link
+                              key={n.id}
+                              to={n.link || "/profile"}
+                              className={`site-notif-item${n.is_read ? "" : " unread"}`}
+                              onClick={() => markRead(n.id)}
+                            >
+                              <strong>{n.title}</strong>
+                              {n.message && <p>{n.message}</p>}
+                              <span>{new Date(n.created_at).toLocaleString()}</span>
+                            </Link>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <Link to="/wishlist" className="site-icon-btn" aria-label="Wishlist" title="Wishlist">
+                <FaHeart />
+              </Link>
+              <Link to="/checkout" className="site-icon-btn" aria-label="Cart" title="Cart">
+                <FaShoppingCart />
+                {cartCount > 0 && <span className="site-badge site-badge--cart">{cartCount}</span>}
+              </Link>
+              {isAdmin && (
+                <Link to="/admin/analytics" className="site-icon-btn" aria-label="Analytics Dashboard" title="Analytics Dashboard">
+                  <FaChartLine />
+                </Link>
+              )}
+            </div>
+
             <Link to={sellerCta.to} className="site-upload-cta">
               <span className="site-upload-cta__icon">
                 <FaVideo />

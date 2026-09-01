@@ -1043,3 +1043,85 @@ svg {
   color: var(--text-faint, var(--text-muted));
   border: 1px dashed var(--border-color);
 }
+
+/* ---------- Dislike (buyers only) ---------- */
+.dislike-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+
+  .util-count {
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    color: var(--color-danger, #e2506d);
+    border-color: var(--color-danger-alpha, rgba(226, 80, 109, 0.35));
+  }
+
+  &.active {
+    background: var(--color-danger-light, #fef2f2);
+    border-color: var(--color-danger, #e2506d);
+    color: var(--color-danger, #e2506d);
+  }
+}
+
+.popup-dislike-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    color: var(--color-danger, #e2506d);
+    border-color: var(--color-danger-alpha, rgba(226, 80, 109, 0.35));
+  }
+
+  &.active {
+    background: var(--color-danger-light, #fef2f2);
+    border-color: var(--color-danger, #e2506d);
+    color: var(--color-danger, #e2506d);
+  }
+}
+
+/* ---------- Comments loading ---------- */
+.comments-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color-strong, #cbd5e1);
+    border-top-color: var(--color-primary);
+    animation: card-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes card-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

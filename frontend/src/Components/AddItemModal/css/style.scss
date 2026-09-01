@@ -5,17 +5,17 @@
 //============================================================
 
 // Legacy SCSS vars kept for compatibility
-$primary-color: var(--color-gold-deep, 00f766e);
-$primary-hover: var(--color-gold-hover, 02dd4bf);
-$success-color: 0198754;
-$danger-color: 0dc3545;
-$white: 0ffffff;
-$background-gradient: linear-gradient(160deg, 0f7f9fc 0%, 0eef2f7 100%);
+$primary-color: var(--color-gold-deep, #0f766e);
+$primary-hover: var(--color-gold-hover, #2dd4bf);
+$success-color: #198754;
+$danger-color: #dc3545;
+$white: #ffffff;
+$background-gradient: linear-gradient(160deg, #f7f9fc 0%, #eef2f7 100%);
 
-$light-gray: 0f8f9fa;
-$medium-gray: 0ced4da;
-$dark-gray: 06c757d;
-$text-color: 0212529;
+$light-gray: #f8f9fa;
+$medium-gray: #ced4da;
+$dark-gray: #6c757d;
+$text-color: #212529;
 
 $base-font: var(--font-family-base);
 $border-radius: 24px;
@@ -260,7 +260,7 @@ $shadow: var(--shadow-xl);
 
     &.submit-btn {
       background: var(--gradient-primary);
-      color: 013150c;
+      color: #13150c;
       box-shadow: 0 6px 18px var(--color-gold-alpha);
 
       &:hover {
@@ -330,7 +330,7 @@ $shadow: var(--shadow-xl);
         left: 6px;
         width: 6px;
         height: 10px;
-        border: solid 013150c;
+        border: solid #13150c;
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);
         opacity: 0;
@@ -391,7 +391,7 @@ $shadow: var(--shadow-xl);
         left: 2px;
         width: 20px;
         height: 20px;
-        background-color: 0ffffff;
+        background-color: #ffffff;
         border-radius: var(--border-radius-full);
         transition: transform 0.2s ease;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -515,7 +515,7 @@ $shadow: var(--shadow-xl);
 
   &.selected {
     background: var(--gradient-primary);
-    color: 013150c;
+    color: #13150c;
     border-color: var(--color-gold);
     font-weight: 500;
   }
@@ -570,7 +570,7 @@ $shadow: var(--shadow-xl);
 .add-tag-btn {
   padding: 0.7rem 1rem;
   background: var(--gradient-primary);
-  color: 013150c;
+  color: #13150c;
   border: none;
   border-radius: var(--border-radius-md);
   cursor: pointer;
@@ -714,7 +714,7 @@ $shadow: var(--shadow-xl);
     border-radius: var(--border-radius-full);
     border: none;
     background: rgba(0, 0, 0, 0.65);
-    color: 0fff;
+    color: #fff;
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
@@ -744,7 +744,7 @@ $shadow: var(--shadow-xl);
     left: 0;
     right: 0;
     background: rgba(0, 0, 0, 0.55);
-    color: 0fff;
+    color: #fff;
     font-size: 0.65rem;
     padding: 3px 5px;
     white-space: nowrap;

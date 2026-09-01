@@ -640,3 +640,32 @@
     }
   }
 }
+/* ---------- Dislike (buyers only) ---------- */
+.pd-dislike-btn.on {
+  color: var(--color-danger, #e2506d);
+  border-color: var(--color-danger, #e2506d);
+  background: var(--color-danger-light, #fef2f2);
+}
+
+/* ---------- Comments loading ---------- */
+.pd-comments__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  .pd-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color-strong, #cbd5e1);
+    border-top-color: var(--color-primary);
+    animation: pd-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes pd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

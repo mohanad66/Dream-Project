@@ -20,6 +20,7 @@ export default function SellerProfile() {
   const [activeTab, setActiveTab] = useState("products");
   const [followed, setFollowed] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -30,6 +31,7 @@ export default function SellerProfile() {
         setProfile(response.data);
         setFollowed(!!response.data.seller.is_followed);
         setFollowersCount(response.data.seller.followers_count || 0);
+        setFollowingCount(response.data.seller.following_count || 0);
       } catch (err) {
         console.error("Failed to fetch seller profile:", err);
         setError("Failed to load seller profile. Please try again later.");
@@ -128,6 +130,10 @@ export default function SellerProfile() {
             <span className="sp-stat">
               <Users size={15} />
               {followersCount} followers
+            </span>
+            <span className="sp-stat">
+              <Users size={15} />
+              {followingCount} following
             </span>
             {seller.average_rating != null && (
               <span className="sp-stat">

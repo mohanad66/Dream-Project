@@ -7,9 +7,9 @@
   position: relative;
   width: 100%;
   margin-top: auto;
-  background: #0a0e16;
-  border-top: 1px solid rgba(14, 165, 164, 0.18);
-  color: #aab4c5;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
   overflow: hidden;
 
   .footer-bg {
@@ -24,7 +24,7 @@
       right: -160px;
       top: -260px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(14, 165, 164, 0.14), transparent 65%);
+      background: radial-gradient(circle, var(--color-primary-alpha), transparent 65%);
       filter: blur(80px);
     }
   }
@@ -62,22 +62,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-hover, #d8a94e));
+      background: var(--gradient-primary);
       color: #ffffff;
       font-size: 0.9rem;
       padding-left: 2px;
-      box-shadow: 0 6px 18px rgba(14, 165, 164, 0.32);
+      box-shadow: 0 6px 18px var(--color-primary-alpha);
     }
 
     .footer-logo-name {
       font-family: var(--font-family-brand);
       font-size: 1.4rem;
       font-weight: 700;
-      color: #f5f5f3;
+      color: var(--text-primary);
       letter-spacing: -0.02em;
 
       .brand-accent {
-        color: var(--color-gold, #d09a3e);
+        color: var(--color-primary);
       }
     }
   }
@@ -85,7 +85,7 @@
   .footer-tagline {
     font-size: 0.92rem;
     line-height: 1.7;
-    color: #8b93a5;
+    color: var(--text-secondary);
     max-width: 320px;
     margin: 0 0 1.5rem;
   }
@@ -101,9 +101,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #8b93a5;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
       font-size: 0.9rem;
       transition:
         background 0.2s ease,
@@ -112,8 +112,8 @@
         transform 0.2s ease;
 
       &:hover {
-        background: linear-gradient(135deg, var(--color-gold, #d09a3e), var(--color-gold-deep, #a97620));
-        color: #13150c;
+        background: var(--gradient-primary);
+        color: var(--text-on-primary);
         border-color: transparent;
         transform: translateY(-2px);
       }
@@ -126,7 +126,7 @@
     font-family: var(--font-family-display);
     font-size: 1.05rem;
     font-weight: 600;
-    color: #f5f6f8;
+    color: var(--text-primary);
     margin: 0 0 1.1rem;
   }
 
@@ -145,7 +145,7 @@
       font-size: 0.9rem;
 
       a {
-        color: #8b93a5;
+        color: var(--text-secondary);
         transition: color 0.2s ease;
         display: inline-flex;
         align-items: center;
@@ -153,7 +153,7 @@
         min-height: 44px;
 
         &:hover {
-          color: var(--color-gold-hover, #d8a94e);
+          color: var(--color-primary);
         }
       }
     }
@@ -165,11 +165,11 @@
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #5a6a80;
+    color: var(--text-muted);
   }
 
   .footer-contact-value {
-    color: #aab4c5;
+    color: var(--text-secondary);
     word-break: break-word;
   }
 }
@@ -179,7 +179,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.6rem 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -189,7 +189,7 @@
   p {
     margin: 0;
     font-size: 0.82rem;
-    color: #5a6a80;
+    color: var(--text-muted);
   }
 
   .footer-badges {
@@ -201,13 +201,13 @@
       align-items: center;
       gap: 0.4rem;
       font-size: 0.75rem;
-      color: #8b93a5;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
       border-radius: var(--border-radius-full);
       padding: 0.4rem 0.9rem;
 
       svg {
-        color: var(--color-gold, #d09a3e);
+        color: var(--color-primary);
       }
     }
   }

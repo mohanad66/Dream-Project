@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
   FaHeart,
+  FaThumbsDown,
   FaShareAlt,
   FaComment,
   FaPlay,
@@ -32,9 +33,12 @@ export default function ProductDetail({ categories = [], tags = [] }) {
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [disliked, setDisliked] = useState(false);
+  const [dislikeCount, setDislikeCount] = useState(0);
   const [inWishlist, setInWishlist] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [added, setAdded] = useState(false);
@@ -51,6 +55,8 @@ export default function ProductDetail({ categories = [], tags = [] }) {
         setProduct(res.data);
         setLiked(!!res.data.is_liked);
         setLikeCount(res.data.like_count || 0);
+        setDisliked(!!res.data.is_disliked);
+        setDislikeCount(res.data.dislike_count || 0);
       })
       .catch(() => {
         if (active) setNotFound(true);
@@ -130,6 +136,20 @@ export default function ProductDetail({ categories = [], tags = [] }) {
     }
   };
 
+  const toggleDislike = async () => {
+    if (!isLoggedIn()) {
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    try {
+      const res = await api.post(`/api/products/${product.id}/dislike/`);
+      setDisliked(res.data.disliked);
+      setDislikeCount(res.data.dislike_count);
+    } catch (err) {
+      alert(err.response?.data?.error || "Please log in to dislike products.");
+    }
+  };
+
   const toggleWishlist = async () => {
     if (!isLoggedIn()) {
       window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
@@ -161,12 +181,16 @@ export default function ProductDetail({ categories = [], tags = [] }) {
   };
 
   const loadComments = async () => {
-    setCommentsOpen((open) => !open);
-    if (!commentsOpen && !comments.length) {
-      try {
-        const res = await api.get(`/api/products/${product.id}/comments/`);
-        setComments(res.data);
-      } catch (err) {}
+    const next = !commentsOpen;
+    setCommentsOpen(next);
+    if (!next || comments.length || commentsLoading) return;
+    setCommentsLoading(true);
+    try {
+      const res = await api.get(`/api/products/${product.id}/comments/`);
+      setComments(res.data);
+    } catch (err) {
+    } finally {
+      setCommentsLoading(false);
     }
   };
 
@@ -329,6 +353,11 @@ export default function ProductDetail({ categories = [], tags = [] }) {
             <button className={`pd-social-btn ${liked ? "on" : ""}`} onClick={toggleLike}>
               <FaHeart /> {likeCount} {likeCount === 1 ? "like" : "likes"}
             </button>
+            {product.is_bought && (
+              <button className={`pd-social-btn pd-dislike-btn ${disliked ? "on" : ""}`} onClick={toggleDislike}>
+                <FaThumbsDown /> {dislikeCount} {dislikeCount === 1 ? "dislike" : "dislikes"}
+              </button>
+            )}
             <button className="pd-social-btn" onClick={loadComments}>
               <FaComment /> {product.comment_count ?? comments.length} comments
             </button>
@@ -379,8 +408,13 @@ export default function ProductDetail({ categories = [], tags = [] }) {
           {commentsOpen && (
             <div className="pd-comments">
               <div className="pd-comments__list">
-                {comments.length === 0 && <p className="pd-comments__empty">No comments yet. Be the first!</p>}
-                {comments.map((c) => (
+                {commentsLoading ? (
+                  <p className="pd-comments__empty pd-comments__loading">
+                    <span className="pd-spinner" /> Loading comments…
+                  </p>
+                ) : comments.length === 0 ? (
+                  <p className="pd-comments__empty">No comments yet. Be the first!</p>
+                ) : comments.map((c) => (
                   <div key={c.id} className="pd-comment">
                     <strong>{c.user_name}</strong>
                     <p>{c.content}</p>
@@ -388,7 +422,7 @@ export default function ProductDetail({ categories = [], tags = [] }) {
                   </div>
                 ))}
               </div>
-              {isLoggedIn() ? (
+              {isLoggedIn() && product.is_bought ? (
                 <form className="pd-comment-form" onSubmit={submitComment}>
                   <input
                     type="text"
@@ -399,6 +433,8 @@ export default function ProductDetail({ categories = [], tags = [] }) {
                   />
                   <button type="submit"><FaComment /></button>
                 </form>
+              ) : isLoggedIn() ? (
+                <p className="pd-comments__hint">Buy this product to join the conversation.</p>
               ) : (
                 <p className="pd-comments__hint"><Link to="/login">Log in</Link> to join the conversation.</p>
               )}

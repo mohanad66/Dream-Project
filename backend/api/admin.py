@@ -175,6 +175,12 @@ class ProductLikeAdmin(ModelAdmin):
     search_fields = ["user__username", "product__name"]
 
 
+@admin.register(ProductDislike)
+class ProductDislikeAdmin(ModelAdmin):
+    list_display = ["user", "product", "created_at"]
+    search_fields = ["user__username", "product__name"]
+
+
 @admin.register(ProductComment)
 class ProductCommentAdmin(ModelAdmin):
     list_display = ["user", "product", "created_at"]

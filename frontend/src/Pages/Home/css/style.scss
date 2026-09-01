@@ -171,7 +171,7 @@
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
-    color: 0fff;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -186,7 +186,7 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    border: 2px solid 0fff;
+    border: 2px solid #fff;
     object-fit: cover;
     background: var(--bg-muted);
   }
@@ -247,7 +247,7 @@
   button {
     border: 0;
     background: var(--gradient-primary);
-    color: 0ffffff;
+    color: #ffffff;
     font-weight: 600;
     font-size: 0.78rem;
     border-radius: 9999px;
@@ -365,7 +365,7 @@
     height: 26px;
     border-radius: 50%;
     background: var(--gradient-primary);
-    color: 0fff;
+    color: #fff;
     font-size: 0.72rem;
     font-weight: 700;
     display: flex;
@@ -449,7 +449,7 @@
       border-radius: 9999px;
       background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(4px);
-      color: 0ffffff;
+      color: #ffffff;
       font-size: 0.62rem;
       display: flex;
       align-items: center;
@@ -466,7 +466,7 @@
       gap: 0.25rem;
       background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(4px);
-      color: 0ffffff;
+      color: #ffffff;
       font-size: 0.66rem;
       font-weight: 600;
       padding: 0.2rem 0.5rem;
@@ -499,7 +499,7 @@
       height: 20px;
       border-radius: 50%;
       background: var(--gradient-primary);
-      color: 0ffffff;
+      color: #ffffff;
       font-size: 0.62rem;
       font-weight: 700;
       display: flex;
@@ -641,7 +641,7 @@
       align-items: center;
       justify-content: center;
       background: var(--gradient-primary);
-      color: 0ffffff;
+      color: #ffffff;
       font-size: 1.2rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -680,7 +680,7 @@
         color: var(--text-muted);
 
         &.filled {
-          color: 0f59e0b;
+          color: #f59e0b;
         }
       }
     }
@@ -735,7 +735,7 @@
     padding: 2rem 1.5rem;
     border-radius: 22px;
     background: var(--gradient-accent);
-    color: 0ffffff;
+    color: #ffffff;
     box-shadow: 0 20px 40px var(--color-primary-alpha);
 
     .home-cta-icon {
@@ -759,7 +759,7 @@
         font-size: 1.2rem;
         font-weight: 700;
         letter-spacing: -0.01em;
-        color: 0ffffff;
+        color: #ffffff;
       }
 
       p {
@@ -774,8 +774,8 @@
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      background: 0ffffff;
-      color: var(--color-brand-active, 0084f4c);
+      background: #ffffff;
+      color: var(--color-brand-active, #084f4c);
       font-weight: 700;
       font-size: 0.88rem;
       border-radius: 9999px;

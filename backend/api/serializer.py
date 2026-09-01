@@ -180,10 +180,13 @@ class ProductSerializer(serializers.ModelSerializer):
     seller_verified = serializers.SerializerMethodField()
     effective_price = serializers.SerializerMethodField()
     like_count = serializers.ReadOnlyField()
+    dislike_count = serializers.ReadOnlyField()
     comment_count = serializers.ReadOnlyField()
     average_rating = serializers.ReadOnlyField()
     sold_today = serializers.IntegerField(read_only=True, default=0)
     is_liked = serializers.SerializerMethodField()
+    is_disliked = serializers.SerializerMethodField()
+    is_bought = serializers.SerializerMethodField()
     is_own_seller = serializers.SerializerMethodField()
 
     class Meta:
@@ -210,10 +213,13 @@ class ProductSerializer(serializers.ModelSerializer):
             "approval_status",
             "rejection_reason",
             "like_count",
+            "dislike_count",
             "comment_count",
             "average_rating",
             "sold_today",
             "is_liked",
+            "is_disliked",
+            "is_bought",
             "is_own_seller",
         ]
         read_only_fields = ["seller", "seller_name", "seller_avatar", "approval_status", "rejection_reason"]
@@ -227,6 +233,24 @@ class ProductSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if user and user.is_authenticated:
             return ProductLike.objects.filter(user=user, product=obj).exists()
+        return False
+
+    def get_is_disliked(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            return ProductDislike.objects.filter(user=user, product=obj).exists()
+        return False
+
+    def get_is_bought(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            return OrderItem.objects.filter(
+                order__owner=user,
+                product=obj,
+                order__status__in=BOUGHT_ORDER_STATUSES,
+            ).exists()
         return False
 
     def get_is_own_seller(self, obj):
@@ -538,6 +562,7 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField()
     is_self = serializers.SerializerMethodField()
 
@@ -547,7 +572,7 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
             "id", "user_username", "business_name", "business_description",
             "avatar", "cover_image", "bio", "delivery_type",
             "created_at", "product_count", "average_rating",
-            "followers_count", "is_followed", "is_self",
+            "followers_count", "following_count", "is_followed", "is_self",
         ]
 
     def get_product_count(self, obj):
@@ -558,6 +583,9 @@ class SellerPublicProfileSerializer(serializers.ModelSerializer):
 
     def get_followers_count(self, obj):
         return obj.followers.count()
+
+    def get_following_count(self, obj):
+        return SellerFollower.objects.filter(user=obj.user).count()
 
     def get_is_followed(self, obj):
         request = self.context.get("request")
