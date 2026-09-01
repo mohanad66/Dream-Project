@@ -2006,6 +2006,82 @@ class NotificationMarkReadView(APIView):
         return Response({"message": "All marked as read"})
 
 
+class AdminNotificationSendView(APIView):
+    """Admin endpoint to push an announcement notification to all users
+    or to a single specific user. Broadcast copies are created per user."""
+
+    permission_classes = [IsSuperUser]
+
+    def post(self, request):
+        data = request.data
+        title = (data.get("title") or "").strip()
+        message = (data.get("message") or "").strip()
+        link = (data.get("link") or "").strip()
+        notification_type = (data.get("notification_type") or "system").strip()
+        audience = (data.get("audience") or "all").strip()
+        user_id = data.get("user_id")
+
+        if not title or not message:
+            return Response(
+                {"error": "Title and message are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if audience == "specific":
+            try:
+                target = User.objects.get(pk=user_id)
+            except (User.DoesNotExist, TypeError, ValueError):
+                return Response(
+                    {"error": "User not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            targets = [target]
+        else:
+            targets = list(User.objects.filter(is_active=True))
+            if not targets:
+                return Response(
+                    {"error": "There are no users to notify."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        for user in targets:
+            create_notification(
+                user,
+                notification_type,
+                title,
+                message,
+                link,
+            )
+
+        return Response(
+            {
+                "message": f"Notification sent to {len(targets)} user(s).",
+                "sent": len(targets),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class AdminUserListView(APIView):
+    """List active users for the admin announcement recipient picker."""
+
+    permission_classes = [IsSuperUser]
+
+    def get(self, request):
+        users = User.objects.filter(is_active=True).order_by("username")
+        data = [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+            }
+            for u in users
+        ]
+        return Response(data)
+
+
 # ===============================================
 # DELIVERY FEE CALCULATION
 # ===============================================

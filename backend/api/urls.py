@@ -306,6 +306,8 @@ urlpatterns = [
     path("notifications/", NotificationListView.as_view(), name="notification-list"),
     path("notifications/count/", NotificationCountView.as_view(), name="notification-count"),
     path("notifications/mark-read/", NotificationMarkReadView.as_view(), name="notification-mark-read"),
+    path("admins/notifications/send/", AdminNotificationSendView.as_view(), name="admin-notification-send"),
+    path("admins/users/", AdminUserListView.as_view(), name="admin-users-list"),
 
     # --- Delivery ---
     path("delivery/fee/", DeliveryFeeView.as_view(), name="delivery-fee"),

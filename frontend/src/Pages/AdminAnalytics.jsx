@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import {
   LayoutDashboard, TrendingUp, Package, Users, DollarSign,
-  ShoppingCart, CalendarDays, Tag, Users2, Table2,
+  ShoppingCart, CalendarDays, Tag, Users2, Table2, BellRing,
 } from "lucide-react";
 import "../css/Analytics.scss";
 
@@ -72,6 +72,7 @@ const TABS = [
   { id: "customers", label: "Customers", Icon: Users },
   { id: "commission", label: "Commission & Sellers", Icon: DollarSign },
   { id: "coupons", label: "Coupons", Icon: Tag },
+  { id: "notifications", label: "Announcements", Icon: BellRing },
   { id: "tables", label: "Raw Data", Icon: Table2 },
 ];
 
@@ -93,6 +94,10 @@ const AdminAnalytics = () => {
   const [couponForm, setCouponForm] = useState({ code: "", discount_type: "percentage", discount_value: "", min_order_amount: "", max_discount_amount: "", max_uses_total: "", expires_at: "" });
   const [globalCommissionRate, setGlobalCommissionRate] = useState("");
   const [savingCommission, setSavingCommission] = useState(false);
+  const [notifForm, setNotifForm] = useState({ audience: "all", user_id: "", notification_type: "system", title: "", message: "", link: "" });
+  const [sendingNotif, setSendingNotif] = useState(false);
+  const [usersList, setUsersList] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   useEffect(() => {
     const obs = new MutationObserver(() => setTheme(getTheme()));
@@ -193,6 +198,47 @@ const AdminAnalytics = () => {
       toast.success("Commission rate updated to " + (data.default_commission_rate ?? val) + "%");
     } catch (e) { toast.error("Failed to save: " + (e.response?.data ? JSON.stringify(e.response.data) : e.message)); }
     finally { setSavingCommission(false); }
+  };
+
+  const fetchAdminUsers = useCallback(async () => {
+    setUsersLoading(true);
+    try {
+      const res = await api.get("/api/admins/users/", { params: { page_size: 1000 } });
+      const data = res.data;
+      const arr = data.results || data || [];
+      setUsersList(Array.isArray(arr) ? arr : []);
+    } catch (e) { console.error(e); }
+    finally { setUsersLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "notifications") fetchAdminUsers();
+  }, [activeTab, fetchAdminUsers]);
+
+  const handleSendNotification = async () => {
+    if (!notifForm.title.trim() || !notifForm.message.trim()) {
+      return toast.error("Title and message are required");
+    }
+    if (notifForm.audience === "specific" && !notifForm.user_id) {
+      return toast.error("Select a user to notify");
+    }
+    setSendingNotif(true);
+    try {
+      await api.post("/api/admins/notifications/send/", {
+        audience: notifForm.audience,
+        user_id: notifForm.audience === "specific" ? parseInt(notifForm.user_id, 10) : undefined,
+        notification_type: notifForm.notification_type,
+        title: notifForm.title,
+        message: notifForm.message,
+        link: notifForm.link,
+      });
+      toast.success("Announcement sent!");
+      setNotifForm({ audience: "all", user_id: "", notification_type: "system", title: "", message: "", link: "" });
+    } catch (e) {
+      toast.error("Failed to send: " + (e.response?.data ? JSON.stringify(e.response.data) : e.message));
+    } finally {
+      setSendingNotif(false);
+    }
   };
 
   /* ─── Computed Data ─── */
@@ -539,6 +585,105 @@ const AdminAnalytics = () => {
                 </table>
               </div>
             ) : <p className="empty-state">No coupons created yet</p>}
+          </Section>
+        </>)}
+
+        {/* ═══ ANNOUNCEMENTS ═══ */}
+        {activeTab === "notifications" && (<>
+          <Section title="Push Announcement" subtitle="Send a notification to all users or one specific user">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Audience</label>
+                <select
+                  value={notifForm.audience}
+                  onChange={(e) => setNotifForm((prev) => ({ ...prev, audience: e.target.value, user_id: "" }))}
+                  className="analytics-input"
+                >
+                  <option value="all">All users</option>
+                  <option value="specific">Specific user</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Type</label>
+                <select
+                  value={notifForm.notification_type}
+                  onChange={(e) => setNotifForm((prev) => ({ ...prev, notification_type: e.target.value }))}
+                  className="analytics-input"
+                >
+                  <option value="system">System</option>
+                  <option value="order_confirmed">Order Confirmed</option>
+                  <option value="order_shipped">Order Shipped</option>
+                  <option value="order_delivered">Order Delivered</option>
+                  <option value="order_cancelled">Order Cancelled</option>
+                  <option value="payment_received">Payment Received</option>
+                  <option value="seller_approved">Seller Approved</option>
+                  <option value="seller_rejected">Seller Rejected</option>
+                  <option value="product_approved">Product Approved</option>
+                  <option value="product_rejected">Product Rejected</option>
+                  <option value="payout_processed">Payout Processed</option>
+                </select>
+              </div>
+            </div>
+            {notifForm.audience === "specific" && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Recipient</label>
+                <select
+                  value={notifForm.user_id}
+                  onChange={(e) => setNotifForm((prev) => ({ ...prev, user_id: e.target.value }))}
+                  className="analytics-input"
+                  disabled={usersLoading}
+                >
+                  <option value="">{usersLoading ? "Loading users…" : "Select a user"}</option>
+                  {usersList.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.first_name && u.last_name ? `${u.first_name} ${u.last_name} (@${u.username})` : `@${u.username} — ${u.email || "no email"}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Title</label>
+                <input
+                  type="text"
+                  value={notifForm.title}
+                  onChange={(e) => setNotifForm((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="e.g. New collection is live"
+                  className="analytics-input"
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Link (optional)</label>
+                <input
+                  type="text"
+                  value={notifForm.link}
+                  onChange={(e) => setNotifForm((prev) => ({ ...prev, link: e.target.value }))}
+                  placeholder="e.g. /products"
+                  className="analytics-input"
+                />
+              </div>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Message</label>
+              <textarea
+                value={notifForm.message}
+                onChange={(e) => setNotifForm((prev) => ({ ...prev, message: e.target.value }))}
+                placeholder="Write the announcement message…"
+                className="analytics-input"
+                rows={4}
+                style={{ resize: "vertical" }}
+              />
+            </div>
+            <button
+              className="button button--small button--primary"
+              onClick={handleSendNotification}
+              disabled={sendingNotif || !notifForm.title.trim() || !notifForm.message.trim() || (notifForm.audience === "specific" && !notifForm.user_id)}
+              style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <BellRing size={15} />
+              {sendingNotif ? "Sending…" : `Send to ${notifForm.audience === "all" ? "all users" : "selected user"}`}
+            </button>
           </Section>
         </>)}
 
