@@ -303,26 +303,38 @@ const AdminAnalytics = () => {
 
   return (
     <div className="analytics-root">
-      {/* Top Bar */}
-      <div className="analytics-topbar">
-        <div className="analytics-brand"><div className="analytics-brand-dot" /><span className="analytics-brand-text">Analytics Dashboard</span></div>
-        <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
-          {TABS.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`button button--small ${activeTab === tab.id ? "button--primary" : ""}`}>
-              <tab.Icon size={14} />{tab.label}
-            </button>
-          ))}
-          <div className="analytics-controls">
-            <label htmlFor="days-filter">Period:</label>
-            <select id="days-filter" value={days} onChange={(e) => setDays(parseInt(e.target.value))}>
-              <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option><option value={365}>Last year</option>
-            </select>
+      <div className="analytics-layout">
+        {/* Left Sidebar Nav */}
+        <aside className="analytics-sidebar">
+          <div className="analytics-brand">
+            <div className="analytics-brand-dot" />
+            <span className="analytics-brand-text">Analytics Dashboard</span>
           </div>
-        </div>
-      </div>
+          <nav className="analytics-nav">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`analytics-nav__item ${activeTab === tab.id ? "active" : ""}`}
+              >
+                <tab.Icon size={16} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="analytics-sidebar__foot">
+            <div className="analytics-controls">
+              <label htmlFor="days-filter">Period</label>
+              <select id="days-filter" value={days} onChange={(e) => setDays(parseInt(e.target.value))}>
+                <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option>
+                <option value={90}>Last 90 days</option><option value={365}>Last year</option>
+              </select>
+            </div>
+          </div>
+        </aside>
 
-      <div className="analytics-content">
+        <div className="analytics-main">
+          <div className="analytics-content">
         {/* ═══ OVERVIEW ═══ */}
         {activeTab === "overview" && (<>
           <div className="analytics-stats-row" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
@@ -729,6 +741,8 @@ const AdminAnalytics = () => {
           </Section>
         </>)}
       </div>
+      </div>
+    </div>
     </div>
   );
 };
