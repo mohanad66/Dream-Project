@@ -10,7 +10,13 @@ from django.utils.text import slugify
 from PIL import Image
 from unidecode import unidecode
 from django.core.validators import MinValueValidator, MaxValueValidator
+from cloudinary_storage.storage import MediaCloudinaryStorage
 from utils.image_compression import compress_image
+
+# Cloudinary's default storage uploads everything as resource_type="image".
+# Video bytes must be uploaded as resource_type="video" instead, otherwise
+# Cloudinary rejects the file with "BadRequest: Invalid image file".
+VIDEO_STORAGE = MediaCloudinaryStorage(resource_type="video")
 
 class ApprovalStatus(models.TextChoices):
     PENDING = "pending", "Pending Review"
@@ -595,6 +601,7 @@ class Product(models.Model, ImageHandlingMixin):
         help_text="Upload product image (width must be equal to or greater than height)",
     )
     video = models.FileField(
+        storage=VIDEO_STORAGE,
         upload_to="products/videos/",
         blank=True,
         help_text="Optional promotional video (MP4/WebM) shown in the Shorts feed.",

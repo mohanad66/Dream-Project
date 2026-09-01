@@ -39,6 +39,48 @@ const fieldErrorText = (data) => {
   return parts.length ? parts.join(" · ") : "Unexpected server error.";
 };
 
+// Re-encode the thumbnail as a clean, dimension-capped JPEG so storage
+// backends (Cloudinary) never receive EXIF/HEIC/WebP/corrupt bytes.
+const MAX_THUMB_WIDTH = 1600;
+
+const normalizeThumbnail = (file) =>
+  new Promise((resolve) => {
+    if (!file || file.size <= 0) return resolve(null);
+    try {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const wRaw = img.naturalWidth || 1;
+          const hRaw = img.naturalHeight || 1;
+          const scale = Math.min(1, MAX_THUMB_WIDTH / wRaw);
+          const w = Math.max(1, Math.round(wRaw * scale));
+          const h = Math.max(1, Math.round(hRaw * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return URL.revokeObjectURL(url), resolve(null);
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+          const bytes = Uint8Array.from(atob(dataUrl.split(",")[1]), (c) => c.charCodeAt(0));
+          URL.revokeObjectURL(url);
+          resolve(new File([bytes], "thumbnail.jpg", { type: "image/jpeg" }));
+        } catch (_) {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+      img.src = url;
+    } catch (_) {
+      resolve(null);
+    }
+  });
+
 export default function Upload() {
   const navigate = useNavigate();
   const { isAuthenticated, isSeller, refetchUser, data } = useAuth();
@@ -269,6 +311,17 @@ const clearVideo = () => {
     setUploading(true);
     setProgress(0);
     try {
+      const poster = await normalizeThumbnail(
+        posterFile && posterFile.size > 0 ? posterFile : autoPoster && autoPoster.size > 0 ? autoPoster : null,
+      );
+      if (!poster) {
+        setUploading(false);
+        setErrors([
+          "We couldn't decode that thumbnail — upload a clear JPG/PNG image or let us re-capture one from your video.",
+        ]);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       const formData = new FormData();
       formData.append("name", form.name.trim());
       formData.append("description", form.description.trim());

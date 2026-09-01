@@ -1301,7 +1301,7 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         # Media/storage backends (e.g. Cloudinary) raise exceptions when the
         # incoming thumbnail/video can't be processed (empty file, corrupt
-        # image, wrong bytes). Surface those as a clean 400 instead of a 500.
+        # image, invalid MIME). Surface those as a clean 400 instead of a 500.
         try:
             return super().create(request, *args, **kwargs)
         except Exception as exc:
@@ -1309,8 +1309,9 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
             from rest_framework.exceptions import ValidationError
             raise ValidationError(
                 {
-                    "detail": "Your thumbnail image couldn't be processed (it may be empty or corrupted). "
-                    "Please upload a valid JPG/PNG image and try again."
+                    "detail": "We couldn't process one of your files — the video may be too large, "
+                    "or the thumbnail isn't a valid JPG/PNG. Use a compressed MP4 and a JPG/PNG thumbnail "
+                    "and try again."
                 }
             ) from exc
 
