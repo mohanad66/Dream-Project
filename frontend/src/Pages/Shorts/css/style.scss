@@ -26,8 +26,8 @@
     transition: background 0.2s, transform 0.2s;
 
     &:hover {
-      background: var(--color-gold);
-      color: #13150c;
+      background: linear-gradient(135deg, var(--color-gold, #818cf8), var(--color-gold-hover, #a5b4fc));
+      color: #fff;
       transform: scale(1.05);
     }
   }

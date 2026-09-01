@@ -6,10 +6,10 @@ import { ACCESS_TOKEN } from "../../services/constants";
 import "./SellerProfile.scss";
 
 const OFFER_TYPE_COLORS = {
-  discount: "#d09a3e",
-  flash_sale: "#e06a5d",
-  seasonal: "#2e7d5b",
-  clearance: "#c4892f",
+  discount: "#6366f1",
+  flash_sale: "#e11d48",
+  seasonal: "#059669",
+  clearance: "#4f46e5",
 };
 
 export default function SellerProfile() {

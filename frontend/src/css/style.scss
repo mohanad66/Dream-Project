@@ -1,66 +1,66 @@
 /* ==========================================================================
-   INSTABRANDZ — DESIGN SYSTEM 2.0 (GOLD)
-   Direction: Relaxed premium — warm "paper" cream backgrounds, soft honey-gold
-   CTAs, calm taupe neutrals, generous rounded corners and gentle shadows.
-   Friendly marketplace energy without looking corporate. Component variable
-   names are preserved so the whole app re-skins.
+   INSTABRANDZ — DESIGN SYSTEM 3.0 (PROFESSIONAL PREMIUM)
+   Direction: Crisp, trustworthy premium — clean slate surfaces, sharp neutral
+   grays and a single confident indigo accent used for every CTA and highlight.
+   Professional e-commerce aesthetic (marketplace-grade, not playful). Component
+   variable names are preserved so the whole app re-skins.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    1. DESIGN TOKENS — LIGHT
    -------------------------------------------------------------------------- */
 :root {
-  /* Brand — relaxing premium gold on creamy "paper". Warm honey CTAs,
-     soft amber tints, calm taupe neutrals: friendly, not corporate. */
-  --color-brand: #c4892f;
-  --color-brand-hover: #b07623;
-  --color-brand-active: #9a681d;
-  --color-primary: #c4892f;
-  --color-primary-hover: #b07623;
-  --color-primary-active: #9a681d;
-  --color-primary-light: #f8ebd4;
-  --color-primary-alpha: rgba(196, 137, 47, 0.12);
-  --color-gold: #d09a3e;
-  --color-gold-hover: #d8a94e;
-  --color-gold-deep: #a97620;
-  --color-gold-alpha: rgba(208, 154, 62, 0.16);
+  /* Brand — professional indigo: crisp, trustworthy, premium. Clean neutral
+     grays keep surfaces calm; indigo drives every CTA and accent. */
+  --color-brand: #4f46e5;
+  --color-brand-hover: #4338ca;
+  --color-brand-active: #3730a3;
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-active: #3730a3;
+  --color-primary-light: #eef2ff;
+  --color-primary-alpha: rgba(79, 70, 229, 0.12);
+  --color-gold: #6366f1;
+  --color-gold-hover: #818cf8;
+  --color-gold-deep: #4338ca;
+  --color-gold-alpha: rgba(99, 102, 241, 0.14);
 
-  --color-secondary: #7e6b45;
-  --color-secondary-hover: #655539;
-  --color-secondary-light: #f3ede2;
-  --color-secondary-alpha: rgba(126, 107, 69, 0.08);
+  --color-secondary: #475569;
+  --color-secondary-hover: #334155;
+  --color-secondary-light: #f1f5f9;
+  --color-secondary-alpha: rgba(71, 85, 105, 0.08);
 
-  --color-success: #2e7d5b;
-  --color-success-hover: #256a4c;
-  --color-success-light: #e9f4ed;
+  --color-success: #059669;
+  --color-success-hover: #047857;
+  --color-success-light: #ecfdf5;
 
-  --color-danger: #b4553f;
-  --color-danger-hover: #9c4735;
-  --color-danger-light: #fbece7;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-light: #fef2f2;
 
-  --color-warning: #a65f0b;
-  --color-warning-hover: #8c5009;
-  --color-warning-light: #fdf1df;
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-light: #fffbeb;
 
-  /* Neutrals — creamy warm "paper" for a relaxed, friendly feel */
+  /* Neutrals — clean slate scale for a professional, premium feel */
   --color-white: #ffffff;
-  --color-gray-50: #fdfbf6;
-  --color-gray-100: #f7f2e9;
-  --color-gray-200: #efe8d9;
-  --color-gray-300: #e0d6c2;
-  --color-gray-400: #b4a78e;
-  --color-gray-500: #8f8169;
-  --color-gray-600: #6b5f47;
-  --color-gray-700: #4a4030;
-  --color-gray-800: #2d281c;
-  --color-gray-900: #201c12;
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
 
   --text-primary: var(--color-gray-900);
   --text-secondary: var(--color-gray-600);
   --text-muted: var(--color-gray-500);
   --text-on-primary: #ffffff;
-  --text-on-dark: #f5f5f3;
-  --text-color: #242319;
+  --text-on-dark: #f8fafc;
+  --text-color: #0f172a;
 
   --primary-color: var(--color-primary);
   --secondary-color: var(--color-secondary);
@@ -69,43 +69,43 @@
   --error-color: var(--color-danger);
   --success-color: var(--color-success);
   --warning-color: var(--color-warning);
-  --info-color: #1d4ed8;
+  --info-color: #2563eb;
 
-  --bg-body: #f7f2e9;
+  --bg-body: #f8fafc;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-subtle: #fdfbf6;
-  --bg-muted: #f1eada;
-  --bg-overlay: rgba(32, 28, 18, 0.55);
-  --bg-primary: #f7f2e9;
-  --bg-secondary: #fdfbf6;
-  --bg-tertiary: #f0e8d8;
+  --bg-subtle: #f8fafc;
+  --bg-muted: #eef2f7;
+  --bg-overlay: rgba(15, 23, 42, 0.55);
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef2f7;
   --bg-card: #ffffff;
-  --bg-hover: #f6f0e2;
+  --bg-hover: #f1f5f9;
 
-  --gradient-primary: linear-gradient(120deg, #c4892f 0%, #e0b25e 100%);
-  --gradient-secondary: linear-gradient(120deg, #2e7d5b 0%, #4c9a6e 100%);
-  --gradient-accent: linear-gradient(120deg, #a97620 0%, #e0a647 100%);
+  --gradient-primary: linear-gradient(120deg, #4f46e5 0%, #7c3aed 100%);
+  --gradient-secondary: linear-gradient(120deg, #059669 0%, #34d399 100%);
+  --gradient-accent: linear-gradient(120deg, #4338ca 0%, #6366f1 100%);
 
-  --border-color: #ede4d0;
-  --border-color-strong: #dccfb4;
-  --border-hover: #bcab86;
-  --border-radius-sm: 10px;
-  --border-radius-md: 14px;
-  --border-radius-lg: 18px;
-  --border-radius-xl: 24px;
-  --border-radius-2xl: 32px;
+  --border-color: #e2e8f0;
+  --border-color-strong: #cbd5e1;
+  --border-hover: #94a3b8;
+  --border-radius-sm: 6px;
+  --border-radius-md: 10px;
+  --border-radius-lg: 14px;
+  --border-radius-xl: 18px;
+  --border-radius-2xl: 24px;
   --border-radius-full: 9999px;
 
-  --shadow-xs: 0 1px 2px rgba(23, 22, 16, 0.05);
-  --shadow-sm: 0 1px 3px rgba(23, 22, 16, 0.06), 0 1px 2px rgba(23, 22, 16, 0.04);
-  --shadow-md: 0 4px 12px rgba(23, 22, 16, 0.08);
-  --shadow-lg: 0 12px 28px rgba(23, 22, 16, 0.1), 0 4px 8px rgba(23, 22, 16, 0.05);
-  --shadow-xl: 0 24px 48px rgba(23, 22, 16, 0.14);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1), 0 4px 8px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.14);
   --shadow-focus: 0 0 0 3px var(--color-primary-alpha);
 
-  --product-primary-rgb: 196, 137, 47;
-  --product-secondary-rgb: 224, 178, 94;
+  --product-primary-rgb: 79, 70, 229;
+  --product-secondary-rgb: 124, 58, 237;
 
   --header-height: 68px;
 
@@ -158,73 +158,73 @@
    2. DESIGN TOKENS — DARK (signature elegant look)
    -------------------------------------------------------------------------- */
 :root.dark-theme {
-  --color-brand: #e0a647;
-  --color-primary: #e0a647;
-  --color-primary-hover: #eab75f;
-  --color-primary-active: #cf962f;
-  --color-primary-light: rgba(224, 166, 71, 0.14);
-  --color-gold: #e8b25a;
-  --color-gold-hover: #f0c06e;
-  --color-gold-deep: #f0c06e;
-  --color-gold-alpha: rgba(232, 178, 90, 0.18);
-  --color-primary-alpha: rgba(224, 166, 71, 0.18);
+  --color-brand: #6366f1;
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-primary-active: #5856ea;
+  --color-primary-light: rgba(99, 102, 241, 0.16);
+  --color-gold: #818cf8;
+  --color-gold-hover: #a5b4fc;
+  --color-gold-deep: #6366f1;
+  --color-gold-alpha: rgba(129, 140, 248, 0.18);
+  --color-primary-alpha: rgba(99, 102, 241, 0.2);
 
-  --color-secondary: #9c8b6a;
-  --color-secondary-hover: #b4a181;
-  --color-secondary-light: #2a251c;
-  --color-secondary-alpha: rgba(156, 139, 106, 0.12);
+  --color-secondary: #94a3b8;
+  --color-secondary-hover: #b6c2d1;
+  --color-secondary-light: rgba(148, 163, 184, 0.12);
+  --color-secondary-alpha: rgba(148, 163, 184, 0.14);
 
-  --color-success: #4c9a6e;
-  --color-success-hover: #5ca87c;
-  --color-success-light: rgba(76, 154, 110, 0.14);
+  --color-success: #34d399;
+  --color-success-hover: #4ade80;
+  --color-success-light: rgba(52, 211, 153, 0.14);
 
-  --color-danger: #d9765f;
-  --color-danger-hover: #e28973;
-  --color-danger-light: rgba(217, 118, 95, 0.12);
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-light: rgba(248, 113, 113, 0.13);
 
-  --color-warning: #e9a94b;
-  --color-warning-hover: #efba67;
-  --color-warning-light: rgba(233, 169, 75, 0.14);
+  --color-warning: #fbbf24;
+  --color-warning-hover: #fcd34d;
+  --color-warning-light: rgba(251, 191, 36, 0.14);
 
-  --color-gray-50: #1a1712;
-  --color-gray-100: #211d16;
-  --color-gray-200: #292319;
-  --color-gray-300: #362f22;
-  --color-gray-400: #4d4431;
-  --color-gray-500: #7a6e54;
-  --color-gray-600: #9c8b6a;
-  --color-gray-700: #c4b48f;
-  --color-gray-800: #e6dcc5;
-  --color-gray-900: #f6f0e1;
+  --color-gray-50: #0f1115;
+  --color-gray-100: #13161c;
+  --color-gray-200: #171b22;
+  --color-gray-300: #1e242e;
+  --color-gray-400: #2a3140;
+  --color-gray-500: #475569;
+  --color-gray-600: #7a8699;
+  --color-gray-700: #a8b2c3;
+  --color-gray-800: #d6dce6;
+  --color-gray-900: #f1f4f8;
 
-  --text-primary: #f0ebe0;
-  --text-secondary: #c4b48f;
-  --text-muted: #9c8b6a;
-  --text-color: #e6dcc5;
+  --text-primary: #f1f4f8;
+  --text-secondary: #a8b2c3;
+  --text-muted: #7a8699;
+  --text-color: #d6dce6;
 
   --primary-color: var(--color-primary);
 
-  --bg-body: #1a1712;
-  --bg-surface: #221e17;
-  --bg-elevated: #2a251c;
-  --bg-subtle: #1f1b14;
-  --bg-muted: #262118;
-  --bg-card: #272218;
-  --bg-hover: #332c20;
-  --bg-primary: #1a1712;
-  --bg-secondary: #1e1a13;
-  --bg-tertiary: #2e281c;
+  --bg-body: #0f1115;
+  --bg-surface: #15181f;
+  --bg-elevated: #1a1e27;
+  --bg-subtle: #12141a;
+  --bg-muted: #181c24;
+  --bg-card: #171b22;
+  --bg-hover: #20242f;
+  --bg-primary: #0f1115;
+  --bg-secondary: #13161c;
+  --bg-tertiary: #1e242e;
 
-  --gradient-primary: linear-gradient(120deg, #cf962f 0%, #e0a647 100%);
-  --gradient-secondary: linear-gradient(120deg, #3e8a62 0%, #5ca87c 100%);
-  --gradient-accent: linear-gradient(120deg, #b97f22 0%, #e8b25a 100%);
+  --gradient-primary: linear-gradient(120deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-secondary: linear-gradient(120deg, #10b981 0%, #34d399 100%);
+  --gradient-accent: linear-gradient(120deg, #4338ca 0%, #818cf8 100%);
 
-  --border-color: #3a3222;
-  --border-color-strong: #4d4431;
-  --border-hover: #635534;
+  --border-color: #222936;
+  --border-color-strong: #323a49;
+  --border-hover: #4b5563;
 
-  --product-primary-rgb: 224, 166, 71;
-  --product-secondary-rgb: 240, 192, 110;
+  --product-primary-rgb: 99, 102, 241;
+  --product-secondary-rgb: 139, 92, 246;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -291,7 +291,7 @@
 /* --------------------------------------------------------------------------
    4. SCSS VARIABLES & MIXINS (kept for page-level compatibility)
    -------------------------------------------------------------------------- */
-$body-bg-color: #f7f2e9;
+$body-bg-color: #f8fafc;
 $footer-gradient-height: 120px;
 $mobile-breakpoint: 480px;
 $tablet-breakpoint: 768px;
@@ -315,10 +315,10 @@ $spacing-xl: 2rem;
 $spacing-2xl: 3rem;
 $spacing-3xl: 4rem;
 
-$radius-sm: 10px;
-$radius-md: 14px;
-$radius-lg: 18px;
-$radius-xl: 24px;
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
+$radius-xl: 18px;
 $radius-full: 9999px;
 
 $font-xs: 0.75rem;
@@ -354,43 +354,43 @@ $success-color: var(--success-color);
 $warning-color: var(--warning-color);
 $info-color: var(--info-color);
 
-$product-primary: var(--product-primary, #c4892f);
-$product-secondary: var(--product-secondary, #d09a3e);
-$product-accent: var(--product-accent, #f8ebd4);
-$product-text: var(--product-text, #201c12);
-$product-light-bg: var(--product-light-bg, #f7f2e9);
-$product-dark-bg: var(--product-dark-bg, #1a1712);
+$product-primary: var(--product-primary, #4f46e5);
+$product-secondary: var(--product-secondary, #6366f1);
+$product-accent: var(--product-accent, #eef2ff);
+$product-text: var(--product-text, #0f172a);
+$product-light-bg: var(--product-light-bg, #f8fafc);
+$product-dark-bg: var(--product-dark-bg, #0f1115);
 $product-bg: var(--product-bg);
-$product-error: var(--product-error, #b4553f);
-$product-success: var(--product-success, #2e7d5b);
-$product-warning: var(--product-warning, #c4892f);
+$product-error: var(--product-error, #dc2626);
+$product-success: var(--product-success, #059669);
+$product-warning: var(--product-warning, #d97706);
 
 $product-shadow-xs:
-  0 1px 2px rgba(196, 137, 47, 0.05),
+  0 1px 2px rgba(79, 70, 229, 0.05),
   0 1px 1px rgba(0, 0, 0, 0.04);
 $product-shadow-sm:
-  0 1px 3px rgba(196, 137, 47, 0.07),
+  0 1px 3px rgba(79, 70, 229, 0.07),
   0 1px 2px rgba(0, 0, 0, 0.06);
 $product-shadow-md:
-  0 4px 10px rgba(196, 137, 47, 0.1),
+  0 4px 10px rgba(79, 70, 229, 0.1),
   0 2px 4px rgba(0, 0, 0, 0.08);
 $product-shadow-lg:
-  0 10px 24px rgba(196, 137, 47, 0.12),
+  0 10px 24px rgba(79, 70, 229, 0.12),
   0 4px 8px rgba(0, 0, 0, 0.1);
 $product-shadow-xl:
-  0 20px 40px rgba(196, 137, 47, 0.15),
+  0 20px 40px rgba(79, 70, 229, 0.15),
   0 10px 20px rgba(0, 0, 0, 0.08);
 $product-shadow-hover:
-  0 25px 50px rgba(196, 137, 47, 0.18),
+  0 25px 50px rgba(79, 70, 229, 0.18),
   0 12px 24px rgba(0, 0, 0, 0.1);
 $product-shadow-colored:
-  0 10px 25px rgba(196, 137, 47, 0.22),
-  0 4px 10px rgba(196, 137, 47, 0.15);
+  0 10px 25px rgba(79, 70, 229, 0.22),
+  0 4px 10px rgba(79, 70, 229, 0.15);
 
-$product-radius-sm: 10px;
-$product-radius-md: 14px;
-$product-radius-lg: 18px;
-$product-radius-xl: 24px;
+$product-radius-sm: 6px;
+$product-radius-md: 10px;
+$product-radius-lg: 14px;
+$product-radius-xl: 18px;
 $product-radius-full: 9999px;
 
 $product-spacing-xs: 0.25rem;

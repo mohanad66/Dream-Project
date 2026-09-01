@@ -1,6 +1,8 @@
-// ============================================
-// instaBrandz YouTube Shorts-style vertical feed
-// ============================================
+// =====================================================
+// instaBrandz Shorts — premium TikTok/Reels-style feed
+// Full-bleed cinematic media, glass action rail, smooth
+// snap scrolling, double-tap heart bursts. Always dark.
+// =====================================================
 
 .shorts-feed {
   position: relative;
@@ -9,8 +11,9 @@
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  background: radial-gradient(circle at 20% 20%, rgba(14, 165, 164, 0.06), transparent 40%);
+  background: #07080b;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 
   &::-webkit-scrollbar {
     display: none;
@@ -28,6 +31,21 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background: #07080b;
+  animation: shortsFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &.active {
+    z-index: 1;
+  }
+}
+
+@keyframes shortsFadeIn {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .shorts-media {
@@ -36,20 +54,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  user-select: none;
 
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #0a0e16;
-  }
-
+  img,
   video {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    background: #0a0e16;
+    object-fit: cover;
+    background: #07080b;
     cursor: pointer;
+  }
+
+  // Gentle slow zoom on images while their slide is active
+  .shorts-slide.active &,
+  &.shorts-bg-live img {
+    animation: shortsZoom 16s ease-out forwards;
   }
 
   .shorts-placeholder {
@@ -59,26 +78,27 @@
     width: 100%;
     height: 100%;
     color: rgba(255, 255, 255, 0.25);
-    background: #0a0e16;
+    background: #07080b;
   }
 
   .shorts-video-badge {
     position: absolute;
-    top: 2.2rem;
-    right: 0.9rem;
+    top: 4.6rem;
+    right: 1rem;
     z-index: 4;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 50px;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.32rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(10, 12, 16, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    backdrop-filter: blur(6px);
+    letter-spacing: 0.05em;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .shorts-video-paused {
@@ -87,23 +107,34 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 4;
-    width: 74px;
-    height: 74px;
+    width: 82px;
+    height: 82px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.45);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.9rem;
+    font-size: 2.2rem;
+    padding-left: 0.35rem;
     pointer-events: none;
+    backdrop-filter: blur(4px);
     animation: shortsPulse 0.3s ease;
+  }
+}
+
+@keyframes shortsZoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
   }
 }
 
 @keyframes shortsPulse {
   from {
-    transform: translate(-50%, -50%) scale(0.7);
+    transform: translate(-50%, -50%) scale(0.65);
     opacity: 0;
   }
   to {
@@ -119,26 +150,26 @@
 
   &.top {
     top: 0;
-    height: 20%;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
+    height: 22%;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent);
   }
 
   &.bottom {
     bottom: 0;
-    height: 45%;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.75), transparent);
+    height: 46%;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 45%, transparent);
   }
 }
 
-/* ---------- Right action rail ---------- */
+/* ---------- Right action rail (TikTok-style glass circles) ---------- */
 .shorts-rail {
   position: absolute;
-  right: 0.75rem;
-  bottom: 9rem;
+  right: 0.7rem;
+  bottom: 7.4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   z-index: 5;
 
   .shorts-seller {
@@ -148,10 +179,10 @@
     gap: 0.4rem;
 
     .shorts-seller-avatar {
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      border: 2px solid var(--color-gold);
+      border: 2px solid var(--color-gold, #818cf8);
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -168,32 +199,33 @@
     }
 
     .shorts-follow {
-      width: 24px;
-      height: 24px;
+      width: 25px;
+      height: 25px;
       border-radius: 50%;
       border: none;
-      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-      color: #13150c;
-      font-size: 0.8rem;
+      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover, #a5b4fc));
+      color: #0b0d12;
+      font-size: 0.85rem;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: transform 0.2s;
-      margin-top: -10px;
+      margin-top: -12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 
       &:hover {
-        transform: scale(1.1);
+        transform: scale(1.12);
       }
 
       &.following {
-        background: #dc2626;
+        background: #e11d48;
         color: #fff;
       }
 
       &.own {
         background: var(--color-gold);
-        color: #13150c;
+        color: #0b0d12;
         cursor: default;
       }
     }
@@ -203,47 +235,110 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.15rem;
-    background: none;
+    gap: 0.3rem;
     border: none;
+    background: none;
     color: #fff;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     cursor: pointer;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-    transition: transform 0.2s, color 0.2s;
+    transition: transform 0.18s ease;
+
+    svg {
+      width: 48px;
+      height: 48px;
+      padding: 13px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(18, 20, 26, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+    }
 
     span {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+      line-height: 1;
+      text-align: center;
     }
 
-    &:hover {
-      transform: scale(1.15);
+    &:hover svg {
+      transform: scale(1.1);
+      background: rgba(30, 33, 42, 0.65);
     }
 
-    &.like.active {
-      color: #dc2626;
+    &:active svg {
+      transform: scale(0.94);
+    }
+
+    &.like.active svg {
+      color: #ff2d55;
       animation: shortsPop 0.3s ease;
     }
 
-    &.cart {
-      color: var(--color-gold);
+    &.save.active svg {
+      color: var(--color-gold-hover, #a5b4fc);
+      animation: shortsPop 0.3s ease;
+    }
+
+    &.cart svg {
+      color: var(--color-gold, #818cf8);
     }
   }
 }
 
-@keyframes shortsPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.4); }
-  100% { transform: scale(1); }
+/* ---------- Double-tap heart burst ---------- */
+.shorts-like-burst {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 8;
+  color: #fff;
+  font-size: 5.5rem;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 24px rgba(255, 45, 85, 0.55));
+  animation: shortsBurst 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- Seller branding (top) ---------- */
+@keyframes shortsBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.25);
+    opacity: 0;
+  }
+}
+
+@keyframes shortsPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---------- Seller branding (top, glass pill) ---------- */
 .shorts-top-bar {
   position: absolute;
-  top: 1.7rem;
-  left: 1.1rem;
+  top: 1.4rem;
+  left: 1rem;
   right: 4.5rem;
   z-index: 5;
   display: flex;
@@ -254,21 +349,28 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(14, 16, 21, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  max-width: min(70vw, 300px);
   pointer-events: none;
 
   .shorts-seller-avatar {
     pointer-events: auto;
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 2px solid var(--color-gold);
+    border: 2px solid var(--color-gold, #818cf8);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     background: rgba(0, 0, 0, 0.55);
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     flex-shrink: 0;
 
     img {
@@ -281,7 +383,7 @@
   .shorts-brand-text {
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    gap: 0.05rem;
     min-width: 0;
   }
 
@@ -292,34 +394,35 @@
     pointer-events: auto;
     color: #fff;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     text-decoration: none;
-    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
-    max-width: min(56vw, 240px);
+    max-width: min(40vw, 180px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 
     &:hover {
-      color: var(--color-gold);
+      color: var(--color-gold-hover, #a5b4fc);
     }
 
     .shorts-verified {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 17px;
-      height: 17px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
-      background: var(--color-success);
+      background: #1d9bf0;
       color: #fff;
-      font-size: 0.6rem;
+      font-size: 0.58rem;
       flex-shrink: 0;
     }
   }
 
   .shorts-brand-sub {
     pointer-events: auto;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.85);
   }
 
   .shorts-inline-follow {
@@ -327,95 +430,95 @@
     align-items: center;
     gap: 0.35rem;
     padding: 0.28rem 0.9rem;
-    border-radius: 50px;
-    border: none;
-    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-    color: #13150c;
-    font-size: 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 0.74rem;
     font-weight: 700;
     cursor: pointer;
-    transition: filter 0.2s, transform 0.2s;
+    transition: background 0.18s ease, transform 0.18s ease;
 
     &:hover {
-      filter: brightness(1.08);
+      background: rgba(255, 255, 255, 0.22);
       transform: translateY(-1px);
     }
 
     &.following {
-      background: #dc2626;
+      background: #e11d48;
+      border-color: transparent;
       color: #fff;
     }
   }
 }
 
-/* ---------- Bottom info ---------- */
+/* ---------- Bottom info (gradient panel) ---------- */
 .shorts-footer {
   position: absolute;
   left: 1rem;
-  right: 5.5rem;
-  bottom: 2rem;
+  right: 1rem;
+  bottom: 1.4rem;
   z-index: 4;
   color: #fff;
-
-  .shorts-brand {
-    display: inline-block;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--color-gold);
-    text-decoration: none;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  padding-bottom: env(safe-area-inset-bottom);
 
   .shorts-rating {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    margin: 0.35rem 0;
-    font-size: 0.85rem;
+    margin: 0 0 0.45rem;
+    font-size: 0.83rem;
 
     .shorts-star.filled {
-      color: var(--color-gold);
+      color: #ffd166;
     }
 
     .shorts-star {
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.45);
     }
 
     em {
       font-style: normal;
-      font-weight: 600;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+      font-weight: 700;
     }
   }
 
   .shorts-title {
     font-family: var(--font-family-display);
-    font-size: 1.35rem;
+    font-size: 1.28rem;
     font-weight: 700;
-    margin: 0.2rem 0 0.4rem;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    line-height: 1.25;
+    margin: 0 0 0.35rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
+  .shorts-desc {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0 0 0.75rem;
+    max-width: min(78vw, 420px);
+  }
+
   .shorts-price {
     display: flex;
     align-items: baseline;
     gap: 0.6rem;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.65rem;
 
     .shorts-price-now {
       font-family: var(--font-family-display);
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--color-gold);
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-gold-hover, #a5b4fc);
     }
 
     .shorts-price-was {
@@ -428,28 +531,29 @@
   .shorts-buy-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
 
-    .shorts-price {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      margin-bottom: 0;
+    .shorts-shop-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex: 1;
+      justify-content: center;
+      background: #ffffff;
+      color: #0b0d12;
+      font-size: 0.82rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 999px;
+      padding: 0.68rem 1rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-      .shorts-price-now {
-        font-family: var(--font-family-display);
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--color-gold);
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
-      }
-
-      .shorts-price-was {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.55);
-        text-decoration: line-through;
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       }
     }
 
@@ -457,40 +561,35 @@
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.55rem 1.1rem;
-      border-radius: 50px;
-      border: none;
-      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-      color: #13150c;
+      padding: 0.68rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(18, 20, 26, 0.35);
+      color: #fff;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
       white-space: nowrap;
-      transition: filter 0.2s, transform 0.2s;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: background 0.18s ease, transform 0.18s ease;
 
       &:hover {
-        filter: brightness(1.08);
+        background: rgba(30, 33, 42, 0.55);
         transform: translateY(-1px);
       }
     }
-  }
-
-  .shorts-desc {
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: rgba(255, 255, 255, 0.85);
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin: 0;
   }
 }
 
 /* ---------- Offer slides ---------- */
 .shorts-slide--offer {
-  background: #0a0e16;
+  background: #07080b;
+
+  .shorts-media img {
+    object-fit: cover;
+    opacity: 0.55;
+  }
 
   .shorts-offer-body {
     position: relative;
@@ -500,37 +599,38 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.7rem;
     text-align: center;
     color: #fff;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
 
     .shorts-offer-chip {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.4rem 0.9rem;
-      border-radius: 50px;
-      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-      color: #13150c;
-      font-size: 0.72rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover, #a5b4fc));
+      color: #0b0d12;
+      font-size: 0.7rem;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-shadow: none;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
     }
 
     .shorts-offer-discount {
       font-family: var(--font-family-display);
-      font-size: 2.6rem;
+      font-size: 2.5rem;
       font-weight: 800;
       line-height: 1;
-      color: var(--color-gold);
-      text-shadow: 0 3px 14px rgba(0, 0, 0, 0.6);
+      color: var(--color-gold-hover, #a5b4fc);
+      text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
     }
 
     .shorts-offer-title {
       font-family: var(--font-family-display);
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       line-height: 1.2;
       margin: 0;
       color: #fff;
@@ -559,23 +659,24 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.7rem 1.6rem;
-        border-radius: 50px;
-        background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-        color: #13150c;
-        font-weight: 700;
-        font-size: 0.95rem;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #0b0d12;
+        font-weight: 800;
+        font-size: 0.92rem;
         text-decoration: none;
-        transition: filter 0.2s, transform 0.2s;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
 
         &:hover {
-          filter: brightness(1.08);
-          transform: translateY(-1px);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
         }
       }
     }
 
     .shorts-offer-brand {
-      margin-top: 0.75rem;
+      margin-top: 0.6rem;
 
       .shorts-brand-row {
         justify-content: center;
@@ -583,23 +684,23 @@
 
       .shorts-brand-name {
         color: #fff;
-        font-size: 0.9rem;
+        font-size: 0.88rem;
       }
     }
   }
 
   .shorts-rail {
     bottom: 2.5rem;
-    right: 0.75rem;
+    right: 0.7rem;
   }
 }
 
 /* ---------- Progress bars at top ---------- */
 .shorts-progress {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  right: 1rem;
+  top: 0.85rem;
+  left: 0.85rem;
+  right: 0.85rem;
   display: flex;
   gap: 4px;
   z-index: 6;
@@ -607,16 +708,17 @@
   .short-progress-bar {
     flex: 1;
     height: 3px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.3);
-    transition: background 0.3s;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    transition: background 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
 
     &.current {
-      background: var(--color-gold);
+      background: linear-gradient(90deg, var(--color-gold, #818cf8), var(--color-gold-hover, #a5b4fc));
     }
 
     &.done {
-      background: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.5);
     }
   }
 }
@@ -633,25 +735,34 @@
   justify-content: center;
   gap: 1rem;
   color: #fff;
+  background: linear-gradient(160deg, #151823 0%, #0b0d12 60%);
+  text-align: center;
+  padding: 2rem;
 
   h3 {
     font-family: var(--font-family-display);
     font-size: 1.4rem;
+    margin: 0;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
   }
 
   .shorts-end-btn {
-    padding: 0.75rem 2rem;
-    border-radius: 24px;
+    padding: 0.8rem 2.2rem;
+    border-radius: 999px;
     border: none;
-    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-    color: #13150c;
-    font-weight: 700;
+    background: linear-gradient(135deg, var(--color-gold, #818cf8), var(--color-gold-hover, #a5b4fc));
+    color: #0b0d12;
+    font-weight: 800;
     cursor: pointer;
-    transition: filter 0.2s, transform 0.2s;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
 
     &:hover {
-      filter: brightness(1.06);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
     }
   }
 }
@@ -659,25 +770,29 @@
 /* ---------- Right nav dots ---------- */
 .shorts-nav-dots {
   position: absolute;
-  right: 0.4rem;
+  right: 0.32rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   z-index: 6;
 
   span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.35);
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.4);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.75);
+    }
 
     &.active {
-      background: var(--color-gold);
-      transform: scale(1.3);
+      height: 20px;
+      background: var(--color-gold-hover, #a5b4fc);
     }
   }
 }
@@ -689,19 +804,20 @@
   z-index: 20;
   display: flex;
   align-items: flex-end;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   animation: shortsFade 0.2s ease;
 }
 
 .shorts-comments-sheet {
   width: 100%;
-  max-height: 60%;
-  background: var(--bg-card, #14181f);
-  border-radius: 20px 20px 0 0;
+  max-height: 62%;
+  background: var(--bg-card, #171b22);
+  border-radius: 22px 22px 0 0;
   display: flex;
   flex-direction: column;
   padding: 1rem 1.25rem;
-  animation: shortsSlideUp 0.25s ease;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+  animation: shortsSlideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 
   .shorts-comments-head {
     display: flex;
@@ -720,6 +836,10 @@
       color: var(--text-secondary);
       font-size: 1.1rem;
       cursor: pointer;
+
+      &:hover {
+        color: var(--text-primary);
+      }
     }
   }
 
@@ -765,8 +885,8 @@
     .shorts-comment-body {
       flex: 1;
       background: var(--bg-muted);
-      border-radius: 12px;
-      padding: 0.5rem 0.75rem;
+      border-radius: 14px;
+      padding: 0.5rem 0.8rem;
 
       strong {
         font-size: 0.85rem;
@@ -805,8 +925,8 @@
 
     input {
       flex: 1;
-      padding: 0.65rem 1rem;
-      border-radius: 24px;
+      padding: 0.65rem 1.1rem;
+      border-radius: 999px;
       border: 1px solid var(--border-color);
       background: var(--bg-elevated);
       color: var(--text-primary);
@@ -814,20 +934,26 @@
       &:focus {
         outline: none;
         border-color: var(--color-gold);
+        box-shadow: 0 0 0 3px var(--color-gold-alpha);
       }
     }
 
     button {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
       border: none;
       background: linear-gradient(135deg, var(--color-gold), var(--color-gold-hover));
-      color: #13150c;
+      color: #0b0d12;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.06);
+      }
     }
   }
 }
@@ -850,48 +976,37 @@
   }
 }
 
-@media (max-width: 768px) {
-  .shorts-rail {
-    right: 0.5rem;
-    bottom: 8rem;
-  }
-
-  .shorts-footer {
-    left: 0.75rem;
-    right: 4.75rem;
-    bottom: 1.5rem;
-  }
-}
-
-/* ---------- Mute, progress, unavailable, shop-now, save ---------- */
+/* ---------- Mute / video progress / unavailable ---------- */
 .shorts-mute-btn {
   position: absolute;
-  bottom: 2.6rem;
-  right: 0.9rem;
+  bottom: 1.4rem;
+  right: 1rem;
   z-index: 12;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(14, 16, 21, 0.45);
   color: #fff;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: background 0.15s ease, transform 0.15s ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(30, 33, 42, 0.65);
     transform: scale(1.05);
   }
 }
 
 .shorts-video-progress {
   position: absolute;
-  left: 0.9rem;
-  right: 0.9rem;
-  bottom: 2.15rem;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 1.15rem;
   z-index: 12;
   height: 3px;
   border-radius: 999px;
@@ -903,7 +1018,8 @@
     display: block;
     height: 100%;
     border-radius: 999px;
-    background: #fff;
+    background: #ffffff;
+    transition: width 0.1s linear;
   }
 }
 
@@ -922,6 +1038,7 @@
   font-weight: 600;
   padding: 0.4rem 0.9rem;
   border-radius: 999px;
+  backdrop-filter: blur(6px);
 }
 
 .shorts-shop-btn {
@@ -929,12 +1046,12 @@
   align-items: center;
   gap: 0.45rem;
   background: #fff;
-  color: #c4892f;
+  color: var(--color-brand, #4f46e5);
   font-size: 0.8rem;
   font-weight: 800;
   border: none;
   border-radius: 999px;
-  padding: 0.62rem 1.1rem;
+  padding: 0.6rem 1rem;
   text-decoration: none;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -947,7 +1064,30 @@
 
 .shorts-rail-btn.save {
   &.active {
-    background: var(--color-danger, #d9534f);
+    background: var(--color-gold, #818cf8);
     color: #fff;
+  }
+}
+
+@media (max-width: 768px) {
+  .shorts-rail {
+    right: 0.5rem;
+    bottom: 7rem;
+  }
+
+  .shorts-footer {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 1.1rem;
+  }
+
+  .shorts-buy-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .shorts-shop-btn,
+    .shorts-buy-btn {
+      width: 100%;
+    }
   }
 }

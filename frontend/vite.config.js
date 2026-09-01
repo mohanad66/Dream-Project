@@ -14,7 +14,7 @@ export default defineConfig({
         start_url: "/",
         display: "standalone",
         background_color: "#ffffff",
-        theme_color: "#c4892f",
+        theme_color: "#4f46e5",
         orientation: "portrait-primary",
         categories: ["shopping", "business"],
         icons: [

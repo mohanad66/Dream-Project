@@ -48,8 +48,19 @@ export default function ShortsFeed({
   const [progress, setProgress] = useState({});
   const [wishlistStates, setWishlistStates] = useState({});
   const [videoBroken, setVideoBroken] = useState({});
+  const [burst, setBurst] = useState(null);
   const containerRef = useRef(null);
   const videoRefs = useRef({});
+  const lastTapRef = useRef(0);
+  const tapTimerRef = useRef(null);
+  const burstTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(tapTimerRef.current);
+      clearTimeout(burstTimerRef.current);
+    };
+  }, []);
 
   const isLoggedIn = () => {
     const access = localStorage.getItem(ACCESS_TOKEN);
@@ -226,6 +237,26 @@ export default function ShortsFeed({
     }
   };
 
+  // TikTok-style double-tap: show a heart burst and like, without pausing.
+  const triggerLike = (product) => {
+    setBurst(product.id);
+    clearTimeout(burstTimerRef.current);
+    burstTimerRef.current = setTimeout(() => setBurst(null), 800);
+    if (isLoggedIn()) toggleLike(product);
+  };
+
+  // Distinguish single-tap (pause/play) from double-tap (like).
+  const handleMediaTap = (product, index) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 280) {
+      clearTimeout(tapTimerRef.current);
+      triggerLike(product);
+      return;
+    }
+    lastTapRef.current = now;
+    tapTimerRef.current = setTimeout(() => toggleVideo(product, index), 280);
+  };
+
   const toggleComments = async (product) => {
     const nextOpen = commentOpenId === product.id ? null : product.id;
     setCommentOpenId(nextOpen);
@@ -352,7 +383,7 @@ export default function ShortsFeed({
     const bg = imagesList[0];
 
     return (
-      <div className="shorts-slide shorts-slide--offer" key={`offer-${offer.id}`}>
+      <div className={`shorts-slide shorts-slide--offer ${index === activeIndex ? "active" : ""}`} key={`offer-${offer.id}`}>
         <div className="shorts-media">
           {bg ? (
             <img src={bg} alt={offer.title} loading={index > 1 ? "lazy" : "eager"} decoding="async" />
@@ -419,8 +450,8 @@ export default function ShortsFeed({
     const isSale = product.effective_price && effective < original;
 
     return (
-      <div className="shorts-slide" key={product.id}>
-        <div className="shorts-media" onClick={() => toggleVideo(product, index)}>
+      <div className={`shorts-slide ${index === activeIndex ? "active" : ""}`} key={product.id}>
+        <div className="shorts-media" onClick={() => handleMediaTap(product, index)}>
           {useVideo && !videoBroken[product.id] ? (
             <video
               ref={(el) => { videoRefs.current[product.id] = el; }}
@@ -476,6 +507,13 @@ export default function ShortsFeed({
         </div>
         <div className="shorts-gradient top" />
         <div className="shorts-gradient bottom" />
+
+        {/* Double-tap heart burst */}
+        {burst === product.id && (
+          <div className="shorts-like-burst">
+            <FaHeart />
+          </div>
+        )}
 
         {/* Seller branding */}
         <div className="shorts-top-bar">
