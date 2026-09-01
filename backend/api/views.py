@@ -1298,6 +1298,22 @@ class SellerProductViewSet(CacheInvalidateMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
         )
  
+    def create(self, request, *args, **kwargs):
+        # Media/storage backends (e.g. Cloudinary) raise exceptions when the
+        # incoming thumbnail/video can't be processed (empty file, corrupt
+        # image, wrong bytes). Surface those as a clean 400 instead of a 500.
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception as exc:
+            logger.error(f"Seller product create failed: {exc}", exc_info=True)
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError(
+                {
+                    "detail": "Your thumbnail image couldn't be processed (it may be empty or corrupted). "
+                    "Please upload a valid JPG/PNG image and try again."
+                }
+            ) from exc
+
     def perform_create(self, serializer):
         # seller is forced server-side — a seller can never set it via the
         # request body, since ProductSerializer already marks it read_only.

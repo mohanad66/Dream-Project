@@ -121,19 +121,64 @@ export default function Upload() {
 
   const capturePoster = (el) => {
     if (autoPosterUrl) URL.revokeObjectURL(autoPosterUrl);
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = el.videoWidth;
-      canvas.height = el.videoHeight;
-      canvas.getContext("2d").drawImage(el, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (blob) {
-          setAutoPosterUrl(URL.createObjectURL(blob));
-          setAutoPoster(new File([blob], "poster.jpg", { type: "image/jpeg" }));
-        }
-      }, "image/jpeg", 0.85);
-    } catch (e) {
-      setAutoPoster(null);
+    setAutoPosterUrl("");
+    setAutoPoster(null);
+    if (!el || !el.videoWidth || !el.videoHeight) return;
+
+    const draw = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.min(el.videoWidth, 1920);
+        canvas.height = Math.round((canvas.width / el.videoWidth) * el.videoHeight);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(el, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob && blob.size > 0) {
+            setAutoPosterUrl(URL.createObjectURL(blob));
+            setAutoPoster(new File([blob], "poster.jpg", { type: "image/jpeg" }));
+            return;
+          }
+          // Fallback: some browsers return an empty blob for a video frame
+          // captured before it has decoded — re-encode via data URL instead.
+          try {
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            const bytes = Uint8Array.from(atob(dataUrl.split(",")[1]), (c) => c.charCodeAt(0));
+            const file = new File([bytes], "poster.jpg", { type: "image/jpeg" });
+            if (file.size > 0) {
+              setAutoPosterUrl(URL.createObjectURL(file));
+              setAutoPoster(file);
+            }
+          } catch (_) {
+            /* leave autoPoster null — user can pick an image */
+          }
+        }, "image/jpeg", 0.85);
+      } catch (_) {
+        /* leave autoPoster null — user can pick an image */
+      }
+    };
+
+    // Wait for an actual decoded frame before drawing, otherwise the canvas
+    // captures a blank/empty frame (which Cloudinary rejects as an invalid
+    // image). requestVideoFrameCallback -> fallback to a tiny seek + seeked.
+    if (typeof el.requestVideoFrameCallback === "function") {
+      el.requestVideoFrameCallback(() => {
+        try { el.pause(); } catch (_) {}
+        draw();
+      });
+    } else {
+      const onSeek = () => {
+        el.removeEventListener("seeked", onSeek);
+        draw();
+      };
+      el.addEventListener("seeked", onSeek);
+      try {
+        el.currentTime = 0.01;
+        if (el.readyState >= 2) el.removeEventListener("seeked", onSeek);
+      } catch (_) {
+        el.removeEventListener("seeked", onSeek);
+        draw();
+      }
     }
   };
 
@@ -212,6 +257,15 @@ const clearVideo = () => {
       return;
     }
 
+    const poster = posterFile && posterFile.size > 0 ? posterFile : autoPoster && autoPoster.size > 0 ? autoPoster : null;
+    if (!poster) {
+      setErrors([
+        "No usable thumbnail yet — choose an image or let the auto-capture from your video finish first (or re-pick the video).",
+      ]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     setUploading(true);
     setProgress(0);
     try {
@@ -221,8 +275,7 @@ const clearVideo = () => {
       formData.append("price", parseFloat(form.price));
       formData.append("category", form.category);
       formData.append("video", video);
-      const poster = posterFile || autoPoster;
-      if (poster) formData.append("image", poster);
+      formData.append("image", poster);
       form.selectedTags.forEach((id) => formData.append("tags", id));
 
       const res = await api.post("/api/sellers/products/", formData, {
