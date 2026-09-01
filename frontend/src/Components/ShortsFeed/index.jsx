@@ -15,7 +15,7 @@ import {
   FaPlus,
   FaPlay,
   FaPercent,
-  FaEye,
+  FaStore,
   FaBookmark,
   FaRegBookmark,
   FaVolumeMute,
@@ -417,11 +417,11 @@ export default function ShortsFeed({
           <h2 className="shorts-offer-title">{offer.title}</h2>
           {offer.description && <p className="shorts-offer-desc">{offer.description}</p>}
           {offer.original_price != null && (
-            <p className="shorts-offer-price">From {offer.original_price} L.E</p>
+            <p className="shorts-offer-price">From {Number(offer.original_price).toFixed(2)} L.E</p>
           )}
           <div className="shorts-offer-actions">
-            <Link to={offer.product ? `/products?focus=${offer.product}` : "/products"} className="shorts-offer-cta">
-              Shop the deal <FaEye />
+            <Link to={offer.seller ? `/seller/${offer.seller}` : "/sellers"} className="shorts-offer-cta">
+              Visit Store <FaStore />
             </Link>
           </div>
           <div className="shorts-offer-brand">
